@@ -40,8 +40,7 @@ function NotificationCard({ notification }) {
   }
 };
 
-const navigate = useNavigate();
-
+const navigate = useNavigate();
   return (
     <div
   onClick={handleClick}
