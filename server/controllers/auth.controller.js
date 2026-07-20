@@ -105,7 +105,6 @@ export const logoutUser = (req, res) => {
     sameSite: "lax",
     secure: false, // true after deployment with HTTPS
   });
-
   res.status(200).json({
     success: true,
     message: "Logged out successfully",
