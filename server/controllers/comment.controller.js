@@ -142,7 +142,7 @@ export const deleteComment = async (req, res) => {
       });
     }
 
-    // 👇 NEW
+    // NEW
     const isCommentOwner =
       comment.user.toString() === req.user._id.toString();
 
