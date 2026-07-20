@@ -55,7 +55,6 @@ export const createChat = async (req, res) => {
       otherUserId,
       res
     );
-
   } catch (error) {
     res.status(500).json({
       success: false,
