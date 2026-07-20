@@ -132,7 +132,7 @@ export const deleteComment = async (req, res) => {
       });
     }
 
-    // 👇 NEW
+    // NEW
     const post = await Post.findById(comment.post);
 
     if (!post) {
