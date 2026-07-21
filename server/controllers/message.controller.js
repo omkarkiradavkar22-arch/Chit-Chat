@@ -298,7 +298,6 @@ if (receiver) {
     seenBy: req.user._id,
   });
 }
-
     res.status(200).json({
       success: true,
       message: "Messages marked as seen",
