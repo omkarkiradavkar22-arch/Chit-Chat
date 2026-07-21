@@ -15,7 +15,6 @@ const uploadToCloudinary = (buffer) => {
         resolve(result);
       }
     );
-
     streamifier.createReadStream(buffer).pipe(stream);
   });
 };
