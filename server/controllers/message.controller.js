@@ -72,12 +72,9 @@ export const sendMessage = async (req, res) => {
   delivered: true,
   seenBy: [req.user._id],
 });
-
     chat.lastMessage = message._id;
 
     await chat.save();
-
-
 const receiver = chat.participants.find(
   (id) => id.toString() !== req.user._id.toString()
 );
