@@ -3,21 +3,40 @@ import Notification from "../models/Notification.js";
 export const getNotifications = async (req, res) => {
   try {
     const notifications = await Notification.find({
-      receiver: req.user._id,
-    })
-      .populate("sender", "name username profilePic")
-      .populate("post", "images description")
+  receiver: req.user._id,
+})
+.populate("sender", "name username profilePic followers")
+.populate("post", "images description")
 .populate("comment", "text")
-      .sort({ createdAt: -1 });
+.sort({ createdAt: -1 });
+
+const updatedNotifications = notifications.map((n) => {
+  const obj = n.toObject();
+
+  obj.isFollowing = n.sender.followers.some(
+    (id) => id.toString() === req.user._id.toString()
+  );
+
+  return obj;
+});
 
     const unreadCount = notifications.filter(
       (n) => !n.isRead
     ).length;
 
+    console.log(
+  updatedNotifications.map((n) => ({
+    type: n.type,
+    status: n.status,
+    isFollowing: n.isFollowing,
+    sender: n.sender.username,
+  }))
+);
+
     res.status(200).json({
       success: true,
       unreadCount,
-      notifications,
+      notifications: updatedNotifications,
     });
 
   } catch (error) {
