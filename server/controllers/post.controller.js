@@ -1,4 +1,4 @@
-import Post from "../models/post.js";
+import Post from "../models/Post.js";
 import User from "../models/User.js";
 import cloudinary from "../config/cloudinary.js";
 import streamifier from "streamifier";
