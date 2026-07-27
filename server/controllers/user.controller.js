@@ -1,6 +1,7 @@
 import User from "../models/User.js";
 import cloudinary from "../config/cloudinary.js";
 import streamifier from "streamifier";
+import Notification from "../models/Notification.js";
 
 export const updateProfile = async (req, res) => {
   try {
@@ -94,13 +95,13 @@ export const getUserProfile = async (req, res) => {
     const { username } = req.params;
     const currentUser = await User.findById(req.user._id);
     const user = await User.findOne({ username })
-      .select("-password")
-      .populate("followers", "name username profilePic")
-      .populate("following", "name username profilePic")
-      .populate({
+  .select("-password")
+  .populate("followers", "name username profilePic followRequests")
+  .populate("following", "name username profilePic followRequests")
+  .populate({
     path: "posts",
     options: { sort: { createdAt: -1 } },
-  })
+  });
 
     if (!user) {
       return res.status(404).json({
@@ -108,6 +109,32 @@ export const getUserProfile = async (req, res) => {
         message: "User not found",
       });
     }
+
+const followers = user.followers.map((follower) => ({
+  _id: follower._id,
+  name: follower.name,
+  username: follower.username,
+  profilePic: follower.profilePic,
+  isFollowing: currentUser.following.some(
+    (id) => id.toString() === follower._id.toString()
+  ),
+  isRequested: (follower.followRequests || []).some(
+    (id) => id.toString() === currentUser._id.toString()
+  ),
+}));
+
+const following = user.following.map((followingUser) => ({
+  _id: followingUser._id,
+  name: followingUser.name,
+  username: followingUser.username,
+  profilePic: followingUser.profilePic,
+  isFollowing: currentUser.following.some(
+    (id) => id.toString() === followingUser._id.toString()
+  ),
+  isRequested: (followingUser.followRequests || []).some(
+    (id) => id.toString() === currentUser._id.toString()
+  ),
+}));
 
     const isFollowing = currentUser.following.some(
   (id) => id.toString() === user._id.toString()
@@ -121,9 +148,13 @@ const followsMe = user.following.some(
   (id) => id.toString() === currentUser._id.toString()
 );
 
+const userResponse = user.toObject();
+userResponse.followers = followers;
+userResponse.following = following;
+
 res.status(200).json({
   success: true,
-  user,
+  user: userResponse,
   relationship: {
     isMe: currentUser._id.toString() === user._id.toString(),
     isFollowing,
@@ -180,6 +211,21 @@ export const followUser = async (req, res) => {
 
       await userToFollow.save();
 
+      const existingNotification = await Notification.findOne({
+  sender: currentUser._id,
+  receiver: userToFollow._id,
+  type: "follow_request",
+  status: "pending",
+});
+
+if (!existingNotification) {
+  await Notification.create({
+    sender: currentUser._id,
+    receiver: userToFollow._id,
+    type: "follow_request",
+  });
+}
+
       return res.status(200).json({
         success: true,
         message: "Follow request sent successfully",
@@ -189,6 +235,12 @@ export const followUser = async (req, res) => {
     // 🌍 Public Account
     currentUser.following.push(userToFollow._id);
     userToFollow.followers.push(currentUser._id);
+
+    await Notification.create({
+  sender: currentUser._id,
+  receiver: userToFollow._id,
+  type: "follow",
+});
 
     await currentUser.save();
     await userToFollow.save();
@@ -365,6 +417,28 @@ export const acceptFollowRequest = async (req, res) => {
     await currentUser.save();
     await requester.save();
 
+    
+    const updatedNotification = await Notification.updateMany(
+  {
+    sender: requester._id,
+    receiver: currentUser._id,
+    type: "follow_request",
+  },
+  {
+    $set: {
+      status: "accepted",
+    },
+  }
+);
+
+console.log("Updated Notification:", updatedNotification);
+
+    await Notification.create({
+  sender: currentUser._id,
+  receiver: requester._id,
+  type: "follow_accept",
+  });
+    
     res.status(200).json({
       success: true,
       message: "Follow request accepted",
@@ -377,6 +451,7 @@ export const acceptFollowRequest = async (req, res) => {
     });
   }
 };
+
 
 export const rejectFollowRequest = async (req, res) => {
   try {
