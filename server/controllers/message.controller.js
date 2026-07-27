@@ -15,6 +15,7 @@ const uploadToCloudinary = (buffer) => {
         resolve(result);
       }
     );
+
     streamifier.createReadStream(buffer).pipe(stream);
   });
 };
@@ -24,6 +25,13 @@ export const sendMessage = async (req, res) => {
     const { text, replyTo } = req.body;
 
     const chat = await Chat.findById(req.params.chatId);
+
+    if (chat.isBlocked) {
+  return res.status(403).json({
+    success: false,
+    message: "This chat is blocked",
+  });
+}
 
     if (!chat) {
       return res.status(404).json({
@@ -71,9 +79,12 @@ export const sendMessage = async (req, res) => {
   delivered: true,
   seenBy: [req.user._id],
 });
+
     chat.lastMessage = message._id;
 
     await chat.save();
+
+
 const receiver = chat.participants.find(
   (id) => id.toString() !== req.user._id.toString()
 );
@@ -245,9 +256,25 @@ export const deleteForEveryone = async (req, res) => {
     }
 
     message.deletedForEveryone = true;
-    message.text = "";
-    message.image = {};
+message.text = "This message was deleted";
+message.image = {};
+message.audio = {};
+message.replyTo = null;
 
+await message.save();
+
+const updatedMessage = await Message.findById(message._id)
+  .populate("sender", "name username profilePic");
+
+io.to(message.chat.toString()).emit(
+  "messageDeleted",
+  updatedMessage
+);
+
+res.status(200).json({
+  success: true,
+  message: updatedMessage,
+});
     await message.save();
 
     res.status(200).json({
@@ -297,9 +324,53 @@ if (receiver) {
     seenBy: req.user._id,
   });
 }
+
     res.status(200).json({
       success: true,
       message: "Messages marked as seen",
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const reactToMessage = async (req, res) => {
+  try {
+    const { emoji } = req.body;
+
+    const message = await Message.findById(req.params.messageId);
+
+    if (!message) {
+      return res.status(404).json({
+        success: false,
+        message: "Message not found",
+      });
+    }
+
+    // Remove old reaction from same user
+    message.reactions = message.reactions.filter(
+      (reaction) =>
+        reaction.user.toString() !== req.user._id.toString()
+    );
+
+    // Add new reaction
+    message.reactions.push({
+      user: req.user._id,
+      emoji,
+    });
+
+    await message.save();
+
+    const updatedMessage = await Message.findById(message._id)
+      .populate("sender", "name username profilePic");
+
+    res.status(200).json({
+      success: true,
+      message: updatedMessage,
     });
 
   } catch (error) {
