@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import Layout from "../components/layouts/Layout";
-import NotificationCard from "../components/notifications/NotificationCard";
+import NotificationCard from "../components/Notifications/NotificationCard";
 import api from "../services/api";
 import { toast } from "react-hot-toast";
 
