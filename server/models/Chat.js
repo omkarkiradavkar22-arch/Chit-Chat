@@ -15,6 +15,11 @@ const chatSchema = new mongoose.Schema(
       ref: "Message",
       default: null,
     },
+    pinnedMessage: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "Message",
+  default: null,
+},
 
     isBlocked: {
   type: Boolean,
