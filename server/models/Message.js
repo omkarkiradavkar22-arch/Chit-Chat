@@ -47,6 +47,18 @@ replyTo: {
       },
     ],
 
+    reactions: [
+  {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+    emoji: {
+      type: String,
+    },
+  },
+],
+
     isEdited: {
       type: Boolean,
       default: false,
