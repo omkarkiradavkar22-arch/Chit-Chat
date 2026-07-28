@@ -1,8 +1,6 @@
 const sendToken = (user, statusCode, res) => {
   const token = user.generateToken();
 
-  const isProduction = process.env.NODE_ENV === "production";
-
   const options = {
   httpOnly: true,
   secure: true,
