@@ -16,9 +16,22 @@ const notificationSchema = new mongoose.Schema(
 
     type: {
       type: String,
-      enum: ["like", "comment", "follow", "follow_request"],
+      enum: [
+        "follow",
+        "follow_request",
+        "follow_accept",
+        "like",
+        "comment",
+        "message",
+      ],
       required: true,
     },
+
+    status: {
+  type: String,
+  enum: ["pending", "accepted", "rejected"],
+  default: "pending",
+},
 
     post: {
       type: mongoose.Schema.Types.ObjectId,
