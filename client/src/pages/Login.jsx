@@ -35,6 +35,9 @@ function Login() {
       const { data } = await api.post("/auth/login", formData);
 
       if (data.success) {
+        // Save token for cross-domain auth (Authorization header fallback)
+        localStorage.setItem("token", data.token);
+
         // Load logged-in user
         await loadUser();
 
