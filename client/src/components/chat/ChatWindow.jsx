@@ -7,11 +7,13 @@ import { useSocket } from "../../context/SocketContext";
 import { useAuth } from "../../context/AuthContext";
 import TypingIndicator from "./TypingIndicator";
 import ChatHeader from "./ChatHeader";
+
 function ChatWindow({
   chatId,
   otherUser,
   onlineUsers,
 }) {
+  const [chatInfo, setChatInfo] = useState(null);
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -50,6 +52,8 @@ const [typingUser, setTypingUser] = useState("");
       );
 
       setMessages(data.messages);
+
+      await refreshChatInfo();
 
       await api.put(`/messages/${chatId}/seen`);
     } catch (error) {
@@ -107,6 +111,26 @@ useEffect(() => {
   };
 }, [socket, user]);
 
+useEffect(() => {
+  if (!socket) return;
+
+  const handleMessageDeleted = (updatedMessage) => {
+    setMessages((prev) =>
+      prev.map((msg) =>
+        msg._id === updatedMessage._id
+          ? updatedMessage
+          : msg
+      )
+    );
+  };
+
+  socket.on("messageDeleted", handleMessageDeleted);
+
+  return () => {
+    socket.off("messageDeleted", handleMessageDeleted);
+  };
+}, [socket]);
+
   const handleMessageSent = (message) => {
     setMessages((prev) => [...prev, message]);
   };
@@ -119,8 +143,92 @@ useEffect(() => {
     );
   }
 
+  const refreshChatInfo = async () => {
+  const chatRes = await api.get("/chat");
+
+  const currentChat = chatRes.data.chats.find(
+    (c) => c._id === chatId
+  );
+
+  setChatInfo(currentChat);
+};
+
   return (
+
+    
     <div className="flex flex-col flex-1 h-[calc(100vh-64px)] bg-gray-100">
+
+       <ChatHeader
+  otherUser={otherUser}
+  onlineUsers={onlineUsers}
+  chatInfo={chatInfo}
+  setChatInfo={setChatInfo}
+  chatId={chatId}
+  refreshChatInfo={refreshChatInfo}
+/>
+
+{chatInfo?.pinnedMessage && (
+  <div className="bg-yellow-50 border-b px-4 py-2 flex items-center justify-between">
+
+    <div>
+      <p className="text-xs text-gray-500">
+        📌 Pinned Message
+      </p>
+
+      <p className="text-sm font-medium truncate">
+        {chatInfo.pinnedMessage.text}
+      </p>
+    </div>
+
+    <button
+      onClick={async () => {
+        await api.post(`/chat/${chatId}/unpin`);
+
+        setChatInfo({
+          ...chatInfo,
+          pinnedMessage: null,
+        });
+
+        toast.success("Message unpinned");
+      }}
+      className="text-red-500 text-sm"
+    >
+      Unpin
+    </button>
+
+  </div>
+)}
+
+{chatInfo?.isBlocked && (
+  <div className="bg-red-100 border-b border-red-300 p-3 flex justify-between items-center">
+
+    <span className="text-red-700 font-medium">
+      {chatInfo.blockedBy === user._id
+        ? "🚫 You blocked this user"
+        : "🚫 You have been blocked"}
+    </span>
+
+    {chatInfo.blockedBy === user._id && (
+      <button
+        onClick={async () => {
+          await api.post(`/chat/${chatId}/unblock`);
+
+          setChatInfo({
+            ...chatInfo,
+            isBlocked: false,
+            blockedBy: null,
+          });
+
+          toast.success("User unblocked");
+        }}
+        className="bg-blue-600 text-white px-3 py-1 rounded"
+      >
+        Unblock
+      </button>
+    )}
+
+  </div>
+)}
 
       {/* Messages */}
 
@@ -137,9 +245,38 @@ useEffect(() => {
         ) : (
           messages.map((message) => (
             <MessageBubble
+  refreshChatInfo={refreshChatInfo}
   key={message._id}
-  message={message}
+  message={message} 
+  chatId={chatId}
+  onPin={(updatedChat)=>{
+    setChatInfo(updatedChat);
+  }}
+
   onReply={() => setReplyMessage(message)}
+  onDelete={(id) =>
+    setMessages((prev) =>
+      prev.filter((msg) => msg._id !== id)
+    )
+  }
+  onEdit={(updatedMessage) =>
+    setMessages((prev) =>
+      prev.map((msg) =>
+        msg._id === updatedMessage._id
+          ? updatedMessage
+          : msg
+      )
+    )
+  }
+  onReaction={(updatedMessage) =>
+    setMessages((prev) =>
+      prev.map((msg) =>
+        msg._id === updatedMessage._id
+          ? updatedMessage
+          : msg
+      )
+    )
+  }
 />
           ))
         )}
@@ -151,19 +288,18 @@ useEffect(() => {
       <TypingIndicator typingUser={typingUser} />
 
       {/* Input */}
-      <ChatHeader
-    otherUser={otherUser}
-    onlineUsers={onlineUsers}
-/>
+     
 
-      <MessageInput
-  chatId={chatId}
-  receiverId={receiverId}
-  senderId={user._id}
-  replyMessage={replyMessage}
-  setReplyMessage={setReplyMessage}
-  onMessageSent={handleMessageSent}
+      {!chatInfo?.isBlocked ? (
+<MessageInput
+    chatId={chatId}
+    receiverId={receiverId}
+    senderId={user._id}
+    replyMessage={replyMessage}
+    setReplyMessage={setReplyMessage}
+    onMessageSent={handleMessageSent}
 />
+) : null}
 
     </div>
   );
