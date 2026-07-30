@@ -249,12 +249,12 @@ useEffect(() => {
 />
 
           <button
-  onClick={addComment}
-  disabled={loading}
-  className="bg-blue-600 text-white px-5 rounded-lg disabled:opacity-50"
->
-  {loading ? "Posting..." : "Post"}
-</button>
+            onClick={addComment}
+            disabled={loading}
+            className="bg-blue-600 text-white px-5 rounded-lg disabled:opacity-50"
+          >
+            {loading ? "Posting..." : "Post"}
+          </button>
         </div>
 
       </div>
