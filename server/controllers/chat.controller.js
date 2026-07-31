@@ -138,6 +138,7 @@ export const getMyChats = async (req, res) => {
   isBlocked: chat.isBlocked,
   blockedBy: chat.blockedBy,
   pinnedMessage: chat.pinnedMessage,
+  disappearingMessages: chat.disappearingMessages,
 };
   })
 );
@@ -320,6 +321,211 @@ export const unblockChat = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "User unblocked successfully",
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const setDisappearingMessages = async (req, res) => {
+  try {
+    const { chatId } = req.params;
+    const { duration } = req.body;
+
+    const chat = await Chat.findById(chatId);
+
+    if (!chat) {
+      return res.status(404).json({
+        success: false,
+        message: "Chat not found",
+      });
+    }
+
+    // Check participant
+    const isParticipant = chat.participants.some(
+      (id) => id.toString() === req.user._id.toString()
+    );
+
+    if (!isParticipant) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    // Turn OFF
+    if (duration === null || duration === 0) {
+      chat.disappearingMessages.enabled = false;
+      chat.disappearingMessages.duration = null;
+
+      await chat.save();
+
+      return res.status(200).json({
+        success: true,
+        message: "Disappearing messages turned off",
+        disappearingMessages: chat.disappearingMessages,
+      });
+    }
+
+    // Allowed durations
+    const allowedDurations = [
+      24 * 60 * 60,          // 24 hours
+      7 * 24 * 60 * 60,      // 7 days
+      90 * 24 * 60 * 60,     // 90 days
+    ];
+
+    if (!allowedDurations.includes(duration)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid disappearing message duration",
+      });
+    }
+
+    chat.disappearingMessages.enabled = true;
+    chat.disappearingMessages.duration = duration;
+
+    await chat.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Disappearing messages updated",
+      disappearingMessages: chat.disappearingMessages,
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const startLiveLocation = async (req, res) => {
+  try {
+    const { chatId } = req.params;
+    const { latitude, longitude, duration } = req.body;
+
+    if (
+      latitude === undefined ||
+      longitude === undefined
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Latitude and longitude are required",
+      });
+    }
+
+    const chat = await Chat.findById(chatId);
+
+    if (!chat) {
+      return res.status(404).json({
+        success: false,
+        message: "Chat not found",
+      });
+    }
+
+    // User must be participant
+    if (
+      !chat.participants.some(
+        (id) =>
+          id.toString() === req.user._id.toString()
+      )
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    // Duration in seconds
+    // Default = 1 hour
+    const durationInSeconds =
+      Number(duration) || 60 * 60;
+
+    const startedAt = new Date();
+
+    const expiresAt = new Date(
+      Date.now() + durationInSeconds * 1000
+    );
+
+    chat.liveLocation = {
+      active: true,
+      sharedBy: req.user._id,
+      latitude: Number(latitude),
+      longitude: Number(longitude),
+      startedAt,
+      expiresAt,
+    };
+
+    await chat.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Live location started",
+      liveLocation: chat.liveLocation,
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+
+export const stopLiveLocation = async (req, res) => {
+  try {
+    const { chatId } = req.params;
+
+    const chat = await Chat.findById(chatId);
+
+    if (!chat) {
+      return res.status(404).json({
+        success: false,
+        message: "Chat not found",
+      });
+    }
+
+    if (
+      !chat.participants.some(
+        (id) =>
+          id.toString() === req.user._id.toString()
+      )
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    // Only person who started sharing can stop it
+    if (
+      chat.liveLocation?.sharedBy?.toString() !==
+      req.user._id.toString()
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "Only the person sharing can stop live location",
+      });
+    }
+
+    chat.liveLocation.active = false;
+    chat.liveLocation.sharedBy = null;
+    chat.liveLocation.latitude = null;
+    chat.liveLocation.longitude = null;
+    chat.liveLocation.startedAt = null;
+    chat.liveLocation.expiresAt = null;
+
+    await chat.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Live location stopped",
     });
 
   } catch (error) {
