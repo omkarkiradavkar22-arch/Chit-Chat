@@ -4,6 +4,7 @@ import upload from "../middleware/upload.middleware.js";
 import {
   createPost,
   getFeedPosts,
+  getExplorePosts,
   getUserPosts,
   editPost,
    deletePost,
@@ -25,6 +26,7 @@ router.post(
 router.get("/liked", protect, getLikedPosts);
 router.put("/:id", protect, editPost);
 router.get("/feed", protect, getFeedPosts);
+router.get("/explore", protect, getExplorePosts);
 router.get("/saved", protect, getSavedPosts);
 
 router.get("/user/:username", protect, getUserPosts);
