@@ -20,17 +20,46 @@ const messageSchema = new mongoose.Schema(
       default: "",
     },
 
-    image: {
-      public_id: String,
-      url: String,
-    },
+    location: {
+  latitude: {
+    type: Number,
+    default: null,
+  },
+  longitude: {
+    type: Number,
+    default: null,
+  },
+},
 
-    audio: {
+//     image: {
+//   url: String,
+//   public_id: String,
+// },
+
+attachments: [
+  {
+    url: String,
+    public_id: String,
+    type: {
+  type: String,
+  enum: ["image", "video", "audio", "file"],
+},
+    originalName: String,
+    size: Number,
+    duration: Number, // seconds — used for voice message playback UI
+  },
+],
+
+   audio: {
   public_id: {
     type: String,
   },
   url: {
     type: String,
+  },
+  duration: {
+    type: Number,
+    default: 0,
   },
 },
 
@@ -46,6 +75,12 @@ replyTo: {
         ref: "User",
       },
     ],
+
+    forwardedFrom: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "Message",
+  default: null,
+},
 
     reactions: [
   {
@@ -71,6 +106,14 @@ replyTo: {
       },
     ],
 
+
+    starredBy: [
+  {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
+],
+
     deletedForEveryone: {
       type: Boolean,
       default: false,
@@ -80,10 +123,21 @@ replyTo: {
   default: false,
 },
 
+expiresAt: {
+  type: Date,
+  default: null,
+  index: true,
+},
+
   },
   {
     timestamps: true,
   }
+);
+
+messageSchema.index(
+  { expiresAt: 1 },
+  { expireAfterSeconds: 0 }
 );
 
 export default mongoose.model("Message", messageSchema);
