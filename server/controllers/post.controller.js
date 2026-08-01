@@ -113,17 +113,44 @@ export const getFeedPosts = async (req, res) => {
   try {
     const currentUser = await User.findById(req.user._id);
 
+    if (!currentUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Current user's following list
+    const followingIds = currentUser.following || [];
+
+    // Get all posts
     const posts = await Post.find()
-      .populate("user", "name username profilePic")
+      .populate(
+        "user",
+        "name username profilePic isPrivate"
+      )
       .sort({ createdAt: -1 });
 
-    const updatedPosts = posts.map((post) => {
-      const liked = post.likes.some(
-        (id) => id.toString() === req.user._id.toString()
-      );
+    // Filter posts according to privacy
+    const visiblePosts = posts.filter((post) => {
+      if (!post.user) return false;
 
-      const saved = currentUser.savedPosts.some(
-        (id) => id.toString() === post._id.toString()
+      const postOwnerId = post.user._id.toString();
+      const currentUserId = currentUser._id.toString();
+
+      // Own post → Always visible
+      if (postOwnerId === currentUserId) {
+        return true;
+      }
+
+      // Public account → Visible to everyone
+      if (post.user.isPrivate === false) {
+        return true;
+      }
+
+      // Private account → Visible only if current user follows them
+      const isFollowing = followingIds.some(
+        (id) => id.toString() === postOwnerId
       );
 
       return {
@@ -132,7 +159,28 @@ export const getFeedPosts = async (req, res) => {
   isSaved: saved,
   likesCount: post.likes.length,
   commentsCount: post.comments.length,
+  isFollowing,
 };
+    });
+
+    const updatedPosts = visiblePosts.map((post) => {
+      const liked = post.likes.some(
+        (id) =>
+          id.toString() === currentUser._id.toString()
+      );
+
+      const saved = currentUser.savedPosts.some(
+        (id) =>
+          id.toString() === post._id.toString()
+      );
+
+      return {
+        ...post.toObject(),
+        isLiked: liked,
+        isSaved: saved,
+        likesCount: post.likes.length,
+        commentsCount: post.comments.length,
+      };
     });
 
     res.status(200).json({
@@ -142,6 +190,72 @@ export const getFeedPosts = async (req, res) => {
     });
 
   } catch (error) {
+    console.log("GET FEED ERROR:", error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const getExplorePosts = async (req, res) => {
+  try {
+    const currentUser = await User.findById(req.user._id);
+
+    if (!currentUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Only posts from PUBLIC accounts
+    const posts = await Post.find()
+      .populate(
+        "user",
+        "name username profilePic isPrivate"
+      )
+      .sort({ createdAt: -1 });
+
+    const publicPosts = posts.filter((post) => {
+      return (
+        post.user &&
+        post.user.isPrivate === false
+      );
+    });
+
+    const updatedPosts = publicPosts.map((post) => {
+      const liked = post.likes.some(
+        (id) =>
+          id.toString() ===
+          req.user._id.toString()
+      );
+
+      const saved = currentUser.savedPosts.some(
+        (id) =>
+          id.toString() ===
+          post._id.toString()
+      );
+
+      return {
+        ...post.toObject(),
+        isLiked: liked,
+        isSaved: saved,
+        likesCount: post.likes.length,
+        commentsCount: post.comments.length,
+      };
+    });
+
+    res.status(200).json({
+      success: true,
+      count: updatedPosts.length,
+      posts: updatedPosts,
+    });
+
+  } catch (error) {
+    console.log("GET EXPLORE ERROR:", error);
+
     res.status(500).json({
       success: false,
       message: error.message,
