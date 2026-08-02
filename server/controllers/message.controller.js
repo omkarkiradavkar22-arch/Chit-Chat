@@ -198,11 +198,12 @@ export const getMessages = async (req, res) => {
       });
     }
 
-    const messages = await Message.find({
-      chat: chat._id,
+   const messages = await Message.find({
+      chat: chatId,
       deletedFor: {
         $ne: req.user._id,
       },
+      deletedForEveryone: false,
     })
       .populate("sender", "name username profilePic")
 .populate({
