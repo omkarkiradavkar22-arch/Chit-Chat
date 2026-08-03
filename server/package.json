@@ -5,9 +5,9 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-  "dev": "nodemon bootstrap.js",
-  "start": "node bootstrap.js"
-},
+    "dev": "nodemon bootstrap.js",
+    "start": "node bootstrap.js"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -21,6 +21,7 @@
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.7.3",
     "multer": "^2.2.0",
+    "openai": "^7.3.0",
     "socket.io": "^4.8.3",
     "streamifier": "^0.1.1",
     "validator": "^13.15.35"
