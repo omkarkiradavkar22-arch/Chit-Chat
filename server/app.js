@@ -38,7 +38,7 @@ app.use("/api/v1/comments", commentRoutes);
 app.use("/api/v1/notifications", notificationRoutes);
 app.use("/api/v1/chat", chatRoutes);
 app.use("/api/v1/messages", messageRoutes);
-
+app.use("/api/v1/tasks", taskRoutes);
 
 app.use(errorMiddleware);
 export default app;
