@@ -38,6 +38,7 @@ function CallOverlay() {
 
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
+const ringtoneRef = useRef(null);
 
   useEffect(() => {
     if (localVideoRef.current) {
@@ -51,6 +52,30 @@ function CallOverlay() {
     }
   }, [remoteStream]);
 
+  useEffect(() => {
+  const ringtone = ringtoneRef.current;
+
+  if (!ringtone) return;
+
+  if (
+    callStatus === "outgoing" ||
+    callStatus === "incoming"
+  ) {
+    ringtone.currentTime = 0;
+    ringtone.play().catch((err) => {
+      console.log("Ringtone autoplay blocked:", err);
+    });
+  } else {
+    ringtone.pause();
+    ringtone.currentTime = 0;
+  }
+
+  return () => {
+    ringtone.pause();
+    ringtone.currentTime = 0;
+  };
+}, [callStatus]);
+
   if (callStatus === "idle" || !remoteUser) return null;
 
   const isVideoCall = callType === "video";
@@ -59,6 +84,13 @@ function CallOverlay() {
 
   return (
     <div className="fixed inset-0 z-[100] bg-gradient-to-b from-gray-900 to-black flex flex-col items-center justify-between py-16 text-white overflow-hidden">
+      <audio
+  ref={ringtoneRef}
+  src="/ringtone.mp3"
+  loop
+  preload="auto"
+/>
+
       {isVideoCall && callStatus === "connected" && (
         <video
           ref={remoteVideoRef}
