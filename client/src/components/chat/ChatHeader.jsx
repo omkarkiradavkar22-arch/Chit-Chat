@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { FaPhone, FaVideo, FaEllipsisV } from "react-icons/fa";
+import { FaPhone, FaVideo, FaEllipsisV,FaArrowLeft } from "react-icons/fa";
 import { useState } from "react";
 import api from "../../services/api";
 import { toast } from "react-hot-toast";
@@ -66,10 +66,29 @@ function ChatHeader({
   return (
     <>
 <div className="h-20 min-h-20 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-5 flex items-center justify-between shadow-sm transition-colors">
-    {/* Left */}
-<div className="flex items-center gap-3 flex-1 min-w-0 h-full">
-      <div className="relative flex-shrink-0 w-11 h-11">
+{/* Left */}
+<div className="flex items-center gap-2 flex-1 min-w-0 h-full">
 
+  {/* 📱 Mobile Back Button */}
+  <button
+    onClick={() => navigate("/chat")}
+    className="
+      md:hidden
+      w-9 h-9
+      flex-shrink-0
+      flex items-center justify-center
+      rounded-full
+      text-gray-700 dark:text-gray-200
+      hover:bg-gray-100 dark:hover:bg-gray-800
+      transition
+    "
+    aria-label="Back to chats"
+  >
+    <FaArrowLeft size={18} />
+  </button>
+
+  {/* Profile */}
+  <div className="relative flex-shrink-0 w-11 h-11">
         <img
           onClick={() =>
             navigate(`/profile/${otherUser.username}`)
