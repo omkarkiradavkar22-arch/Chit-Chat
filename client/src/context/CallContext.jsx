@@ -41,11 +41,21 @@ export const CallProvider = ({ children }) => {
   const localStreamRef = useRef(null);
   const remoteAudioRef = useRef(null); // used only for audio-only calls
   const durationTimerRef = useRef(null);
+  const autoEndCallTimerRef = useRef(null);
   const pendingCandidatesRef = useRef([]);
  const incomingCallRef = useRef(null); // { from, offer, type, chatId }
+ const ringtoneRef = useRef(null);
 
   const cleanup = useCallback(() => {
-    if (pcRef.current) {
+
+  // 🔇 Stop ringtone
+  if (ringtoneRef.current) {
+    ringtoneRef.current.pause();
+    ringtoneRef.current.currentTime = 0;
+    ringtoneRef.current = null;
+  }
+
+  if (pcRef.current) {
       pcRef.current.close();
       pcRef.current = null;
     }
@@ -54,6 +64,10 @@ export const CallProvider = ({ children }) => {
       localStreamRef.current = null;
     }
     clearInterval(durationTimerRef.current);
+    if (autoEndCallTimerRef.current) {
+  clearTimeout(autoEndCallTimerRef.current);
+  autoEndCallTimerRef.current = null;
+}
     pendingCandidatesRef.current = [];
     incomingCallRef.current = null;
     setCallDuration(0);
@@ -155,6 +169,13 @@ setCallStatus("outgoing");
   const acceptCall = useCallback(async () => {
     if (!socket || !incomingCallRef.current) return;
 
+    // 🔇 Stop ringtone when call is accepted
+  if (ringtoneRef.current) {
+    ringtoneRef.current.pause();
+    ringtoneRef.current.currentTime = 0;
+    ringtoneRef.current = null;
+  }
+
     const {
   from,
   offer,
@@ -192,6 +213,15 @@ setCallStatus("outgoing");
 
       setCallStatus("connected");
       startDurationTimer();
+
+      if (autoEndCallTimerRef.current) {
+  clearTimeout(autoEndCallTimerRef.current);
+}
+
+autoEndCallTimerRef.current = setTimeout(() => {
+  endCall();
+}, 30000);
+
     } catch (err) {
       console.error("Failed to accept call:", err);
       rejectCall();
@@ -286,7 +316,23 @@ setCallStatus("outgoing");
   setActiveChatId(chatId);
 setCallType(type || "audio");
 setCallStatus("incoming");
+
+   if (ringtoneRef.current) {
+  ringtoneRef.current.pause();
+  ringtoneRef.current.currentTime = 0;
+  ringtoneRef.current = null;
+}
+
+const ringtone = new Audio("/ringtone.mp3");
+ringtone.loop = true;
+ringtone.play().catch((err) => {
+  console.log("Ringtone play blocked:", err);
+});
+
+ringtoneRef.current = ringtone;
+
 };
+
 
     const handleAccept = async ({ answer }) => {
       if (!pcRef.current) return;
@@ -302,6 +348,14 @@ setCallStatus("incoming");
 
       setCallStatus("connected");
       startDurationTimer();
+
+      if (autoEndCallTimerRef.current) {
+  clearTimeout(autoEndCallTimerRef.current);
+}
+
+autoEndCallTimerRef.current = setTimeout(() => {
+  endCall();
+}, 30000);
     };
 
     const handleReject = () => {
