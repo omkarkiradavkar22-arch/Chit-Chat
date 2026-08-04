@@ -53,8 +53,8 @@ function VoiceMessagePlayer({ url, isMine, duration: knownDuration }) {
 
   return (
     <div
-      className={`flex items-center gap-3 rounded-full px-3 py-2 min-w-[210px] ${
-        isMine
+ className={`flex items-center gap-3 rounded-full px-3 py-2 min-w-0 w-full max-w-full sm:min-w-[210px] ${
+          isMine
   ? "bg-blue-500"
   : "bg-gray-100 dark:bg-gray-700"
       }`}
@@ -397,8 +397,8 @@ const renderHighlightedText = () => {
   </div>
 )}
       <div
-  className={`relative group max-w-[70%] rounded-2xl px-4 py-3 shadow transition-all ${
-    isSearchMatch
+ className={`relative group min-w-0 max-w-[85%] sm:max-w-[70%] rounded-2xl px-4 py-3 shadow transition-all ${
+     isSearchMatch
       ? "ring-4 ring-yellow-400 ring-offset-2"
       : ""
   } ${
@@ -599,8 +599,8 @@ const renderHighlightedText = () => {
     href={file.url}
     target="_blank"
     rel="noopener noreferrer"
-    className={`flex items-center gap-3 rounded-xl px-3 py-3 min-w-[240px] max-w-[320px] transition ${
-      isMine
+ className={`flex items-center gap-3 rounded-xl px-3 py-3 min-w-0 w-full max-w-full sm:min-w-[240px] sm:max-w-[320px] transition ${
+        isMine
         ? "bg-blue-500 hover:bg-blue-400 text-white"
         : "bg-gray-100 hover:bg-gray-200 text-gray-800"
     }`}
@@ -854,7 +854,9 @@ className="w-full text-left px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-
     </button>
   </>
 ) : (
-  <p>{renderMessageText(message.text)}</p>
+ <p className="break-words overflow-wrap-anywhere">
+  {renderMessageText(message.text)}
+</p>
 )}
 
 {message.reactions?.length > 0 && (
