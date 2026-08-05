@@ -380,8 +380,13 @@ const handleAISearch = async (e) => {
   return (
 
     
-<div className="flex flex-col flex-1 min-w-0 w-full h-[calc(100vh-64px)] overflow-hidden bg-gray-100 dark:bg-gray-950 transition-colors">
-         <ChatHeader
+<div className="
+  flex flex-col flex-1 min-w-0 w-full min-h-0 overflow-hidden
+  h-[calc(100dvh-144px)]
+  lg:h-full
+  bg-gray-100 dark:bg-gray-950
+  transition-colors
+">
   otherUser={otherUser}
   onlineUsers={onlineUsers}
   chatInfo={chatInfo}
