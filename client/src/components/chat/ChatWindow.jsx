@@ -387,6 +387,7 @@ const handleAISearch = async (e) => {
   bg-gray-100 dark:bg-gray-950
   transition-colors
 ">
+         <ChatHeader
   otherUser={otherUser}
   onlineUsers={onlineUsers}
   chatInfo={chatInfo}
