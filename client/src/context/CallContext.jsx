@@ -230,9 +230,16 @@ autoEndCallTimerRef.current = setTimeout(() => {
 });
 
       setCallStatus("connected");
-      startDurationTimer();
+startDurationTimer();
 
-       } catch (err) {
+// Call answered — cancel 30 sec ringing timeout
+if (autoEndCallTimerRef.current) {
+  clearTimeout(autoEndCallTimerRef.current);
+  autoEndCallTimerRef.current = null;
+}
+
+} catch (err) {
+
       console.error("Failed to accept call:", err);
       rejectCall();
     }
@@ -341,7 +348,23 @@ ringtone.play().catch((err) => {
 
 ringtoneRef.current = ringtone;
 
+// Auto reject incoming call after 30 seconds
+if (autoEndCallTimerRef.current) {
+  clearTimeout(autoEndCallTimerRef.current);
+}
+
+autoEndCallTimerRef.current = setTimeout(() => {
+  socket.emit("call:reject", {
+    to: from,
+    chatId,
+    from: user._id,
+    callType: type || "audio",
+  });
+
+  cleanup();
+}, 30000);
 };
+
 
 
     const handleAccept = async ({ answer }) => {
@@ -355,9 +378,15 @@ ringtoneRef.current = ringtone;
         await pcRef.current.addIceCandidate(new RTCIceCandidate(candidate));
       }
       pendingCandidatesRef.current = [];
-
+      
+      // Call answered — cancel outgoing ringing timeout
+      if (autoEndCallTimerRef.current) {
+        clearTimeout(autoEndCallTimerRef.current);
+        autoEndCallTimerRef.current = null;
+      }
       setCallStatus("connected");
-      startDurationTimer();
+startDurationTimer();
+
     };
 
     const handleReject = () => {
