@@ -40,17 +40,25 @@ function CallOverlay() {
   const remoteVideoRef = useRef(null);
 const ringtoneRef = useRef(null);
 
-  useEffect(() => {
-    if (localVideoRef.current) {
-      localVideoRef.current.srcObject = localStream;
-    }
-  }, [localStream]);
+ useEffect(() => {
+  if (localVideoRef.current && localStream) {
+    localVideoRef.current.srcObject = localStream;
 
-  useEffect(() => {
-    if (remoteVideoRef.current) {
-      remoteVideoRef.current.srcObject = remoteStream;
-    }
-  }, [remoteStream]);
+    localVideoRef.current.play().catch((err) => {
+      console.log("Local video play blocked:", err);
+    });
+  }
+}, [localStream, callStatus]);
+
+useEffect(() => {
+  if (remoteVideoRef.current && remoteStream) {
+    remoteVideoRef.current.srcObject = remoteStream;
+
+    remoteVideoRef.current.play().catch((err) => {
+      console.log("Remote video play blocked:", err);
+    });
+  }
+}, [remoteStream, callStatus]);
 
   useEffect(() => {
   const ringtone = ringtoneRef.current;
@@ -106,31 +114,31 @@ const ringtoneRef = useRef(null);
           autoPlay
           playsInline
           muted
-          className="absolute top-6 right-6 w-28 h-40 rounded-xl object-cover border-2 border-white/30 shadow-lg z-10"
-        />
+         className="absolute top-4 right-4 w-20 h-28 sm:top-6 sm:right-6 sm:w-28 sm:h-40 rounded-xl object-cover border-2 border-white/30 shadow-lg z-10"
+      />
       )}
 
-      <div className="flex flex-col items-center gap-4 mt-10 relative z-10">
-        {!(isVideoCall && callStatus === "connected") && (
+<div className="flex flex-col items-center gap-3 sm:gap-4 mt-6 sm:mt-10 px-4 relative z-10">
+          {!(isVideoCall && callStatus === "connected") && (
           <div className="relative">
             <img
               src={
                 remoteUser.profilePic || "/default-profile-picture.png"
               }
               alt={remoteUser.name}
-              className="w-32 h-32 rounded-full object-cover border-4 border-white/20"
-            />
-            {(callStatus === "incoming" || callStatus === "outgoing") && (
+              
+ className="w-24 h-24 sm:w-32 sm:h-32 rounded-full object-cover border-4 border-white/20" />
+             {(callStatus === "incoming" || callStatus === "outgoing") && (
               <span className="absolute inset-0 rounded-full border-4 border-green-400 animate-ping" />
             )}
           </div>
         )}
 
-        <h2 className="text-2xl font-semibold drop-shadow">
+        <h2 className="text-xl sm:text-2xl font-semibold drop-shadow text-center">
           {remoteUser.name}
         </h2>
 
-        <p className="text-gray-200 text-sm drop-shadow">
+        <p className="text-gray-200 text-xs sm:text-sm drop-shadow text-center">
           {callStatus === "incoming" &&
             (isVideoCall
               ? "🎥 Incoming video call..."
@@ -140,65 +148,66 @@ const ringtoneRef = useRef(null);
         </p>
       </div>
 
-      <div className="flex items-center gap-8 mb-6 relative z-10">
-        {callStatus === "incoming" ? (
-          <>
-            <button
-              onClick={rejectCall}
-              className="w-16 h-16 rounded-full bg-red-600 flex items-center justify-center hover:bg-red-700 transition"
-            >
-              <FaPhoneSlash size={22} />
-            </button>
-            <button
-              onClick={acceptCall}
-              className="w-16 h-16 rounded-full bg-green-500 flex items-center justify-center hover:bg-green-600 transition animate-bounce"
-            >
-              <FaPhone size={22} />
-            </button>
-          </>
+      <div className="flex items-center gap-6 sm:gap-8 mb-4 sm:mb-6 px-4 relative z-10">
+  {callStatus === "incoming" ? (
+    <>
+      <button
+        onClick={rejectCall}
+        className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-red-600 flex items-center justify-center hover:bg-red-700 transition"
+      >
+        <FaPhoneSlash size={20} />
+      </button>
+
+      <button
+        onClick={acceptCall}
+        className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-green-500 flex items-center justify-center hover:bg-green-600 transition animate-bounce"
+      >
+        <FaPhone size={20} />
+      </button>
+    </>
+  ) : (
+    <>
+      <button
+        onClick={toggleMute}
+        className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition ${
+          isMuted
+            ? "bg-white text-black"
+            : "bg-white/20 hover:bg-white/30"
+        }`}
+      >
+        {isMuted ? (
+          <FaMicrophoneSlash size={16} />
         ) : (
-          <>
-            <button
-              onClick={toggleMute}
-              className={`w-14 h-14 rounded-full flex items-center justify-center transition ${
-                isMuted
-                  ? "bg-white text-black"
-                  : "bg-white/20 hover:bg-white/30"
-              }`}
-            >
-              {isMuted ? (
-                <FaMicrophoneSlash size={18} />
-              ) : (
-                <FaMicrophone size={18} />
-              )}
-            </button>
-
-            {isVideoCall && (
-              <button
-                onClick={toggleCamera}
-                className={`w-14 h-14 rounded-full flex items-center justify-center transition ${
-                  isCameraOff
-                    ? "bg-white text-black"
-                    : "bg-white/20 hover:bg-white/30"
-                }`}
-              >
-                {isCameraOff ? (
-                  <FaVideoSlash size={18} />
-                ) : (
-                  <FaVideo size={18} />
-                )}
-              </button>
-            )}
-
-            <button
-              onClick={endCall}
-              className="w-16 h-16 rounded-full bg-red-600 flex items-center justify-center hover:bg-red-700 transition"
-            >
-              <FaPhoneSlash size={22} />
-            </button>
-          </>
+          <FaMicrophone size={16} />
         )}
-      </div>
+      </button>
+
+      {isVideoCall && (
+        <button
+          onClick={toggleCamera}
+          className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition ${
+            isCameraOff
+              ? "bg-white text-black"
+              : "bg-white/20 hover:bg-white/30"
+          }`}
+        >
+          {isCameraOff ? (
+            <FaVideoSlash size={16} />
+          ) : (
+            <FaVideo size={16} />
+          )}
+        </button>
+      )}
+
+      <button
+        onClick={endCall}
+        className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-red-600 flex items-center justify-center hover:bg-red-700 transition"
+      >
+        <FaPhoneSlash size={20} />
+      </button>
+    </>
+  )}
+</div>
     </div>
   );
 }
