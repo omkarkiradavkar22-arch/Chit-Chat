@@ -37,6 +37,7 @@ function MessageInput({
   const [text, setText] = useState("");
   const [attachments, setAttachments] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
 
   // Recording
   const [isRecording, setIsRecording] = useState(false);
@@ -641,6 +642,7 @@ const stopLiveLocation = async () => {
   );
 };
 
+
 useEffect(() => {
   return () => {
     if (watchIdRef.current !== null) {
@@ -651,14 +653,71 @@ useEffect(() => {
   };
 }, []);
 
+useEffect(() => {
+  if (!window.visualViewport) return;
+
+  const handleViewportResize = () => {
+    const viewport = window.visualViewport;
+
+    const keyboardHeight =
+      window.innerHeight - viewport.height - viewport.offsetTop;
+
+    setKeyboardHeight(
+      keyboardHeight > 100 ? keyboardHeight : 0
+    );
+  };
+
+  window.visualViewport.addEventListener(
+    "resize",
+    handleViewportResize
+  );
+
+  window.visualViewport.addEventListener(
+    "scroll",
+    handleViewportResize
+  );
+
+  handleViewportResize();
+
+  return () => {
+    window.visualViewport.removeEventListener(
+      "resize",
+      handleViewportResize
+    );
+
+    window.visualViewport.removeEventListener(
+      "scroll",
+      handleViewportResize
+    );
+  };
+}, []);
+
 
   // =========================
   // UI
   // =========================
 
-  return (
-    <div className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 transition-colors">
-
+   return (
+  <div
+    className="
+      border-t border-gray-200 dark:border-gray-700
+      bg-white dark:bg-gray-900
+      p-4
+      transition-colors
+      shrink-0
+      lg:static
+      fixed
+      left-0
+      right-0
+      z-[60]
+    "
+    style={{
+      bottom:
+        keyboardHeight > 0
+          ? `${keyboardHeight}px`
+          : "64px",
+    }}
+  >
       {/* =========================
           REPLY PREVIEW
       ========================= */}
