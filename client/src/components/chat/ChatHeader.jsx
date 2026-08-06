@@ -140,7 +140,7 @@ function ChatHeader({
     <div className="flex items-center gap-2">
 
       <button
-        onClick={() => startCall(otherUser)}
+       onClick={() => startCall(otherUser, "audio", chatId)}
         className="
   w-10
   h-10
@@ -159,7 +159,7 @@ function ChatHeader({
       </button>
 
       <button
-      onClick={() => startCall(otherUser, "video")}
+      onClick={() => startCall(otherUser, "video", chatId)}
         className="
   w-10
   h-10
