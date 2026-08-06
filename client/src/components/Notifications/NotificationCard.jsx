@@ -36,6 +36,17 @@ function NotificationCard({ notification }) {
     return;
   }
 
+  // 📞 Call notifications
+  if (
+    notification.type === "incoming_call" ||
+    notification.type === "missed_call"
+  ) {
+    if (notification.chat) {
+      navigate(`/chat/${notification.chat}`);
+    }
+    return;
+  }
+
   if (notification.type === "message" && notification.chat) {
     navigate(`/chat/${notification.chat}`);
   }
@@ -145,6 +156,12 @@ switch (currentNotification.type) {
 
    case "follow_accept":
   return "accepted your follow request ✅";
+
+  case "incoming_call":
+  return "called you 📞";
+
+case "missed_call":
+  return "Missed call 📵";
 
     case "message": {
       const preview = currentNotification.text
