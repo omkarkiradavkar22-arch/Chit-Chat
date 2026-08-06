@@ -831,8 +831,62 @@ className="w-full text-left px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-
   </p>
 )}
 
-        {/* Text */}
-        {message.deletedForEveryone ? (
+{/* =========================
+    CALL MESSAGE / NORMAL MESSAGE
+========================= */}
+
+{message.messageType === "call" ? (
+  <div
+    className={`flex items-center gap-3 min-w-[180px] ${
+      message.callType === "missed"
+        ? "text-red-500"
+        : isMine
+        ? "text-white"
+        : "text-gray-800 dark:text-white"
+    }`}
+  >
+    <div
+      className={`w-10 h-10 rounded-full flex items-center justify-center ${
+        message.callType === "missed"
+          ? "bg-red-100 text-red-500"
+          : isMine
+          ? "bg-white/20"
+          : "bg-blue-100 text-blue-600"
+      }`}
+    >
+      {message.callType === "missed" ? "📵" : "📞"}
+    </div>
+
+    <div>
+      <p className="font-semibold text-sm">
+        {message.callType === "missed"
+          ? "Missed call"
+          : message.callType === "outgoing"
+          ? "Outgoing call"
+          : "Incoming call"}
+      </p>
+
+      {message.callType !== "missed" &&
+        message.callDuration > 0 && (
+          <p
+            className={`text-xs ${
+              isMine
+                ? "text-blue-100"
+                : "text-gray-500 dark:text-gray-400"
+            }`}
+          >
+            {Math.floor(message.callDuration / 60)
+              .toString()
+              .padStart(2, "0")}
+            :
+            {(message.callDuration % 60)
+              .toString()
+              .padStart(2, "0")}
+          </p>
+        )}
+    </div>
+  </div>
+) : message.deletedForEveryone ? (
   <p className="italic text-gray-300 dark:text-gray-400">
     🚫 This message was deleted
   </p>
@@ -840,9 +894,7 @@ className="w-full text-left px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-
   <>
     <input
       value={editedText}
-      onChange={(e) =>
-        setEditedText(e.target.value)
-      }
+      onChange={(e) => setEditedText(e.target.value)}
       className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded px-2 py-1 w-full outline-none"
     />
 
@@ -854,9 +906,9 @@ className="w-full text-left px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-
     </button>
   </>
 ) : (
- <p className="break-words overflow-wrap-anywhere">
-  {renderMessageText(message.text)}
-</p>
+  <p className="break-words overflow-wrap-anywhere">
+    {renderMessageText(message.text)}
+  </p>
 )}
 
 {message.reactions?.length > 0 && (
