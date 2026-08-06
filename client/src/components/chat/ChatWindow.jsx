@@ -102,11 +102,16 @@ const messageRefs = useRef({});
   useEffect(() => {
   if (!socket) return;
 
-  socket.on("newMessage", (message) => {
-    if (message.chat === chatId) {
-      setMessages((prev) => [...prev, message]);
-    }
-  });
+ socket.on("newMessage", (message) => {
+  const messageChatId =
+    typeof message.chat === "object"
+      ? message.chat._id
+      : message.chat;
+
+  if (String(messageChatId) === String(chatId)) {
+    setMessages((prev) => [...prev, message]);
+  }
+});
 
   return () => {
     socket.off("newMessage");
