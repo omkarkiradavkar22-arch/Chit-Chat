@@ -61,17 +61,6 @@ function Login() {
           ChitChat
         </h1>
 
-
-        {canInstall && (
-  <button
-    onClick={install}
-    className="flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-white transition hover:bg-blue-700"
-  >
-    <Download size={18} />
-    Download
-  </button>
-)}
-
         <p className="text-center text-gray-500 dark:text-gray-400 mb-8">
           Welcome Back 
         </p>
