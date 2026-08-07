@@ -14,6 +14,9 @@ import { registerSW } from "virtual:pwa-register";
 
 registerSW({
   immediate: true,
+  onRegistered(r) {
+    console.log("SW Registered", r);
+  },
 });
 
 ReactDOM.createRoot(document.getElementById("root")).render(
