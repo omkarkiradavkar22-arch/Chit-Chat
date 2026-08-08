@@ -109,40 +109,20 @@ useEffect(() => {
           ChitChat
         </Link>
 
-  // Navbar मध्ये डाउनलोड बटनसाठी कोड बदला
-
-{user && (
-  <div className="flex items-center gap-3">
-    {/* PWA Install Button - फक्त Chrome/Edge मध्ये दाखवा */}
-    {!isStandalone && !deferredPrompt && (
-      <button
-        onClick={() => {
-          // Show installation instructions
-          alert("📲 Install this app:\n\n1. Click Chrome menu (⋮)\n2. Select 'Install App' or 'Add to Home Screen'\n3. Follow the prompts");
-        }}
-        className="flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-white transition hover:bg-blue-700"
-      >
-        <Download size={18} />
-        Install App
-      </button>
-    )}
-
-    {/* PWA Install Button - जेव्हा install prompt available असेल */}
-    {canInstall && (
-      <button
-        onClick={install}
-        className="flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-white transition hover:bg-blue-700"
-      >
-        <Download size={18} />
-        Install App
-      </button>
-    )}
-
-    {/* User Menu */}
-    <div className="relative" ref={menuRef}>
-      {/* ... existing user menu code ... */}
-    </div>
-  </div>
+  {user && !isStandalone && (
+  <button
+    onClick={() => {
+      if (canInstall) {
+        install();
+      } else {
+        toast("Chrome → Menu (⋮) → Install App");
+      }
+    }}
+    className="flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-white transition hover:bg-blue-700"
+  >
+    <Download size={18} />
+    Download
+  </button>
 )}
 
         {user && (
