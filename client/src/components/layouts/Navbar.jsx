@@ -116,12 +116,11 @@ useEffect(() => {
       console.log("⬇️ Download clicked");
       console.log("canInstall:", canInstall);
 
-      if (canInstall) {
-        await install();
-      } else {
-        toast(
-          "ChitChat install करण्यासाठी Chrome Menu (⋮) → Install ChitChat वापरा."
-        );
+     if (canInstall) {
+  install();
+} else {
+  toast("Chrome → Menu (⋮) → Install App");
+}
       }
     }}
     className="flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-white transition hover:bg-blue-700"
