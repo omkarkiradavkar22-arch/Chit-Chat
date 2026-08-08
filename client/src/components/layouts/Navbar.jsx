@@ -128,7 +128,7 @@ useEffect(() => {
     <Download size={18} />
     Download
   </button>
-)}
+)
         {user && (
           <div
             className="relative"
