@@ -9,52 +9,118 @@ export default function usePWAInstall() {
   );
 
   useEffect(() => {
-    const handler = (e) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
+    const mediaQuery = window.matchMedia(
+      "(display-mode: standalone)"
+    );
+
+    const checkInstalled = () => {
+      const standalone =
+        mediaQuery.matches ||
+        window.navigator.standalone === true;
+
+      setIsInstalled(standalone);
     };
 
-    const installed = () => {
+    const handleBeforeInstallPrompt = (event) => {
+      console.log("🔥 beforeinstallprompt FIRED");
+
+      event.preventDefault();
+
+      setDeferredPrompt(event);
+    };
+
+    const handleAppInstalled = () => {
+      console.log("✅ ChitChat installed");
+
       setDeferredPrompt(null);
       setIsInstalled(true);
     };
 
+    // Check current state
+    checkInstalled();
+
+    // Listen for Chrome install prompt
     window.addEventListener(
       "beforeinstallprompt",
-      handler
+      handleBeforeInstallPrompt
     );
 
+    // Listen after installation
     window.addEventListener(
       "appinstalled",
-      installed
+      handleAppInstalled
+    );
+
+    mediaQuery.addEventListener(
+      "change",
+      checkInstalled
     );
 
     return () => {
       window.removeEventListener(
         "beforeinstallprompt",
-        handler
+        handleBeforeInstallPrompt
       );
 
       window.removeEventListener(
         "appinstalled",
-        installed
+        handleAppInstalled
+      );
+
+      mediaQuery.removeEventListener(
+        "change",
+        checkInstalled
       );
     };
   }, []);
 
   const install = async () => {
-    if (!deferredPrompt) return;
+    console.log(
+      "📦 Install button clicked"
+    );
 
-    deferredPrompt.prompt();
+    if (!deferredPrompt) {
+      console.log(
+        "❌ No beforeinstallprompt event available"
+      );
 
-    await deferredPrompt.userChoice;
+      return false;
+    }
 
-    setDeferredPrompt(null);
+    try {
+      console.log(
+        "🚀 Showing install prompt..."
+      );
+
+      await deferredPrompt.prompt();
+
+      const choice =
+        await deferredPrompt.userChoice;
+
+      console.log(
+        "📱 Install choice:",
+        choice.outcome
+      );
+
+      setDeferredPrompt(null);
+
+      return choice.outcome === "accepted";
+    } catch (error) {
+      console.error(
+        "❌ Install prompt error:",
+        error
+      );
+
+      return false;
+    }
   };
 
   return {
-    canInstall: !!deferredPrompt && !isInstalled,
+    canInstall:
+      !!deferredPrompt && !isInstalled,
+
     install,
+
     isInstalled,
   };
 }
