@@ -9,9 +9,11 @@ export default function usePWAInstall() {
   );
 
   useEffect(() => {
+    console.log("🟡 PWA hook loaded");
     const mediaQuery = window.matchMedia(
       "(display-mode: standalone)"
     );
+
 
     const checkInstalled = () => {
       const standalone =
