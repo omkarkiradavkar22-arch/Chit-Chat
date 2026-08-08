@@ -7,6 +7,7 @@ export default function usePWAInstall() {
     window.matchMedia("(display-mode: standalone)").matches ||
       window.navigator.standalone === true
   );
+  
 
   useEffect(() => {
     console.log("🟡 PWA hook loaded");
