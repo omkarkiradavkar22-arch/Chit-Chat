@@ -6,6 +6,7 @@ import { useTheme } from "../../context/ThemeContext";
 import api from "../../services/api";
 import usePWAInstall from "../../hooks/usePWAInstall";
 import { Download } from "lucide-react";
+import { toast } from "react-hot-toast";
 
 function Navbar() {
   const { user, logout } = useAuth();
