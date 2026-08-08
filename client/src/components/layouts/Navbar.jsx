@@ -110,13 +110,18 @@ useEffect(() => {
           ChitChat
         </Link>
 
-  {user && !isStandalone && (
+{!isStandalone && (
   <button
-    onClick={() => {
+    onClick={async () => {
+      console.log("⬇️ Download clicked");
+      console.log("canInstall:", canInstall);
+
       if (canInstall) {
-        install();
+        await install();
       } else {
-        toast("Chrome → Menu (⋮) → Install App");
+        toast(
+          "ChitChat install करण्यासाठी Chrome Menu (⋮) → Install ChitChat वापरा."
+        );
       }
     }}
     className="flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-white transition hover:bg-blue-700"
@@ -125,7 +130,6 @@ useEffect(() => {
     Download
   </button>
 )}
-
         {user && (
           <div
             className="relative"
