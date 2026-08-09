@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useCall } from "../../context/CallContext";
+import { useTheme } from "../../context/ThemeContext";
 import {
   FaPhone,
   FaPhoneSlash,
@@ -35,6 +36,9 @@ function CallOverlay() {
     toggleMute,
     toggleCamera,
   } = useCall();
+
+  const { theme } = useTheme();
+const isDark = theme === "dark";
 
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
@@ -91,7 +95,13 @@ useEffect(() => {
     isVideoCall && localStream && callStatus !== "incoming";
 
   return (
-   <div className="fixed inset-0 z-[100] bg-gradient-to-b from-gray-900 to-black flex flex-col items-center justify-between py-8 sm:py-16 px-4 text-white overflow-hidden">
+   <div
+  className={`fixed inset-0 z-[100] flex flex-col items-center justify-between py-8 transition-colors duration-300 ${
+    isDark
+      ? "bg-black text-white"
+      : "bg-white text-gray-900"
+  }`}
+>
           <audio
   ref={ringtoneRef}
   src="/ringtone.mp3"
@@ -134,11 +144,19 @@ useEffect(() => {
           </div>
         )}
 
-        <h2 className="text-xl sm:text-2xl font-semibold drop-shadow text-center">
+        <h2
+  className={`text-xl sm:text-2xl font-semibold drop-shadow text-center ${
+    isDark ? "text-white" : "text-gray-900"
+  }`}
+>
           {remoteUser.name}
         </h2>
 
-        <p className="text-gray-200 text-xs sm:text-sm drop-shadow text-center">
+        <p
+  className={`text-xs sm:text-sm drop-shadow text-center ${
+    isDark ? "text-gray-300" : "text-gray-600"
+  }`}
+>
           {callStatus === "incoming" &&
             (isVideoCall
               ? "🎥 Incoming video call..."
@@ -170,10 +188,14 @@ useEffect(() => {
       <button
         onClick={toggleMute}
         className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition ${
-          isMuted
-            ? "bg-white text-black"
-            : "bg-white/20 hover:bg-white/30"
-        }`}
+         isMuted
+  ? isDark
+    ? "bg-white text-black"
+    : "bg-gray-900 text-white"
+  : isDark
+    ? "bg-white/20 hover:bg-white/30 text-white"
+    : "bg-black/10 hover:bg-black/20 text-gray-900"
+   }`}
       >
         {isMuted ? (
           <FaMicrophoneSlash size={16} />
@@ -186,10 +208,14 @@ useEffect(() => {
         <button
           onClick={toggleCamera}
           className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition ${
-            isCameraOff
-              ? "bg-white text-black"
-              : "bg-white/20 hover:bg-white/30"
-          }`}
+           isCameraOff
+  ? isDark
+    ? "bg-white text-black"
+    : "bg-gray-900 text-white"
+  : isDark
+    ? "bg-white/20 hover:bg-white/30 text-white"
+    : "bg-black/10 hover:bg-black/20 text-gray-900"
+  }`}
         >
           {isCameraOff ? (
             <FaVideoSlash size={16} />
