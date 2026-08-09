@@ -4,9 +4,6 @@ import { useState, useRef, useEffect } from "react";
 import { useSocket } from "../../context/SocketContext";
 import { useTheme } from "../../context/ThemeContext";
 import api from "../../services/api";
-import usePWAInstall from "../../hooks/usePWAInstall";
-import { Download } from "lucide-react";
-import { toast } from "react-hot-toast";
 
 function Navbar() {
   const { user, logout } = useAuth();
@@ -18,10 +15,7 @@ function Navbar() {
   
   const [open, setOpen] = useState(false);
   const menuRef = useRef(null);
-  
-  const { canInstall, install } = usePWAInstall();
-  const [isStandalone, setIsStandalone] = useState(false);
-  
+    
 const [aiTaskDetection, setAiTaskDetection] = useState(
   user?.aiTaskDetectionEnabled ?? true
 );
@@ -65,28 +59,6 @@ useEffect(() => {
     };
   }, [socket]);
 
-  useEffect(() => {
-  const checkStandalone = () => {
-    const standalone =
-      window.matchMedia("(display-mode: standalone)").matches ||
-      window.navigator.standalone === true;
-
-    setIsStandalone(standalone);
-  };
-
-  checkStandalone();
-
-  window
-    .matchMedia("(display-mode: standalone)")
-    .addEventListener("change", checkStandalone);
-
-  return () => {
-    window
-      .matchMedia("(display-mode: standalone)")
-      .removeEventListener("change", checkStandalone);
-  };
-}, []);
-
   const handleLogout = async () => {
     await logout();
     navigate("/login");
@@ -110,25 +82,6 @@ useEffect(() => {
           ChitChat
         </Link>
 
-{!isStandalone && (
-  <button
-    onClick={async () => {
-      console.log("⬇️ Download clicked");
-      console.log("canInstall:", canInstall);
-
-     if (canInstall) {
-  install();
-} else {
-  toast("Chrome → Menu (⋮) → Install App");
-}
-      }
-    }}
-    className="flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-white transition hover:bg-blue-700"
-  >
-    <Download size={18} />
-    Download
-  </button>
-)
         {user && (
           <div
             className="relative"
