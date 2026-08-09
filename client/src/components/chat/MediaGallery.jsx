@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../services/api";
+import { useTheme } from "../../context/ThemeContext";
 import {
   FaTimes,
   FaFileAlt,
@@ -31,7 +32,8 @@ function formatBytes(bytes) {
 }
 
 function MediaGallery({ chatId, isOpen, onClose }) {
-  const { darkMode } = useAuth();
+  const { theme } = useTheme();
+const darkMode = theme === "dark";
 
   const [activeTab, setActiveTab] = useState("photos");
 
