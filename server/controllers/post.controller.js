@@ -120,31 +120,36 @@ export const getFeedPosts = async (req, res) => {
       )
       .sort({ createdAt: -1 });
 
-    const visiblePosts = posts.filter((post) => {
-      const postUser = post.user;
+  const visiblePosts = posts.filter((post) => {
+  const postUser = post.user;
 
-      // Own post -> always visible
-      if (
-        postUser._id.toString() ===
-        req.user._id.toString()
-      ) {
-        return true;
-      }
+  // User was deleted but post still exists
+  if (!postUser) {
+    return false;
+  }
 
-      // Public account -> visible to everyone
-      if (!postUser.isPrivate) {
-        return true;
-      }
+  // Own post -> always visible
+  if (
+    postUser._id.toString() ===
+    req.user._id.toString()
+  ) {
+    return true;
+  }
 
-      // Private account -> only followers can see
-      const isFollower = postUser.followers.some(
-        (id) =>
-          id.toString() ===
-          req.user._id.toString()
-      );
+  // Public account -> visible to everyone
+  if (!postUser.isPrivate) {
+    return true;
+  }
 
-      return isFollower;
-    });
+  // Private account -> only followers can see
+  const isFollower = postUser.followers.some(
+    (id) =>
+      id.toString() ===
+      req.user._id.toString()
+  );
+
+  return isFollower;
+});
 
     const updatedPosts = visiblePosts.map((post) => {
       const postUser = post.user;
