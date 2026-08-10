@@ -6,8 +6,10 @@ function GuestRoute({ children }) {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        Loading...
+      <div className="flex justify-center items-center h-screen bg-white dark:bg-gray-950 transition-colors duration-300">
+        <p className="text-gray-900 dark:text-white text-lg font-medium">
+          Loading...
+        </p>
       </div>
     );
   }
