@@ -654,7 +654,7 @@ const handleAISearch = async (e) => {
 
       {/* Messages */}
 
-      <div className="flex-1 min-w-0 w-full overflow-y-auto p-5 bg-gray-100 dark:bg-gray-950 transition-colors">
+      <div className="flex-1 min-w-0 w-full overflow-y-auto p-5 pb-24 bg-gray-100 dark:bg-gray-950 transition-colors">
         {loading ? (
          <div className="text-center text-gray-700 dark:text-gray-300">
             Loading...
