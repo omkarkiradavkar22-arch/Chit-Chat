@@ -122,7 +122,7 @@ const darkMode = theme === "dark";
 
   return (
     <div
-      className={`rounded-2xl shadow mt-5 p-5 border transition-colors ${
+  className={`w-full min-w-0 max-w-full box-border rounded-2xl shadow mt-5 p-4 sm:p-5 border transition-colors ${
         darkMode
           ? "bg-[#111827] border-gray-700 text-white"
           : "bg-white border-gray-200 text-gray-900"
@@ -177,42 +177,47 @@ const darkMode = theme === "dark";
               {/* =========================
                   EDIT MODE
               ========================= */}
-              {editingId === comment._id ? (
-                <div className="flex-1 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg px-3 py-1 outline-none">
-                  <input
-                    value={editText}
-                    onChange={(e) =>
-                      setEditText(e.target.value)
-                    }
-                    className={`flex-1 border rounded-lg px-3 py-1 outline-none transition ${
-                      darkMode
-                        ? "bg-[#1f2937] border-gray-600 text-white focus:border-blue-500"
-                        : "bg-white border-gray-300 text-gray-900 focus:border-blue-500"
-                    }`}
-                  />
+             {editingId === comment._id ? (
+  <div className="w-full min-w-0 mt-1">
+    <div className="flex flex-col sm:flex-row gap-2 w-full min-w-0">
+      
+      <input
+        type="text"
+        value={editText}
+        onChange={(e) => setEditText(e.target.value)}
+        className={`flex-1 min-w-0 w-full border rounded-lg px-3 py-2 outline-none transition ${
+          darkMode
+            ? "bg-[#1f2937] border-gray-600 text-white placeholder-gray-500 focus:border-blue-500"
+            : "bg-white border-gray-300 text-gray-900 focus:border-blue-500"
+        }`}
+      />
 
-                  <button
-                    onClick={updateComment}
-                    className="text-blue-500 hover:text-blue-400 font-semibold"
-                  >
-                    Save
-                  </button>
+      <div className="flex items-center gap-2 shrink-0">
+        <button
+          onClick={updateComment}
+          className="text-blue-500 hover:text-blue-400 font-semibold text-sm"
+        >
+          Save
+        </button>
 
-                  <button
-                    onClick={() => {
-                      setEditingId(null);
-                      setEditText("");
-                    }}
-                    className={
-                      darkMode
-                        ? "text-gray-400 hover:text-gray-200"
-                        : "text-gray-500 hover:text-gray-700"
-                    }
-                  >
-                    Cancel
-                  </button>
-                </div>
-              ) : (
+        <button
+          onClick={() => {
+            setEditingId(null);
+            setEditText("");
+          }}
+          className={`text-sm ${
+            darkMode
+              ? "text-gray-400 hover:text-gray-200"
+              : "text-gray-500 hover:text-gray-700"
+          }`}
+        >
+          Cancel
+        </button>
+      </div>
+
+    </div>
+  </div>
+) : (
                 <>
                   {/* COMMENT TEXT */}
                   <p className="text-gray-800 dark:text-gray-200">
@@ -257,19 +262,19 @@ const darkMode = theme === "dark";
       {/* =========================
           ADD COMMENT
       ========================= */}
-      <div
-        className={`border-t pt-4 mt-4 flex gap-3 ${
-          darkMode
-            ? "border-gray-700"
-            : "border-gray-200"
-        }`}
-      >
+     <div
+  className={`border-t pt-4 mt-4 flex items-center gap-2 sm:gap-3 min-w-0 w-full ${
+    darkMode
+      ? "border-gray-700"
+      : "border-gray-200"
+  }`}
+>
         <input
           type="text"
           placeholder="Write a comment..."
           value={text}
           onChange={(e) => setText(e.target.value)}
-          className={`flex-1 border rounded-lg px-4 py-2 outline-none transition ${
+         className={`flex-1 min-w-0 w-0 border rounded-lg px-3 sm:px-4 py-2 outline-none transition ${
             darkMode
               ? "bg-[#1f2937] border-gray-600 text-white placeholder-gray-500 focus:border-blue-500"
               : "bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:border-blue-500"
@@ -279,7 +284,7 @@ const darkMode = theme === "dark";
         <button
           onClick={addComment}
           disabled={loading}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-5 rounded-lg disabled:opacity-50 transition"
+        className="shrink-0 bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-5 py-2 rounded-lg disabled:opacity-50 transition"
         >
           {loading ? "Posting..." : "Post"}
         </button>
