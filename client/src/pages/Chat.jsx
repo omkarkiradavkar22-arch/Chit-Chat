@@ -10,7 +10,6 @@ import { useSocket } from "../context/SocketContext";
 
 function Chat() {
   const { chatId } = useParams();
-
   const { socket } = useSocket();
 
   const [chats, setChats] = useState([]);
