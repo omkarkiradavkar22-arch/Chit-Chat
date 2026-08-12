@@ -217,18 +217,18 @@ const handlePrivacy = async () => {
     </p>
   </div>
 
-  <button
-    type="button"
-    onClick={handlePrivacy}
-    className={`px-5 py-2 rounded-lg text-white ${
-      isPrivate
-        ? "bg-red-500"
-        : "bg-green-500"
-    }`}
-  >
-    {isPrivate ? "Private" : "Public"}
-  </button>
-</div>
+            <button
+              type="button"
+              onClick={handlePrivacy}
+              className={`px-5 py-2 rounded-lg text-white ${
+                isPrivate
+                  ? "bg-red-500"
+                  : "bg-green-500"
+              }`}
+            >
+              {isPrivate ? "Private" : "Public"}
+            </button>
+          </div>
 
           <button
             disabled={loading}
