@@ -8,7 +8,6 @@ import api from "../services/api";
 function EditProfile() {
   const { user, loadUser } = useAuth();
   const navigate = useNavigate();
-
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [bio, setBio] = useState("");
