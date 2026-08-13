@@ -24,7 +24,8 @@
     "openai": "^7.3.0",
     "socket.io": "^4.8.3",
     "streamifier": "^0.1.1",
-    "validator": "^13.15.35"
+    "validator": "^13.15.35",
+    "web-push": "^3.6.7"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"
