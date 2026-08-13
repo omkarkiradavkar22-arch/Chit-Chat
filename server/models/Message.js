@@ -143,7 +143,7 @@ replyTo: {
 expiresAt: {
   type: Date,
   default: null,
-  index: true,
+  // index: true,
 },
 
   },
