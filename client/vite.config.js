@@ -9,9 +9,13 @@ export default defineConfig({
     tailwindcss(),
 
     VitePWA({
-      registerType: "autoUpdate",
+  registerType: "autoUpdate",
 
-      manifest: {
+  strategies: "injectManifest",
+  srcDir: "src",
+  filename: "sw.js",
+
+  manifest: {
         name: "Chit chat",
         short_name: "Chit chat",
         description: "A modern real-time chatting application",
