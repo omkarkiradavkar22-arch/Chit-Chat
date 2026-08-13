@@ -8,6 +8,7 @@ import { detectTask } from "../services/aiTaskDetector.js";
 import { detectNotificationPriority } from "../services/notificationPriorityDetector.js";
 import Notification from "../models/Notification.js";
 import User from "../models/User.js";
+import { sendPushToUser } from "../services/webPush.js";
 // import OpenAI from "openai";
 
 // const openai = new OpenAI({
@@ -36,6 +37,38 @@ export const sendMessage = async (req, res) => {
     const { text, replyTo, latitude, longitude } = req.body;
 
     const chat = await Chat.findById(req.params.chatId);
+
+    if (receiver) {
+  io.to(receiver.toString()).emit(
+    "newMessage",
+    populatedMessage
+  );
+
+  await sendPushToUser(
+    receiver.toString(),
+    {
+      type: "message",
+
+      title:
+        req.user.name || "New message",
+
+      body:
+        text || "📎 Sent you an attachment",
+
+      senderId:
+        req.user._id.toString(),
+
+      chatId:
+        chat._id.toString(),
+
+      url:
+        `/chat/${chat._id}`,
+
+      tag:
+        `message-${chat._id}`,
+    }
+  );
+}
 
     if (chat.isBlocked) {
   return res.status(403).json({
