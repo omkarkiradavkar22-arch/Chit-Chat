@@ -23,9 +23,9 @@ function Home() {
     }
   };
 
-  useEffect(() => {
-    getFeed();
-  }, []);
+    useEffect(() => {
+      getFeed();
+    }, []);
 
   return (
     <Layout>
