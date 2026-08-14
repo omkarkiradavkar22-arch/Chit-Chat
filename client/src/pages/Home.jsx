@@ -32,7 +32,6 @@ function Home() {
       <div className="max-w-2xl mx-auto py-5 space-y-5 text-gray-900 dark:text-white">
 
         <CreatePost />
-
         {loading ? (
           <p className="text-center text-gray-600 dark:text-gray-300">
           Loading...
