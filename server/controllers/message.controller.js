@@ -38,44 +38,39 @@ export const sendMessage = async (req, res) => {
 
     const chat = await Chat.findById(req.params.chatId);
 
-    if (receiver) {
-  io.to(receiver.toString()).emit(
-    "newMessage",
-    populatedMessage
-  );
+//     if (receiver) {
+//   io.to(receiver.toString()).emit(
+//     "newMessage",
+//     populatedMessage
+//   );
 
-  await sendPushToUser(
-    receiver.toString(),
-    {
-      type: "message",
+//   await sendPushToUser(
+//     receiver.toString(),
+//     {
+//       type: "message",
 
-      title:
-        req.user.name || "New message",
+//       title:
+//         req.user.name || "New message",
 
-      body:
-        text || "📎 Sent you an attachment",
+//       body:
+//         text || "📎 Sent you an attachment",
 
-      senderId:
-        req.user._id.toString(),
+//       senderId:
+//         req.user._id.toString(),
 
-      chatId:
-        chat._id.toString(),
+//       chatId:
+//         chat._id.toString(),
 
-      url:
-        `/chat/${chat._id}`,
+//       url:
+//         `/chat/${chat._id}`,
 
-      tag:
-        `message-${chat._id}`,
-    }
-  );
-}
+//       tag:
+//         `message-${chat._id}`,
+//     }
+//   );
+// }
 
-    if (chat.isBlocked) {
-  return res.status(403).json({
-    success: false,
-    message: "This chat is blocked",
-  });
-}
+    
 
     if (!chat) {
       return res.status(404).json({
@@ -83,6 +78,13 @@ export const sendMessage = async (req, res) => {
         message: "Chat not found",
       });
     }
+
+    if (chat.isBlocked) {
+  return res.status(403).json({
+    success: false,
+    message: "This chat is blocked",
+  });
+}
 
     // Security: sender must be participant
     if (
