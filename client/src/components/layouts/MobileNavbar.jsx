@@ -1,5 +1,4 @@
-import { FaHome, FaSearch, FaCompass,
-  FaBell,
+import { FaHome, FaSearch, FaCompass, FaBell,
   FaComments,
 } from "react-icons/fa";
 import { useAuth } from "../../context/AuthContext";
