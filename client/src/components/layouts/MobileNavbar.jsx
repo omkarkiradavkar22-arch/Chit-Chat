@@ -1,5 +1,4 @@
-import { FaHome,
-  FaSearch,
+import { FaHome, FaSearch,
   FaCompass,
   FaBell,
   FaComments,
