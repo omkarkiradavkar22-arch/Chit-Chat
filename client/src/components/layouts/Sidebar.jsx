@@ -1,5 +1,4 @@
-import { FaHome, FaSearch, FaCompass, FaBell,
-  FaComments,
+import { FaHome, FaSearch, FaCompass, FaBell, FaComments,
   FaUser,
 } from "react-icons/fa";
 import { Link, useLocation } from "react-router-dom";
