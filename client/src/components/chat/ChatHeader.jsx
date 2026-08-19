@@ -121,7 +121,7 @@ function ChatHeader({
 
         <p className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
           {isOnline
-            ? "🟢 Online"
+            ? "Online"
             :otherUser.lastSeen
   ? `Last seen ${new Date(
       otherUser.lastSeen
