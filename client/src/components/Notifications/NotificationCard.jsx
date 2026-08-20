@@ -291,19 +291,19 @@ currentNotification.status === "pending" && (
   </div>
 )}
 
-{(currentNotification.type === "follow_accept" ||
- currentNotification.type === "follow") &&
-!isFollowing && (
-  <button
-    onClick={(e) => {
-      e.stopPropagation();
-      handleFollowBack();
-    }}
-    className="mt-3 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition"
-  >
-    Follow Back
-  </button>
-)}
+        {(currentNotification.type === "follow_accept" ||
+         currentNotification.type === "follow") &&
+        !isFollowing && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleFollowBack();
+            }}
+            className="mt-3 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition"
+          >
+            Follow Back
+          </button>
+        )}
 
         {(currentNotification.type === "follow_accept" ||
          currentNotification.type === "follow") &&
