@@ -280,16 +280,16 @@ currentNotification.status === "pending" && (
         handleReject();
       }}
       className={`px-3 py-1 rounded transition ${
-  darkMode
-    ? "bg-gray-700 text-gray-200 hover:bg-gray-600"
-    : "bg-gray-300 text-gray-800 hover:bg-gray-400"
-}`}
-    >
-      Reject
-    </button>
-
-  </div>
-)}
+          darkMode
+            ? "bg-gray-700 text-gray-200 hover:bg-gray-600"
+            : "bg-gray-300 text-gray-800 hover:bg-gray-400"
+        }`}
+            >
+              Reject
+            </button>
+        
+          </div>
+        )}
 
         {(currentNotification.type === "follow_accept" ||
          currentNotification.type === "follow") &&
