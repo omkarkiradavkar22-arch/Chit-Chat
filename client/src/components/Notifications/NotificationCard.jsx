@@ -132,20 +132,20 @@ const getPriorityStyle = () => {
         className: darkMode
           ? "bg-gray-700 text-gray-300 border-gray-600"
           : "bg-gray-100 text-gray-500 border-gray-200",
-      };
-  }
-};
-
-const priority = getPriorityStyle();
-
-  const getMessage = () => {
-switch (currentNotification.type) {
-    case "like":
-      return "liked your post ❤️";
-
-    case "comment":
-      return notification.comment
-        ? `commented: "${notification.comment.text}"`
+              };
+          }
+        };
+        
+        const priority = getPriorityStyle();
+        
+          const getMessage = () => {
+        switch (currentNotification.type) {
+            case "like":
+              return "liked your post ❤️";
+        
+            case "comment":
+              return notification.comment
+                ? `commented: "${notification.comment.text}"`
         : "commented on your post 💬";
 
     case "follow":
