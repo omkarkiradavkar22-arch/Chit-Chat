@@ -305,16 +305,16 @@ currentNotification.status === "pending" && (
   </button>
 )}
 
-{(currentNotification.type === "follow_accept" ||
- currentNotification.type === "follow") &&
-isFollowing && (
-  <button
-    disabled
-    className="mt-3 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded transition"
-  >
-    Following
-  </button>
-)}
+        {(currentNotification.type === "follow_accept" ||
+         currentNotification.type === "follow") &&
+        isFollowing && (
+          <button
+            disabled
+            className="mt-3 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded transition"
+          >
+            Following
+          </button>
+        )}
 
       </div>
     </div>
