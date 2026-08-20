@@ -185,7 +185,6 @@ case "missed_call":
   }
 };
 
-
   return (
     <div
   onClick={handleClick}
