@@ -186,18 +186,18 @@ case "missed_call":
 };
 
   return (
-    <div
-  onClick={handleClick}
-  className={`cursor-pointer rounded-xl shadow p-4 transition border ${
-  darkMode
-    ? "bg-[#111827] border-gray-700 text-white hover:bg-[#172235] hover:shadow-lg"
-    : "bg-white border-gray-200 text-gray-900 hover:bg-gray-50 hover:shadow-md"
-} ${
-  !notification.isRead
-    ? "border-l-4 border-l-blue-500"
-    : ""
-}`}
->
+            <div
+          onClick={handleClick}
+          className={`cursor-pointer rounded-xl shadow p-4 transition border ${
+          darkMode
+            ? "bg-[#111827] border-gray-700 text-white hover:bg-[#172235] hover:shadow-lg"
+            : "bg-white border-gray-200 text-gray-900 hover:bg-gray-50 hover:shadow-md"
+        } ${
+          !notification.isRead
+            ? "border-l-4 border-l-blue-500"
+            : ""
+        }`}
+        >
       <div className="flex items-center gap-4">
         {!notification.isRead && (
     <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
