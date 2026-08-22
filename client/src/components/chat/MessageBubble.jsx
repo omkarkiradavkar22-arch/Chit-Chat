@@ -12,6 +12,14 @@ import {
   FaLocationArrow,
   FaChevronLeft,
   FaChevronRight,
+  FaRegFileImage,
+  FaTrash,
+  FaArrowRight,
+  FaPen,
+  FaBan,
+  
+  
+
 } from "react-icons/fa";
 import { useState, useRef, useEffect } from "react";
 import api from "../../services/api";
@@ -613,7 +621,7 @@ const renderHighlightedText = () => {
           : "bg-white"
       }`}
     >
-      <span className="text-2xl">📄</span>
+      <span className="text-2xl"><FaRegFileImage/></span>
     </div>
 
     {/* File Details */}
@@ -670,7 +678,9 @@ const renderHighlightedText = () => {
       onClick={handleDeleteForMe}
       className="w-full text-left px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
     >
-      🗑 Delete for Me
+      <span className="inline-flex items-center gap-1">
+      <FaTrash/> Delete for Me
+      </span>
     </button>
 
     <button
@@ -680,7 +690,10 @@ setShowMenu(false);
 }}
 className="w-full text-left px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
 >
-📋 Copy
+  <span className="inline-flex items-center gap-1">
+
+<FaCopy/> Copy
+  </span>
 </button>
 
 <button
@@ -715,7 +728,10 @@ className="w-full text-left px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-
   }}
   className="w-full text-left px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
 >
-  ➡️ Forward
+  <span className="inline-flex items-center gap-1">
+
+  <FaArrowRight/> Forward
+  </span>
 </button>
 
 <button
@@ -743,7 +759,10 @@ className="w-full text-left px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-
   onClick={handleCreateTask}
   className="w-full text-left px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-800"
 >
-  ✅ Create Task
+  <span className="inline-flex items-center gap-1">
+
+  <FaCheck/> Create Task
+  </span>
 </button>
 
     {isMine && (
@@ -751,7 +770,11 @@ className="w-full text-left px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-
         onClick={handleDeleteForEveryone}
         className="w-full text-left px-4 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30"
       >
-        ❌ Delete for Everyone
+        <span className="inline-flex items-center gap-1">
+
+        <FaTrash/>
+         Delete for Everyone
+        </span>
       </button>
     )}
 
@@ -763,7 +786,10 @@ setShowMenu(false);
 }}
 className="w-full text-left px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
 >
-✏️ Edit Message
+  <span className="inline-flex items-center gap-1">
+
+<FaPen/> Edit Message
+  </span>
 </button>
 )}
 
@@ -887,8 +913,8 @@ className="w-full text-left px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-
     </div>
   </div>
 ) : message.deletedForEveryone ? (
-  <p className="italic text-gray-300 dark:text-gray-400">
-    🚫 This message was deleted
+  <p className="italic text-gray-300 dark:text-gray-400 inline-flex items-center gap-1">
+    <FaBan/> This message was deleted
   </p>
 ) : editing ? (
   <>
