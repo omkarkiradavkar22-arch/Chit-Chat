@@ -1,5 +1,11 @@
 import { useNavigate } from "react-router-dom";
-import { FaPhone, FaVideo, FaEllipsisV,FaArrowLeft } from "react-icons/fa";
+import { FaPhone, FaVideo, FaEllipsisV,FaArrowLeft,
+  FaSearch,
+  FaImages,
+  FaTimes,
+  FaCalendar,
+FaClock
+ } from "react-icons/fa";
 import { useState } from "react";
 import api from "../../services/api";
 import { toast } from "react-hot-toast";
@@ -121,7 +127,7 @@ function ChatHeader({
 
         <p className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
           {isOnline
-            ? "Online"
+            ? "🟢 Online"
             :otherUser.lastSeen
   ? `Last seen ${new Date(
       otherUser.lastSeen
@@ -197,7 +203,10 @@ function ChatHeader({
   }}
   className="w-full text-left px-4 py-3 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-200 dark:border-gray-700"
 >
-  🔍 Search Messages
+  <span className="inline-flex items-center gap-1">
+  <FaSearch/>
+    Search Messages
+    </span> 
 </button>
 
 <button
@@ -205,7 +214,7 @@ function ChatHeader({
     setIsAISearchOpen(true);
     setShowMenu(false);
   }}
-  className="w-full text-left px-4 py-3 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
+  className="w-full text-left px-4 py-3 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-200 dark:border-gray-700"
 >
   ✨ AI Search
 </button>
@@ -218,7 +227,10 @@ function ChatHeader({
       }}
       className="w-full text-left px-4 py-3 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-200 dark:border-gray-700"
     >
-      🖼️ Media, Links &amp; Docs
+      <span className="inline-flex items-center gap-1">
+        <FaImages/>
+         Media, Links &amp; Docs
+        </span>
     </button>
 
     {/* Disappearing Messages */}
@@ -226,7 +238,8 @@ function ChatHeader({
   onClick={() => setShowDisappearingMenu(!showDisappearingMenu)}
   className="w-full text-left px-4 py-3 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between"
 >
-  <span>⏳ Disappearing Messages</span>
+  <span>
+   Disappearing Messages</span>
 
   <span className="text-xs text-gray-400">
     {chatInfo?.disappearingMessages?.enabled
@@ -247,7 +260,7 @@ function ChatHeader({
       onClick={() => setDisappearingDuration(0)}
       className="w-full text-left px-6 py-2.5 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 flex justify-between"
     >
-      <span>❌ Off</span>
+      <span><FaTimes/> Off</span>
 
       {!chatInfo?.disappearingMessages?.enabled && (
         <span className="text-blue-600">✓</span>
@@ -261,7 +274,8 @@ function ChatHeader({
       }
       className="w-full text-left px-6 py-2.5 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:bg-gray-800 flex justify-between"
     >
-      <span>⏱️ 24 hours</span>
+      <span className="inline-flex items-center gap-1">
+<FaClock/> 24 hours</span>
 
       {chatInfo?.disappearingMessages?.duration ===
         24 * 60 * 60 && (
@@ -276,7 +290,8 @@ function ChatHeader({
       }
       className="w-full text-left px-6 py-2.5 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:bg-gray-800 flex justify-between"
     >
-      <span>📅 7 days</span>
+      <span className="inline-flex items-center gap-1">
+<FaCalendar/> 7 days</span>
 
       {chatInfo?.disappearingMessages?.duration ===
         7 * 24 * 60 * 60 && (
@@ -291,7 +306,8 @@ function ChatHeader({
       }
       className="w-full text-left px-6 py-2.5 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:bg-gray-800 flex justify-between"
     >
-      <span>📅 90 days</span>
+      <span className="inline-flex items-center gap-1">
+<FaCalendar/> 90 days</span>
 
       {chatInfo?.disappearingMessages?.duration ===
         90 * 24 * 60 * 60 && (
