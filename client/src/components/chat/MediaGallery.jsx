@@ -7,13 +7,18 @@ import {
   FaFileAlt,
   FaDownload,
   FaExternalLinkAlt,
+  FaImages,
+  FaVideo,
+  FaRegFileVideo,
+  FaLink
+
 } from "react-icons/fa";
 
 const TABS = [
-  { key: "photos", label: "Photos", icon: "🖼️" },
-  { key: "videos", label: "Videos", icon: "🎥" },
-  { key: "files", label: "Files", icon: "📄" },
-  { key: "links", label: "Links", icon: "🔗" },
+  { key: "photos", label: "Photos", icon: <FaImages/> },
+  { key: "videos", label: "Videos", icon: <FaVideo/> },
+  { key: "files", label: "Files", icon: <FaRegFileVideo/> },
+  { key: "links", label: "Links", icon: <FaLink/> },
 ];
 
 function formatBytes(bytes) {
