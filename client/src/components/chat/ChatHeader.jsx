@@ -4,7 +4,9 @@ import { FaPhone, FaVideo, FaEllipsisV,FaArrowLeft,
   FaImages,
   FaTimes,
   FaCalendar,
-FaClock
+FaClock,
+FaRegClock,
+FaBan
  } from "react-icons/fa";
 import { useState } from "react";
 import api from "../../services/api";
@@ -238,7 +240,8 @@ function ChatHeader({
   onClick={() => setShowDisappearingMenu(!showDisappearingMenu)}
   className="w-full text-left px-4 py-3 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between"
 >
-  <span>
+  <span className="inline-flex items-center gap-1">
+    <FaRegClock/>
    Disappearing Messages</span>
 
   <span className="text-xs text-gray-400">
@@ -260,7 +263,8 @@ function ChatHeader({
       onClick={() => setDisappearingDuration(0)}
       className="w-full text-left px-6 py-2.5 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 flex justify-between"
     >
-      <span><FaTimes/> Off</span>
+      <span className="inline-flex items-center gap-1">
+        <FaTimes/> Off</span>
 
       {!chatInfo?.disappearingMessages?.enabled && (
         <span className="text-blue-600">✓</span>
@@ -340,7 +344,10 @@ function ChatHeader({
         }}
         className="w-full text-left px-4 py-3 hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400"
       >
-        🚫 Block User
+        <span className="inline-flex items-center gap-1">
+          <FaBan/>
+           Block User
+          </span>
       </button>
     ) : (
       <button
