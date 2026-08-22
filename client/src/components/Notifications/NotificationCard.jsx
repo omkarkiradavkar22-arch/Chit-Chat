@@ -4,6 +4,14 @@ import api from "../../services/api";
 import { toast } from "react-hot-toast";
 import { useState } from "react";
 import { useTheme } from "../../context/ThemeContext";
+import { FaHeart,
+  FaRegComment,
+  FaUserPlus,
+  FaEnvelope,
+  FaCheck,
+  FaPhone,
+  FaPhoneSlash
+ } from "react-icons/fa";
 
 function NotificationCard({ notification }) {
 
@@ -132,36 +140,70 @@ const getPriorityStyle = () => {
         className: darkMode
           ? "bg-gray-700 text-gray-300 border-gray-600"
           : "bg-gray-100 text-gray-500 border-gray-200",
-              };
-          }
-        };
-        
-        const priority = getPriorityStyle();
-        
-          const getMessage = () => {
-        switch (currentNotification.type) {
-            case "like":
-              return "liked your post ❤️";
-        
-            case "comment":
-              return notification.comment
-                ? `commented: "${notification.comment.text}"`
-        : "commented on your post 💬";
+      };
+  }
+};
 
-    case "follow":
-      return "started following you 👤";
+const priority = getPriorityStyle();
 
-    case "follow_request":
-      return "sent you a follow request 📩";
+  const getMessage = () => {
+switch (currentNotification.type) {
+    case "like":
+  return (
+    <>
+      liked your post <FaHeart className="inline text-red-500 ml-1" />
+    </>
+  );
 
-   case "follow_accept":
-  return "accepted your follow request ✅";
+   case "comment":
+  return notification.comment
+    ? `commented: "${notification.comment.text}"`
+    : (
+        <span className="inline-flex items-center gap-1">
+          commented on your post
+          <FaRegComment className="text-blue-500" />
+        </span>
+      );
 
-  case "incoming_call":
-  return "called you 📞";
+case "follow":
+  return (
+    <span className="inline-flex items-center gap-1">
+      started following you
+      <FaUserPlus className="text-blue-500" />
+    </span>
+  );
+
+case "follow_request":
+  return (
+    <span className="inline-flex items-center gap-1">
+      sent you a follow request
+      <FaEnvelope className="text-blue-500" />
+    </span>
+  );
+
+case "follow_accept":
+  return (
+    <span className="inline-flex items-center gap-1">
+      accepted your follow request
+      <FaCheck className="text-green-500" />
+    </span>
+  );
+
+case "incoming_call":
+  return (
+    <span className="inline-flex items-center gap-1">
+      called you
+      <FaPhone className="text-green-500" />
+    </span>
+  );
 
 case "missed_call":
-  return "Missed call 📵";
+  return (
+    <span className="inline-flex items-center gap-1">
+      Missed call
+      <FaPhoneSlash className="text-red-500" />
+    </span>
+  );
 
     case "message": {
       const preview = currentNotification.text
@@ -185,19 +227,20 @@ case "missed_call":
   }
 };
 
+
   return (
-            <div
-          onClick={handleClick}
-          className={`cursor-pointer rounded-xl shadow p-4 transition border ${
-          darkMode
-            ? "bg-[#111827] border-gray-700 text-white hover:bg-[#172235] hover:shadow-lg"
-            : "bg-white border-gray-200 text-gray-900 hover:bg-gray-50 hover:shadow-md"
-        } ${
-          !notification.isRead
-            ? "border-l-4 border-l-blue-500"
-            : ""
-        }`}
-        >
+    <div
+  onClick={handleClick}
+  className={`cursor-pointer rounded-xl shadow p-4 transition border ${
+  darkMode
+    ? "bg-[#111827] border-gray-700 text-white hover:bg-[#172235] hover:shadow-lg"
+    : "bg-white border-gray-200 text-gray-900 hover:bg-gray-50 hover:shadow-md"
+} ${
+  !notification.isRead
+    ? "border-l-4 border-l-blue-500"
+    : ""
+}`}
+>
       <div className="flex items-center gap-4">
         {!notification.isRead && (
     <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
@@ -238,14 +281,14 @@ case "missed_call":
           </p>
 
           <p className={`text-sm mt-1 ${
-              darkMode ? "text-gray-400" : "text-gray-500"
-            }`}>
-                        {formatDistanceToNow(
-              new Date(notification.createdAt),
-              {
-                addSuffix: true,
-              }
-            )}
+  darkMode ? "text-gray-400" : "text-gray-500"
+}`}>
+            {formatDistanceToNow(
+  new Date(notification.createdAt),
+  {
+    addSuffix: true,
+  }
+)}
           </p>
 
         </div>
@@ -274,47 +317,47 @@ currentNotification.status === "pending" && (
       Accept
     </button>
 
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleReject();
-              }}
-              className={`px-3 py-1 rounded transition ${
-                  darkMode
-                    ? "bg-gray-700 text-gray-200 hover:bg-gray-600"
-                    : "bg-gray-300 text-gray-800 hover:bg-gray-400"
-                }`}
-            >
-              Reject
-            </button>
-        
-          </div>
-        )}
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        handleReject();
+      }}
+      className={`px-3 py-1 rounded transition ${
+  darkMode
+    ? "bg-gray-700 text-gray-200 hover:bg-gray-600"
+    : "bg-gray-300 text-gray-800 hover:bg-gray-400"
+}`}
+    >
+      Reject
+    </button>
 
-        {(currentNotification.type === "follow_accept" ||
-         currentNotification.type === "follow") &&
-        !isFollowing && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleFollowBack();
-            }}
-            className="mt-3 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition"
-          >
-            Follow Back
-          </button>
-        )}
+  </div>
+)}
 
-        {(currentNotification.type === "follow_accept" ||
-         currentNotification.type === "follow") &&
-        isFollowing && (
-          <button
-            disabled
-            className="mt-3 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded transition"
-          >
-            Following
-          </button>
-        )}
+{(currentNotification.type === "follow_accept" ||
+ currentNotification.type === "follow") &&
+!isFollowing && (
+  <button
+    onClick={(e) => {
+      e.stopPropagation();
+      handleFollowBack();
+    }}
+    className="mt-3 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition"
+  >
+    Follow Back
+  </button>
+)}
+
+{(currentNotification.type === "follow_accept" ||
+ currentNotification.type === "follow") &&
+isFollowing && (
+  <button
+    disabled
+    className="mt-3 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded transition"
+  >
+    Following
+  </button>
+)}
 
       </div>
     </div>
