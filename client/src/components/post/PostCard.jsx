@@ -9,6 +9,8 @@ import {
   FaRegBookmark,
   FaChevronLeft,
   FaChevronRight,
+  FaEdit,
+  FaTrash
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
@@ -280,16 +282,18 @@ const updatePost = async () => {
     setEditing(true);
     setOpenMenu(false);
   }}
-  className="w-full text-left px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700"
+  className="w-full flex items-center gap-3 text-left px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
 >
-  ✏️ Edit Post
+  <FaEdit className="text-blue-600" />
+  <span>Edit Post</span>
 </button>
 
           <button
   onClick={deletePost}
-  className="w-full text-left px-4 py-3 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+  className="w-full flex items-center gap-3 text-left px-4 py-3 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition"
 >
-  🗑 Delete Post
+  <FaTrash />
+  <span>Delete Post</span>
 </button>
         </div>
       )}
