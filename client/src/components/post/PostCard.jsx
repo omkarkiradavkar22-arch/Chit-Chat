@@ -7,6 +7,8 @@ import {
   FaEllipsisV,
   FaBookmark,
   FaRegBookmark,
+  FaChevronLeft,
+  FaChevronRight,
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
@@ -317,7 +319,7 @@ const updatePost = async () => {
           }
           className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/50 text-white rounded-full px-3 py-2"
         >
-          ◀
+        <FaChevronLeft size={22} />
         </button>
 
         <button
@@ -328,7 +330,7 @@ const updatePost = async () => {
           }
           className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/50 text-white rounded-full px-3 py-2"
         >
-          ▶
+          <FaChevronRight size={22} />
         </button>
 
         <div className="absolute bottom-3 right-3 bg-black/60 text-white text-sm px-2 py-1 rounded">
