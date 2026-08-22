@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { FaSearch, FaTimes, FaChevronUp, FaChevronDown } from "react-icons/fa";
+import { FaSearch, FaTimes, FaChevronUp, FaChevronDown,
+  FaBan,
+ } from "react-icons/fa";
 import MessageBubble from "./MessageBubble";
 import MessageInput from "./MessageInput";
 import api from "../../services/api";
@@ -624,10 +626,11 @@ const handleAISearch = async (e) => {
 {chatInfo?.isBlocked && (
   <div className="bg-red-100 dark:bg-red-950/40 border-b border-red-300 dark:border-red-800 p-3 flex justify-between items-center">
 
-    <span className="text-red-700 dark:text-red-300 font-medium">
+    <span className="text-red-700 dark:text-red-300 font-medium flex items-center gap-2">
+      <FaBan/>
       {chatInfo.blockedBy === user._id
-        ? "🚫 You blocked this user"
-        : "🚫 You have been blocked"}
+        ? " You blocked this user"
+        : " You have been blocked"}
     </span>
 
     {chatInfo.blockedBy === user._id && (
