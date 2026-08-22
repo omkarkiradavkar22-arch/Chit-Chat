@@ -4,7 +4,12 @@ import { useState, useRef, useEffect } from "react";
 import { useSocket } from "../../context/SocketContext";
 import { useTheme } from "../../context/ThemeContext";
 import api from "../../services/api";
-
+import { 
+  FaUser,
+  FaPen,
+  FaSignOutAlt,
+  FaRobot,
+ } from "react-icons/fa";
 function Navbar() {
   const { user, logout } = useAuth();
   const { socket } = useSocket();
@@ -141,7 +146,7 @@ useEffect(() => {
                       : "text-gray-700 hover:bg-gray-100"
                   }`}
                 >
-                  <span>👤</span>
+                  <FaUser/>
                   <span>Profile</span>
                 </Link>
 
@@ -155,7 +160,7 @@ useEffect(() => {
                       : "text-gray-700 hover:bg-gray-100"
                   }`}
                 >
-                  <span>✏️</span>
+                  <FaPen/>
                   <span>Edit Profile</span>
                 </Link>
 
@@ -206,7 +211,7 @@ useEffect(() => {
   }`}
 >
   <span className="flex items-center gap-2">
-    <span>🤖</span>
+    <FaRobot/>
     <span>AI Task Detection</span>
   </span>
 
@@ -239,7 +244,7 @@ useEffect(() => {
                       : "text-red-600 hover:bg-red-100"
                   }`}
                 >
-                  <span>🚪</span>
+                  <FaSignOutAlt/>
                   <span>Logout</span>
                 </button>
 
