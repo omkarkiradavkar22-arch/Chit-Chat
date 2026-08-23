@@ -7,6 +7,7 @@ import {
   FaEdit,
   FaCopy,
   FaSmile,
+  FaMapMarkedAlt,
   FaMapMarkerAlt,
   FaExternalLinkAlt,
   FaLocationArrow,
@@ -460,7 +461,7 @@ const renderHighlightedText = () => {
             isMine ? "text-white" : "text-green-700"
           }`}
         >
-          📍 Live Location
+           Live Location
         </p>
       </div>
 
@@ -480,9 +481,10 @@ const renderHighlightedText = () => {
               href={`https://www.google.com/maps?q=${liveLocation.latitude},${liveLocation.longitude}`}
               target="_blank"
               rel="noreferrer"
-              className="mt-3 flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium bg-white text-green-700 hover:bg-gray-100"
+              className="mt-3 flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium bg-white text-green-700 hover:bg-gray-100 "
             >
-              🗺️ Open Live Location
+              <FaMapMarkedAlt/>
+               Open Live Location
             </a>
           </>
         )}
@@ -518,19 +520,19 @@ const renderHighlightedText = () => {
           size={42}
         />
 
-        <span className="absolute bottom-2 left-2 bg-white/90 text-gray-700 text-xs px-2 py-1 rounded-md shadow">
-          📍 Shared Location
+        <span className="absolute bottom-2 left-2 bg-white/90 text-gray-700 text-xs px-2 py-1 rounded-md shadow inline-flex items-center gap-1">
+          <FaMapMarkerAlt/> Shared Location
         </span>
       </div>
 
       {/* Location Details */}
       <div className="p-3">
         <p
-          className={`font-semibold text-sm ${
+          className={`font-semibold text-sm inline-flex items-center gap-1 ${
             isMine ? "text-white" : "text-gray-800"
           }`}
         >
-          📍 Location
+          <FaMapMarkerAlt/> Location
         </p>
 
         <p
@@ -546,13 +548,13 @@ const renderHighlightedText = () => {
           href={`https://www.google.com/maps?q=${message.location.latitude},${message.location.longitude}`}
           target="_blank"
           rel="noreferrer"
-          className={`mt-3 flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition ${
+          className={`mt-3 flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition inline-flex items-center gap-1 ${
             isMine
               ? "bg-white text-blue-600 hover:bg-blue-50"
               : "bg-blue-600 text-white hover:bg-blue-700"
           }`}
         >
-          🗺️ Open in Google Maps
+          <FaMapMarkedAlt/> Open in Google Maps
         </a>
       </div>
     </div>
