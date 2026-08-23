@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
-import { FaTimes, FaTasks, FaCheck, FaTrash } from "react-icons/fa";
+import { FaTimes, FaTasks, FaCheck, FaTrash,
+  FaCalendar,
+  FaFileAlt,
+  FaHourglassHalf,
+} from "react-icons/fa";
 import { toast } from "react-hot-toast";
 
 function Tasks({ isOpen, onClose, onPendingCountChange }) {
@@ -168,19 +172,19 @@ onPendingCountChange?.((prev) => Math.max(0, prev - 1));
                     <div className="flex-1">
 
                       <h3
-                        className={`font-semibold ${
+                        className={`font-semibold inline-flex items-center gap-1${
                           task.completed
                             ? "line-through text-gray-400"
                             : "text-gray-900 dark:text-white"
                         }`}
                       >
-                        📝 {task.title || task.text}
+                        <FaFileAlt/> {task.title || task.text}
                       </h3>
 
                       {/* DEADLINE */}
                       {task.deadline && (
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                          📅 Deadline:{" "}
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 inline-flex items-center gap-1">
+                          <FaCalendar/> Deadline:{" "}
                           {new Date(
                             task.deadline
                           ).toLocaleString()}
@@ -210,8 +214,8 @@ onPendingCountChange?.((prev) => Math.max(0, prev - 1));
                         ✅ Completed
                       </span>
                     ) : (
-                      <span className="text-sm font-medium text-orange-500">
-                        ⏳ Pending
+                      <span className="text-sm font-medium text-orange-500 inline-flex items-center gap-1">
+                        <FaHourglassHalf/> Pending
                       </span>
                     )}
 
