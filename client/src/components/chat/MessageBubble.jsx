@@ -18,9 +18,9 @@ import {
   FaArrowRight,
   FaPen,
   FaBan,
-  
-  
+  FaShare,
 
+  
 } from "react-icons/fa";
 import { useState, useRef, useEffect } from "react";
 import api from "../../services/api";
@@ -851,11 +851,11 @@ className="w-full text-left px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-
         )}
 {message.forwardedFrom && (
   <p
-    className={`text-xs italic mb-1 ${
+    className={`text-xs italic mb-1 inline-flex items-center gap-1${
       isMine ? "text-blue-100" : "text-gray-500"
     }`}
   >
-    ↪ Forwarded
+    <FaShare/> Forwarded
   </p>
 )}
 
