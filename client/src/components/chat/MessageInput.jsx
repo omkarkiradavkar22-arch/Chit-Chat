@@ -10,6 +10,8 @@ import {
   FaPause,
   FaMapMarkerAlt,
   FaLocationArrow,
+  FaVideo,FaFileAlt,FaCamera
+  
 } from "react-icons/fa";
 import { FaSmile } from "react-icons/fa";
 import { toast } from "react-hot-toast";
@@ -730,18 +732,30 @@ useEffect(() => {
             </p>
 
             <p className="text-sm text-gray-600 dark:text-gray-300 truncate">
-              {replyMessage.text ||
-                (replyMessage.attachments?.[0]?.type ===
-                "audio"
-                  ? "🎤 Voice message"
-                  : replyMessage.attachments?.[0]?.type ===
-                    "video"
-                  ? "🎥 Video"
-                  : replyMessage.attachments?.[0]?.type ===
-                    "file"
-                  ? "📄 File"
-                  : "📷 Photo")}
-            </p>
+  {replyMessage.text ? (
+    replyMessage.text
+  ) : replyMessage.attachments?.[0]?.type === "audio" ? (
+    <span className="inline-flex items-center gap-1">
+      <FaMicrophone />
+      Voice message
+    </span>
+  ) : replyMessage.attachments?.[0]?.type === "video" ? (
+    <span className="inline-flex items-center gap-1">
+      <FaVideo />
+      Video
+    </span>
+  ) : replyMessage.attachments?.[0]?.type === "file" ? (
+    <span className="inline-flex items-center gap-1">
+      <FaFileAlt />
+      File
+    </span>
+  ) : (
+    <span className="inline-flex items-center gap-1">
+      <FaCamera />
+      Photo
+    </span>
+  )}
+</p>
           </div>
 
           <button
