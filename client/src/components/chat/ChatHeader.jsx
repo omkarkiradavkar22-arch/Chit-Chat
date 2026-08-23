@@ -5,8 +5,8 @@ import { FaPhone, FaVideo, FaEllipsisV,FaArrowLeft,
   FaTimes,
   FaCalendar,
 FaClock,
-FaRegClock,
-FaBan
+FaBan,
+FaHourglassHalf
  } from "react-icons/fa";
 import { useState } from "react";
 import api from "../../services/api";
@@ -241,7 +241,7 @@ function ChatHeader({
   className="w-full text-left px-4 py-3 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between"
 >
   <span className="inline-flex items-center gap-1">
-    <FaRegClock/>
+    <FaHourglassHalf/>
    Disappearing Messages</span>
 
   <span className="text-xs text-gray-400">
