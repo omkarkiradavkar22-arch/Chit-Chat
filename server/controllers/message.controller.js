@@ -544,8 +544,21 @@ export const reactToMessage = async (req, res) => {
 
 export const forwardMessage = async (req, res) => {
   try {
-    const { chatId } = req.body;
+    const { chatIds } = req.body;
 
+    // Validate selected chats
+    if (
+      !chatIds ||
+      !Array.isArray(chatIds) ||
+      chatIds.length === 0
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Please select at least one chat",
+      });
+    }
+
+    // Find original message
     const originalMessage = await Message.findById(
       req.params.messageId
     );
@@ -557,80 +570,102 @@ export const forwardMessage = async (req, res) => {
       });
     }
 
-    const chat = await Chat.findById(chatId);
+    const forwardedMessages = [];
 
-    if (!chat) {
-      return res.status(404).json({
-        success: false,
-        message: "Chat not found",
-      });
-    }
+    // Forward message to every selected chat
+    for (const chatId of chatIds) {
+      const chat = await Chat.findById(chatId);
 
-    // User must belong to destination chat
-    if (
-      !chat.participants.some(
-        (id) => id.toString() === req.user._id.toString()
-      )
-    ) {
-      return res.status(403).json({
-        success: false,
-        message: "Unauthorized",
-      });
-    }
+      if (!chat) {
+        continue;
+      }
 
-    const forwardedMessage = await Message.create({
-      chat: chat._id,
-      sender: req.user._id,
-
-      text: originalMessage.text,
-
-attachments: originalMessage.attachments || [],
-
-replyTo: null,
-
-      forwardedFrom: originalMessage._id,
-
-      delivered: true,
-
-      seenBy: [req.user._id],
-    });
-
-    chat.lastMessage = forwardedMessage._id;
-
-    await chat.save();
-
-    const populatedMessage =
-      await Message.findById(forwardedMessage._id)
-        .populate(
-          "sender",
-          "name username profilePic"
-        )
-        .populate(
-          "forwardedFrom"
-        );
-
-    const receiver = chat.participants.find(
-      (id) =>
-        id.toString() !==
-        req.user._id.toString()
-    );
-
-    if (receiver) {
-      io.to(receiver.toString()).emit(
-        "newMessage",
-        populatedMessage
+      // User must belong to destination chat
+      const isParticipant = chat.participants.some(
+        (id) =>
+          id.toString() ===
+          req.user._id.toString()
       );
+
+      if (!isParticipant) {
+        continue;
+      }
+
+      // Create forwarded message
+      const forwardedMessage = await Message.create({
+        chat: chat._id,
+
+        sender: req.user._id,
+
+        text: originalMessage.text,
+
+        messageType: originalMessage.messageType,
+
+        attachments:
+          originalMessage.attachments || [],
+
+        audio: originalMessage.audio || null,
+
+        location: originalMessage.location || null,
+
+        replyTo: null,
+
+        forwardedFrom: originalMessage._id,
+
+        delivered: true,
+
+        seenBy: [req.user._id],
+      });
+
+      // Update last message
+      chat.lastMessage = forwardedMessage._id;
+
+      await chat.save();
+
+      // Populate message
+      const populatedMessage =
+        await Message.findById(forwardedMessage._id)
+          .populate(
+            "sender",
+            "name username profilePic"
+          )
+          .populate("forwardedFrom");
+
+      forwardedMessages.push(populatedMessage);
+
+      // Find receiver
+      const receiver = chat.participants.find(
+        (id) =>
+          id.toString() !==
+          req.user._id.toString()
+      );
+
+      // Send real-time message
+      if (receiver) {
+        io.to(receiver.toString()).emit(
+          "newMessage",
+          populatedMessage
+        );
+      }
     }
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
-      message: populatedMessage,
+
+      message: `Message forwarded to ${forwardedMessages.length} chat(s)`,
+
+      forwardedMessages,
     });
 
   } catch (error) {
-    res.status(500).json({
+    console.error("Forward message error:", error);
+
+    return res.status(500).json({
       success: false,
-      message: error.message,
+
+      message:
+        error.message ||
+        "Failed to forward message",
     });
   }
 };
