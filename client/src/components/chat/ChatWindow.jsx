@@ -384,6 +384,34 @@ const handleAISearch = async (e) => {
   setChatInfo(currentChat);
 };
 
+const getMessageDateLabel = (date) => {
+  const messageDate = new Date(date);
+
+  const today = new Date();
+  const yesterday = new Date();
+
+  yesterday.setDate(today.getDate() - 1);
+
+  const isSameDay = (date1, date2) =>
+    date1.getDate() === date2.getDate() &&
+    date1.getMonth() === date2.getMonth() &&
+    date1.getFullYear() === date2.getFullYear();
+
+  if (isSameDay(messageDate, today)) {
+    return "TODAY";
+  }
+
+  if (isSameDay(messageDate, yesterday)) {
+    return "YESTERDAY";
+  }
+
+  return messageDate.toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+};
+
   return (
 
     
@@ -667,63 +695,101 @@ const handleAISearch = async (e) => {
             No messages yet.
           </div>
         ) : (
-          messages.map((message) => {
+          messages.map((message, index) => {
   const matchIndex = searchMatches.findIndex(
     (item) => item._id === message._id
   );
 
+  const currentDateLabel = getMessageDateLabel(
+    message.createdAt
+  );
+
+  const previousDateLabel =
+    index > 0
+      ? getMessageDateLabel(
+          messages[index - 1].createdAt
+        )
+      : null;
+
+  const showDateSeparator =
+    currentDateLabel !== previousDateLabel;
+
   return (
-    <div
-      key={message._id}
-      ref={(el) => {
-        messageRefs.current[message._id] = el;
-      }}
-    >
-      <MessageBubble
-        refreshChatInfo={refreshChatInfo}
-        message={message}
-        chatId={chatId}
-        liveLocation={liveLocation}
+    <div key={message._id}>
+      
+      {/* DATE SEPARATOR */}
+      {showDateSeparator && (
+        <div className="flex items-center justify-center my-4">
+          <span className="
+            bg-gray-200 
+            dark:bg-gray-800
+            text-gray-600 
+            dark:text-gray-300
+            text-xs
+            font-medium
+            px-3
+            py-1
+            rounded-full
+          ">
+            {currentDateLabel}
+          </span>
+        </div>
+      )}
 
-        searchQuery={searchQuery}
-
-        isSearchMatch={
-          matchIndex !== -1 &&
-          searchMatches[searchIndex]?._id === message._id
-        }
-
-        onPin={(updatedChat) => {
-          setChatInfo(updatedChat);
+      {/* MESSAGE */}
+      <div
+        ref={(el) => {
+          messageRefs.current[message._id] = el;
         }}
+      >
+        <MessageBubble
+          refreshChatInfo={refreshChatInfo}
+          message={message}
+          chatId={chatId}
+          liveLocation={liveLocation}
+          searchQuery={searchQuery}
 
-        onReply={() => setReplyMessage(message)}
+          isSearchMatch={
+            matchIndex !== -1 &&
+            searchMatches[searchIndex]?._id ===
+              message._id
+          }
 
-        onDelete={(id) =>
-          setMessages((prev) =>
-            prev.filter((msg) => msg._id !== id)
-          )
-        }
+          onPin={(updatedChat) => {
+            setChatInfo(updatedChat);
+          }}
 
-        onEdit={(updatedMessage) =>
-          setMessages((prev) =>
-            prev.map((msg) =>
-              msg._id === updatedMessage._id
-                ? updatedMessage
-                : msg
+          onReply={() =>
+            setReplyMessage(message)
+          }
+
+          onDelete={(id) =>
+            setMessages((prev) =>
+              prev.filter((msg) => msg._id !== id)
             )
-          )
-        }
+          }
 
-        onReaction={(updatedMessage) =>
-          setMessages((prev) =>
-            prev.map((msg) =>
-              msg._id === updatedMessage._id
-                ? updatedMessage
-                : msg
+          onEdit={(updatedMessage) =>
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg._id === updatedMessage._id
+                  ? updatedMessage
+                  : msg
+              )
             )
-          )
-        }
-      />
+          }
+
+          onReaction={(updatedMessage) =>
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg._id === updatedMessage._id
+                  ? updatedMessage
+                  : msg
+              )
+            )
+          }
+        />
+      </div>
     </div>
   );
 })
