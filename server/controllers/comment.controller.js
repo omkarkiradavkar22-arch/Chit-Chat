@@ -93,6 +93,14 @@ export const getComments = async (req, res) => {
 
 export const editComment = async (req, res) => {
   try {
+    const { text } = req.body;
+
+    if (!text || !text.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Comment cannot be empty",
+      });
+    }
 
     const comment = await Comment.findById(req.params.commentId);
 
@@ -110,15 +118,18 @@ export const editComment = async (req, res) => {
       });
     }
 
-    comment.text = req.body.text;
+    comment.text = text.trim();
     comment.isEdited = true;
 
     await comment.save();
 
+    const updatedComment = await Comment.findById(comment._id)
+      .populate("user", "name username profilePic");
+
     res.status(200).json({
       success: true,
       message: "Comment updated",
-      comment,
+      comment: updatedComment,
     });
 
   } catch (error) {
