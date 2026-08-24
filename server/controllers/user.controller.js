@@ -2,7 +2,7 @@ import User from "../models/User.js";
 import cloudinary from "../config/cloudinary.js";
 import streamifier from "streamifier";
 import Notification from "../models/Notification.js";
-
+import { sendPushToUser } from "../services/webPush.js";
 export const updateProfile = async (req, res) => {
   try {
     console.log(req.body);
@@ -174,6 +174,7 @@ res.status(200).json({
 export const followUser = async (req, res) => {
   try {
     const userToFollow = await User.findById(req.params.id);
+
     const currentUser = await User.findById(req.user._id);
 
     if (!userToFollow) {
@@ -183,24 +184,38 @@ export const followUser = async (req, res) => {
       });
     }
 
-    if (userToFollow._id.toString() === currentUser._id.toString()) {
+    if (
+      userToFollow._id.toString() ===
+      currentUser._id.toString()
+    ) {
       return res.status(400).json({
         success: false,
         message: "You cannot follow yourself",
       });
     }
 
-    if (currentUser.following.includes(userToFollow._id)) {
+    if (
+      currentUser.following.some(
+        (id) =>
+          id.toString() ===
+          userToFollow._id.toString()
+      )
+    ) {
       return res.status(400).json({
         success: false,
         message: "Already following this user",
       });
     }
 
-    // 🔒 Private Account
+    // 🔒 PRIVATE ACCOUNT
     if (userToFollow.isPrivate) {
-
-      if (userToFollow.followRequests.includes(currentUser._id)) {
+      if (
+        userToFollow.followRequests.some(
+          (id) =>
+            id.toString() ===
+            currentUser._id.toString()
+        )
+      ) {
         return res.status(400).json({
           success: false,
           message: "Follow request already sent",
@@ -211,20 +226,38 @@ export const followUser = async (req, res) => {
 
       await userToFollow.save();
 
-      const existingNotification = await Notification.findOne({
-  sender: currentUser._id,
-  receiver: userToFollow._id,
-  type: "follow_request",
-  status: "pending",
-});
+      const existingNotification =
+        await Notification.findOne({
+          sender: currentUser._id,
+          receiver: userToFollow._id,
+          type: "follow_request",
+          status: "pending",
+        });
 
-if (!existingNotification) {
-  await Notification.create({
-    sender: currentUser._id,
-    receiver: userToFollow._id,
-    type: "follow_request",
-  });
-}
+      if (!existingNotification) {
+        const notification =
+          await Notification.create({
+            sender: currentUser._id,
+            receiver: userToFollow._id,
+            type: "follow_request",
+          });
+
+        // 🔔 PUSH NOTIFICATION
+        await sendPushToUser(userToFollow._id, {
+          title: "Follow Request 👤",
+          body: `${currentUser.name} sent you a follow request`,
+          icon:
+            currentUser.profilePic ||
+            "/default-profile-picture.png",
+
+          data: {
+            type: "follow_request",
+            notificationId:
+              notification._id.toString(),
+            url: "/notifications",
+          },
+        });
+      }
 
       return res.status(200).json({
         success: true,
@@ -232,25 +265,45 @@ if (!existingNotification) {
       });
     }
 
-    // 🌍 Public Account
+    // 🌍 PUBLIC ACCOUNT
     currentUser.following.push(userToFollow._id);
+
     userToFollow.followers.push(currentUser._id);
 
-    await Notification.create({
-  sender: currentUser._id,
-  receiver: userToFollow._id,
-  type: "follow",
-});
+    const notification =
+      await Notification.create({
+        sender: currentUser._id,
+        receiver: userToFollow._id,
+        type: "follow",
+      });
 
     await currentUser.save();
+
     await userToFollow.save();
+
+    // 🔔 SEND PUSH NOTIFICATION
+    await sendPushToUser(userToFollow._id, {
+      title: "New Follower 👤",
+      body: `${currentUser.name} started following you`,
+      icon:
+        currentUser.profilePic ||
+        "/default-profile-picture.png",
+
+      data: {
+        type: "follow",
+        notificationId:
+          notification._id.toString(),
+        url: "/notifications",
+      },
+    });
 
     res.status(200).json({
       success: true,
       message: "User followed successfully",
     });
-
   } catch (error) {
+    console.error("FOLLOW USER ERROR:", error);
+
     res.status(500).json({
       success: false,
       message: error.message,
