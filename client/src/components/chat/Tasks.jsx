@@ -193,16 +193,16 @@ onPendingCountChange?.((prev) => Math.max(0, prev - 1));
 
                     </div>
 
-                    {/* DELETE */}
-                    <button
-                      onClick={() =>
-                        deleteTask(task._id)
-                      }
-                      className="text-gray-400 hover:text-red-500"
-                      title="Delete task"
-                    >
-                      <FaTrash size={14} />
-                    </button>
+                                      {/* DELETE - Only after task is completed */}
+{task.completed && (
+  <button
+    onClick={() => deleteTask(task._id)}
+    className="text-gray-400 hover:text-red-500"
+    title="Delete completed task"
+  >
+    <FaTrash size={14} />
+  </button>
+)}
 
                   </div>
 
