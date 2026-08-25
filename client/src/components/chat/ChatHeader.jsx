@@ -5,8 +5,7 @@ import api from "../../services/api";
 import { toast } from "react-hot-toast";
 import MediaGallery from "./MediaGallery";
 import { useCall } from "../../context/CallContext";
-function ChatHeader({ otherUser, onlineUsers,
-  chatInfo,
+function ChatHeader({ otherUser, onlineUsers, chatInfo,
   setChatInfo,
   chatId,
   refreshChatInfo,
