@@ -1,6 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { FaPhone, FaVideo, FaEllipsisV,FaArrowLeft, FaSearch, FaImages, FaTimes, FaCalendar, FaClock, FaBan, FaHourglassHalf
- } from "react-icons/fa";
+import { FaPhone, FaVideo, FaEllipsisV,FaArrowLeft, FaSearch, FaImages, FaTimes, FaCalendar, FaClock, FaBan, FaHourglassHalf } from "react-icons/fa";
 import { useState } from "react";
 import api from "../../services/api";
 import { toast } from "react-hot-toast";
