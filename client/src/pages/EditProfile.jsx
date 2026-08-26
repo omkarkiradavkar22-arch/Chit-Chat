@@ -118,22 +118,22 @@ const handlePrivacy = async () => {
     />
   )}
 
-  <input
-    type="file"
-    accept="image/*"
-    className="mt-2 w-full text-sm text-gray-600 dark:text-gray-300"
-    onChange={(e) => {
-      const file = e.target.files[0];
-
-      if (!file) return;
-
-      setCoverPic(file);
-      setCoverPreview(URL.createObjectURL(file));
-    }}
-  />
-</div>
-
-<div>
+              <input
+                type="file"
+                accept="image/*"
+                className="mt-2 w-full text-sm text-gray-600 dark:text-gray-300"
+                onChange={(e) => {
+                  const file = e.target.files[0];
+            
+                  if (!file) return;
+            
+                  setCoverPic(file);
+                  setCoverPreview(URL.createObjectURL(file));
+                }}
+              />
+            </div>
+            
+            <div>
             <label className="font-medium">
               Profile Picture
             </label>
