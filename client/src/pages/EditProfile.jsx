@@ -134,17 +134,17 @@ const handlePrivacy = async () => {
 </div>
 
 <div>
-  <label className="font-medium">
-    Profile Picture
-  </label>
-
-  {profilePreview && (
-    <img
-      src={profilePreview}
-      className="w-24 h-24 rounded-full object-cover my-2"
-      alt=""
-    />
-  )}
+            <label className="font-medium">
+              Profile Picture
+            </label>
+          
+            {profilePreview && (
+              <img
+                src={profilePreview}
+                className="w-24 h-24 rounded-full object-cover my-2"
+                alt=""
+              />
+            )}
 
             <input
               type="file"
