@@ -5,7 +5,6 @@ import { toast } from "react-hot-toast";
 import Layout from "../components/layouts/Layout";
 import ChatSidebar from "../components/chat/ChatSidebar";
 import ChatWindow from "../components/chat/ChatWindow";
-
 import api from "../services/api";
 import { useSocket } from "../context/SocketContext";
 
