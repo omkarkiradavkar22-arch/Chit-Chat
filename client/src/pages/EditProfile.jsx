@@ -101,22 +101,22 @@ const handlePrivacy = async () => {
           Edit Profile
         </h1>
 
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-5"
-        >
-          <div>
-  <label className="font-medium">
-    Cover Photo
-  </label>
-
-  {coverPreview && (
-    <img
-      src={coverPreview}
-      className="w-full h-40 object-cover rounded-xl my-2"
-      alt=""
-    />
-  )}
+                    <form
+                      onSubmit={handleSubmit}
+                      className="space-y-5"
+                    >
+                      <div>
+              <label className="font-medium">
+                Cover Photo
+              </label>
+            
+              {coverPreview && (
+                <img
+                  src={coverPreview}
+                  className="w-full h-40 object-cover rounded-xl my-2"
+                  alt=""
+                />
+              )}
 
               <input
                 type="file"
