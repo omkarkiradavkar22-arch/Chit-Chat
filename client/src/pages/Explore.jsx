@@ -37,8 +37,8 @@ function Explore() {
 
         {loading ? (
           <p className="text-center text-gray-600 dark:text-gray-300">
-  Loading...
-</p>
+            Loading...
+          </p>
         ) : (
           <ExploreGrid posts={posts} />
         )}
