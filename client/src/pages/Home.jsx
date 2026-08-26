@@ -35,8 +35,8 @@ function Home() {
 
         {loading ? (
           <p className="text-center text-gray-600 dark:text-gray-300">
-  Loading...
-</p>
+            Loading...
+          </p>
         ) : posts.length === 0 ? (
           <p className="text-center text-gray-500 dark:text-gray-400">
             No posts yet.
