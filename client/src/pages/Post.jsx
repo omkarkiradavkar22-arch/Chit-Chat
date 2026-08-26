@@ -45,10 +45,10 @@ function Post() {
           </p>
         ) : (
           <>
-  <PostCard post={post} />
-
-  <CommentSection post={post} />
-</>
+            <PostCard post={post} />
+          
+            <CommentSection post={post} />
+          </>
         )}
 
       </div>
