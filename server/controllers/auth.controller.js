@@ -4,7 +4,6 @@ import sendToken from "../utils/sendToken.js";
 export const registerUser = async (req, res) => {
   try {
     const { name, username, email, password } = req.body;
-
     // Required fields
     if (!name || !username || !email || !password) {
       return res.status(400).json({
