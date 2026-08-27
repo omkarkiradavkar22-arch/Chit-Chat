@@ -16,7 +16,7 @@ function EditProfile() {
   const [loading, setLoading] = useState(false);
 
   const [profilePic, setProfilePic] = useState(null);
-const [coverPic, setCoverPic] = useState(null);
+  const [coverPic, setCoverPic] = useState(null);
 const [isPrivate, setIsPrivate] = useState(false);
 const [profilePreview, setProfilePreview] = useState("");
 const [coverPreview, setCoverPreview] = useState("");
