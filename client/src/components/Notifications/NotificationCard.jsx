@@ -4,8 +4,7 @@ import api from "../../services/api";
 import { toast } from "react-hot-toast";
 import { useState } from "react";
 import { useTheme } from "../../context/ThemeContext";
-import { FaHeart, FaRegComment, FaUserPlus,
-  FaEnvelope,
+import { FaHeart, FaRegComment, FaUserPlus, FaEnvelope,
   FaCheck,
   FaPhone,
   FaPhoneSlash
