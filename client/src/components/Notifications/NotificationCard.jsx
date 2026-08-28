@@ -297,7 +297,7 @@ case "missed_call":
         )}
 
         {currentNotification.type === "follow_request" &&
-currentNotification.status === "pending" && (
+        currentNotification.status === "pending" && (
   <div className="flex gap-2 mt-3">
 
     <button
