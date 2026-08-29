@@ -35,7 +35,6 @@ function ForwardModal({
       if (prev.includes(chatId)) {
         return prev.filter((id) => id !== chatId);
       }
-
       return [...prev, chatId];
     });
   };
