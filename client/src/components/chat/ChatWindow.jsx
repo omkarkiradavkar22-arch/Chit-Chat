@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { FaSearch, FaTimes, FaChevronUp, FaChevronDown,
+import { FaSearch, FaTimes, 
+        FaChevronUp, FaChevronDown,
   FaBan,
  } from "react-icons/fa";
 import MessageBubble from "./MessageBubble";
