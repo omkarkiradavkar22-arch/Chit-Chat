@@ -28,17 +28,17 @@ export default defineConfig({
         icons: [
   {
     src: "/chit-chat-logo-192x192.png",
+    sizes: "192x192",
+    type: "image/png",
+  },
+  {
+    src: "/chit-chat-logo-512x512.png",
     sizes: "512x512",
     type: "image/png",
   },
   {
-    src: "/chit-chat-logo-1024x1024.png",
-    sizes: "1024x1024",
-    type: "image/png",
-  },
-  {
-    src: "/chit-chat-logo-1024x1024.png",
-    sizes: "1024x1024",
+    src: "/chit-chat-logo-512x512.png",
+    sizes: "512x512",
     type: "image/png",
     purpose: "any maskable",
   },
