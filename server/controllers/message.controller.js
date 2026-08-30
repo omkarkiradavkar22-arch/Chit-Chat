@@ -250,19 +250,26 @@ const populatedMessage = await Message.findById(message._id)
 if (receiver) {
   io.to(receiver.toString()).emit("newMessage", populatedMessage);
 
+  const receiverOpenChat = getActiveChat(receiver.toString());
+  const receiverIsViewingThisChat = receiverOpenChat === chat._id.toString();
+
   // 🔔 Real push — reaches the receiver even if their app/tab is
   // fully closed, since it doesn't rely on the socket connection.
-  sendPushToUser(receiver.toString(), {
-    type: "message",
-    title: req.user.name || "New message",
-    body: text || "📎 Sent you an attachment",
-    senderId: req.user._id.toString(),
-    chatId: chat._id.toString(),
-    url: `/chat/${chat._id}`,
-    tag: `message-${chat._id}`,
-  });
+  // Skip it if they're already looking at this exact chat — the
+  // socket "newMessage" event above already updates their screen,
+  // so a push here would just be a duplicate/annoying popup.
+  if (!receiverIsViewingThisChat) {
+    sendPushToUser(receiver.toString(), {
+      type: "message",
+      title: req.user.name || "New message",
+      body: text || "📎 Sent you an attachment",
+      senderId: req.user._id.toString(),
+      chatId: chat._id.toString(),
+      url: `/chat/${chat._id}`,
+      tag: `message-${chat._id}`,
+    });
+  }
 }
-
 res.status(201).json({
   success: true,
   message: populatedMessage,
