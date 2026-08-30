@@ -62,19 +62,20 @@ export const CallProvider = ({ children }) => {
   const durationTimerRef = useRef(null);
   const autoEndCallTimerRef = useRef(null);
   const pendingCandidatesRef = useRef([]);
- const incomingCallRef = useRef(null); // { from, offer, type, chatId }
- const ringtoneRef = useRef(null);
+  const incomingCallRef = useRef(null); // { from, offer, type, chatId }
+  const ringtoneRef = useRef(null);
+  const endCallRef = useRef(null); // set once endCall is defined below
 
   const cleanup = useCallback(() => {
 
-  // 🔇 Stop ringtone
-  if (ringtoneRef.current) {
-    ringtoneRef.current.pause();
-    ringtoneRef.current.currentTime = 0;
-    ringtoneRef.current = null;
-  }
+    // 🔇 Stop ringtone
+    if (ringtoneRef.current) {
+      ringtoneRef.current.pause();
+      ringtoneRef.current.currentTime = 0;
+      ringtoneRef.current = null;
+    }
 
-  if (pcRef.current) {
+    if (pcRef.current) {
       pcRef.current.close();
       pcRef.current = null;
     }
@@ -84,9 +85,9 @@ export const CallProvider = ({ children }) => {
     }
     clearInterval(durationTimerRef.current);
     if (autoEndCallTimerRef.current) {
-  clearTimeout(autoEndCallTimerRef.current);
-  autoEndCallTimerRef.current = null;
-}
+      clearTimeout(autoEndCallTimerRef.current);
+      autoEndCallTimerRef.current = null;
+    }
     pendingCandidatesRef.current = [];
     incomingCallRef.current = null;
     setCallDuration(0);
@@ -125,6 +126,28 @@ export const CallProvider = ({ children }) => {
         }
       };
 
+      // Without this, a dropped connection (network change, other side's
+      // wifi dying, etc.) leaves the UI stuck showing "connected" with
+      // dead audio/video forever — nothing else was watching for it.
+      pc.oniceconnectionstatechange = () => {
+        const state = pc.iceConnectionState;
+        console.log("ICE connection state:", state);
+
+        if (state === "disconnected") {
+          // Give it a few seconds to recover on its own (brief network
+          // blips are common) before trying anything drastic.
+          setTimeout(() => {
+            if (pcRef.current === pc && pc.iceConnectionState === "disconnected") {
+              pc.restartIce?.();
+            }
+          }, 3000);
+        }
+
+        if (state === "failed" || state === "closed") {
+          endCallRef.current?.();
+        }
+      };
+
       return pc;
     },
     [socket]
@@ -146,8 +169,8 @@ export const CallProvider = ({ children }) => {
 
   // ---- Caller: start an outgoing call ----
   // type: "audio" | "video"
-const startCall = useCallback(
-  async (otherUser, type = "audio", chatId) => {
+  const startCall = useCallback(
+    async (otherUser, type = "audio", chatId) => {
       if (!socket || !user || callStatus !== "idle") return;
 
       try {
@@ -164,38 +187,41 @@ const startCall = useCallback(
         await pc.setLocalDescription(offer);
 
         setRemoteUser(otherUser);
-setActiveChatId(chatId);
-setCallType(type);
-setCallStatus("outgoing");
+        setActiveChatId(chatId);
+        setCallType(type);
+        setCallStatus("outgoing");
 
         socket.emit("call:invite", {
-  to: otherUser._id,
-  from: user._id,
-  fromName: user.name,
-  fromPic: user.profilePic,
-  callType: type,
-  offer,
-  chatId,
-});
+          to: otherUser._id,
+          from: user._id,
+          fromName: user.name,
+          fromPic: user.profilePic,
+          callType: type,
+          offer,
+          chatId,
+        });
 
-// Auto end outgoing call after 30 seconds if not answered
-if (autoEndCallTimerRef.current) {
-  clearTimeout(autoEndCallTimerRef.current);
-}
+        // Auto end outgoing call after 30 seconds if not answered
+        if (autoEndCallTimerRef.current) {
+          clearTimeout(autoEndCallTimerRef.current);
+        }
 
-autoEndCallTimerRef.current = setTimeout(() => {
- socket.emit("call:end", {
-  to: otherUser._id,
-  chatId,
-  from: user._id,
-  callType: type,
-  callDuration: 0,
-  wasAnswered: false,
-  endedBy: otherUser._id, // receiver missed
-});
+        autoEndCallTimerRef.current = setTimeout(() => {
+          socket.emit("call:end", {
+            to: otherUser._id,
+            chatId,
+            from: user._id,
+            callType: type,
+            callDuration: 0,
+            wasAnswered: false,
 
-  cleanup();
-}, 30000);
+            // Important
+            reason: "missed",
+            endedBy: user._id,
+          });
+
+          cleanup();
+        }, 30000);
 
       } catch (err) {
         console.error("Failed to start call:", err);
@@ -209,18 +235,18 @@ autoEndCallTimerRef.current = setTimeout(() => {
     if (!socket || !incomingCallRef.current) return;
 
     // 🔇 Stop ringtone when call is accepted
-  if (ringtoneRef.current) {
-    ringtoneRef.current.pause();
-    ringtoneRef.current.currentTime = 0;
-    ringtoneRef.current = null;
-  }
+    if (ringtoneRef.current) {
+      ringtoneRef.current.pause();
+      ringtoneRef.current.currentTime = 0;
+      ringtoneRef.current = null;
+    }
 
     const {
-  from,
-  offer,
-  type,
-  chatId,
-} = incomingCallRef.current;
+      from,
+      offer,
+      type,
+      chatId,
+    } = incomingCallRef.current;
 
     try {
       const stream = await getMedia(type);
@@ -243,23 +269,23 @@ autoEndCallTimerRef.current = setTimeout(() => {
       await pc.setLocalDescription(answer);
 
       socket.emit("call:accept", {
-  to: from,
-  answer,
-  chatId,
-  from: user._id,
-  callType: type,
-});
+        to: from,
+        answer,
+        chatId,
+        from: user._id,
+        callType: type,
+      });
 
       setCallStatus("connected");
-startDurationTimer();
+      startDurationTimer();
 
-// Call answered — cancel 30 sec ringing timeout
-if (autoEndCallTimerRef.current) {
-  clearTimeout(autoEndCallTimerRef.current);
-  autoEndCallTimerRef.current = null;
-}
+      // Call answered — cancel 30 sec ringing timeout
+      if (autoEndCallTimerRef.current) {
+        clearTimeout(autoEndCallTimerRef.current);
+        autoEndCallTimerRef.current = null;
+      }
 
-} catch (err) {
+    } catch (err) {
 
       console.error("Failed to accept call:", err);
       rejectCall();
@@ -267,52 +293,56 @@ if (autoEndCallTimerRef.current) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [socket, createPeerConnection]);
 
-const rejectCall = useCallback(() => {
-  if (socket && incomingCallRef.current) {
-    const {
-      from,
-      chatId,
-      type,
-    } = incomingCallRef.current;
+  const rejectCall = useCallback(() => {
+    if (socket && incomingCallRef.current) {
+      const {
+        from,
+        chatId,
+        type,
+      } = incomingCallRef.current;
 
-    socket.emit("call:end", {
-  to: from,
-  from: user._id,
-  chatId,
-  callType: type,
-  callDuration: 0,
-  wasAnswered: false,
-  endedBy: user._id,
-});
-  }
+      socket.emit("call:end", {
+        to: from,
+        from: user._id,
+        chatId,
+        callType: type,
+        callDuration: 0,
+        wasAnswered: false,
+        endedBy: user._id,
+      });
+    }
 
-  cleanup();
-}, [socket, user, cleanup]);
+    cleanup();
+  }, [socket, user, cleanup]);
 
-const endCall = useCallback(() => {
-  if (socket && remoteUser) {
-   socket.emit("call:end", {
-  to: remoteUser._id,
-  chatId: activeChatId,
-  from: user._id,
-  callType,
-  callDuration,
-  wasAnswered: callStatus === "connected",
-  endedBy: user._id,
-});
-  }
+  const endCall = useCallback(() => {
+    if (socket && remoteUser) {
+      socket.emit("call:end", {
+        to: remoteUser._id,
+        chatId: activeChatId,
+        from: user._id,
+        callType,
+        callDuration,
+        wasAnswered: callStatus === "connected",
+        endedBy: user._id,
+      });
+    }
 
-  cleanup();
-}, [
-  socket,
-  remoteUser,
-  activeChatId,
-  user,
-  callType,
-  callDuration,
-  callStatus,
-  cleanup,
-]);
+    cleanup();
+  }, [
+    socket,
+    remoteUser,
+    activeChatId,
+    user,
+    callType,
+    callDuration,
+    callStatus,
+    cleanup,
+  ]);
+
+  useEffect(() => {
+    endCallRef.current = endCall;
+  }, [endCall]);
 
   const toggleMute = useCallback(() => {
     if (!localStreamRef.current) return;
@@ -335,72 +365,74 @@ const endCall = useCallback(() => {
     if (!socket) return;
 
     const handleInvite = ({
-  from,
-  fromName,
-  fromPic,
-  offer,
-  callType: type,
-  chatId,
-}) => {
-  if (callStatus !== "idle") {
-    socket.emit("call:reject", {
-  to: from,
-  chatId,
-  callType: type || "audio",
-});
-    return;
-  }
+      from,
+      fromName,
+      fromPic,
+      offer,
+      callType: type,
+      chatId,
+    }) => {
+      if (callStatus !== "idle") {
+        socket.emit("call:reject", {
+          to: from,
+          chatId,
+          callType: type || "audio",
+        });
+        return;
+      }
 
-  incomingCallRef.current = {
-    from,
-    offer,
-    type: type || "audio",
-    chatId,
-  };
+      incomingCallRef.current = {
+        from,
+        offer,
+        type: type || "audio",
+        chatId,
+      };
 
-  setRemoteUser({
-    _id: from,
-    name: fromName,
-    profilePic: fromPic,
-  });
+      setRemoteUser({
+        _id: from,
+        name: fromName,
+        profilePic: fromPic,
+      });
 
-  setActiveChatId(chatId);
-setCallType(type || "audio");
-setCallStatus("incoming");
+      setActiveChatId(chatId);
+      setCallType(type || "audio");
+      setCallStatus("incoming");
 
-   if (ringtoneRef.current) {
-  ringtoneRef.current.pause();
-  ringtoneRef.current.currentTime = 0;
-  ringtoneRef.current = null;
-}
+      if (ringtoneRef.current) {
+        ringtoneRef.current.pause();
+        ringtoneRef.current.currentTime = 0;
+        ringtoneRef.current = null;
+      }
 
-const ringtone = new Audio("/ringtone.mp3");
-ringtone.loop = true;
-ringtone.play().catch((err) => {
-  console.log("Ringtone play blocked:", err);
-});
+      const ringtone = new Audio("/ringtone.mp3");
+      ringtone.loop = true;
+      ringtone.play().catch((err) => {
+        console.log("Ringtone play blocked:", err);
+      });
 
-ringtoneRef.current = ringtone;
+      ringtoneRef.current = ringtone;
 
-// Auto reject incoming call after 30 seconds
-if (autoEndCallTimerRef.current) {
-  clearTimeout(autoEndCallTimerRef.current);
-}
+      // Auto reject incoming call after 30 seconds
+      if (autoEndCallTimerRef.current) {
+        clearTimeout(autoEndCallTimerRef.current);
+      }
 
-autoEndCallTimerRef.current = setTimeout(() => {
-  socket.emit("call:end", {
-  to: from,
-  from: user._id,
-  chatId,
-  callType: type || "audio",
-  callDuration: 0,
-  wasAnswered: false,
-  endedBy: from,
-});
+      autoEndCallTimerRef.current = setTimeout(() => {
+        socket.emit("call:end", {
+          to: from,
+          from: user._id,
+          chatId,
+          callType: type || "audio",
+          callDuration: 0,
+          wasAnswered: false,
 
-  cleanup();
-}, 30000);
-};
+          reason: "missed",
+          endedBy: user._id,
+        });
+
+        cleanup();
+      }, 30000);
+    };
 
 
 
@@ -415,14 +447,14 @@ autoEndCallTimerRef.current = setTimeout(() => {
         await pcRef.current.addIceCandidate(new RTCIceCandidate(candidate));
       }
       pendingCandidatesRef.current = [];
-      
+
       // Call answered — cancel outgoing ringing timeout
       if (autoEndCallTimerRef.current) {
         clearTimeout(autoEndCallTimerRef.current);
         autoEndCallTimerRef.current = null;
       }
       setCallStatus("connected");
-startDurationTimer();
+      startDurationTimer();
 
     };
 
@@ -463,24 +495,24 @@ startDurationTimer();
 
   return (
     <CallContext.Provider
-  value={{
-    callStatus,
-    callType,
-    remoteUser,
-    activeChatId,
-    callDuration,
-    isMuted,
-    isCameraOff,
-    localStream,
-    remoteStream,
-    startCall,
-    acceptCall,
-    rejectCall,
-    endCall,
-    toggleMute,
-    toggleCamera,
-  }}
->
+      value={{
+        callStatus,
+        callType,
+        remoteUser,
+        activeChatId,
+        callDuration,
+        isMuted,
+        isCameraOff,
+        localStream,
+        remoteStream,
+        startCall,
+        acceptCall,
+        rejectCall,
+        endCall,
+        toggleMute,
+        toggleCamera,
+      }}
+    >
       {children}
       {/* Plays remote audio for audio-only calls (video calls play audio
           through the <video> element in CallOverlay instead) */}
