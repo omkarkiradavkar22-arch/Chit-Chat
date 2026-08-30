@@ -9,6 +9,7 @@ import { detectNotificationPriority } from "../services/notificationPriorityDete
 import Notification from "../models/Notification.js";
 import User from "../models/User.js";
 import { sendPushToUser } from "../services/webPush.js";
+import { getActiveChat } from "../socket/socket.js";
 // import OpenAI from "openai";
 
 // const openai = new OpenAI({
