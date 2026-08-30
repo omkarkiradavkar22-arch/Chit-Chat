@@ -1,6 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import api from "../services/api";
-import { enablePushNotifications } from "../services/pushNotifications";
 
 const AuthContext = createContext();
 
@@ -9,22 +8,24 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   const [darkMode, setDarkMode] = useState(
-  localStorage.getItem("darkMode") === "true"
-);
+    localStorage.getItem("darkMode") === "true"
+  );
 
-const toggleDarkMode = () => {
-  setDarkMode((prev) => {
-    const newValue = !prev;
-    localStorage.setItem("darkMode", newValue);
-    return newValue;
-  });
-};
+  const toggleDarkMode = () => {
+    setDarkMode((prev) => {
+      const newValue = !prev;
+      localStorage.setItem("darkMode", newValue);
+      return newValue;
+    });
+  };
 
   const loadUser = async () => {
     try {
       const { data } = await api.get("/auth/me");
       setUser(data.user);
-       enablePushNotifications();
+      // NOTE: push permission is now requested from a real user click
+      // (see NotificationPermissionBanner) instead of auto-firing here —
+      // browsers block/ignore permission prompts without a user gesture.
     } catch (error) {
       setUser(null);
     } finally {
@@ -49,17 +50,17 @@ const toggleDarkMode = () => {
 
   return (
     <AuthContext.Provider
-  value={{
-    user,
-    setUser,
-    loading,
-    loadUser,
-    logout,
-    darkMode,
-    setDarkMode,
-    toggleDarkMode,
-  }}
->
+      value={{
+        user,
+        setUser,
+        loading,
+        loadUser,
+        logout,
+        darkMode,
+        setDarkMode,
+        toggleDarkMode,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
