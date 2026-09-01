@@ -13,6 +13,12 @@ export const sendPushToUser = async (userId, payload) => {
       user: userId,
     });
 
+    console.log("🔔 Sending push:", {
+      userId,
+      type: payload.type,
+      subscriptions: subscriptions.length,
+    });
+
     await Promise.all(
       subscriptions.map(async (subscriptionDoc) => {
         try {
@@ -27,7 +33,6 @@ export const sendPushToUser = async (userId, payload) => {
             error.message
           );
 
-          // Subscription expired / invalid
           if (
             error.statusCode === 404 ||
             error.statusCode === 410
