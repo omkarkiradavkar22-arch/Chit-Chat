@@ -3,6 +3,7 @@ import User from "../models/User.js";
 import Message from "../models/Message.js";
 import Chat from "../models/Chat.js";
 import Notification from "../models/Notification.js";
+import PendingCall from "../models/PendingCall.js";
 import { sendPushToUser } from "../services/webPush.js";
 let io;
 const onlineUsers = new Map();
@@ -27,7 +28,6 @@ export const initSocket = (server) => {
     socket.on("join", (userId) => {
       onlineUsers.set(userId, socket.id);
 
-      onlineUsers.set(userId, socket.id);
 
       socket.join(userId);
 
@@ -128,19 +128,57 @@ export const initSocket = (server) => {
 
           console.log("🔔 Incoming call notification created");
 
+          // Remove old ringing pending call for this receiver
+await PendingCall.deleteMany({
+  receiver: to,
+  status: "ringing",
+});
+
+// Save WebRTC offer temporarily
+const pendingCall = await PendingCall.create({
+  caller: from,
+  receiver: to,
+  chat: chatId,
+  callType: callType || "audio",
+  offer,
+  status: "ringing",
+  expiresAt: new Date(Date.now() + 60 * 1000),
+});
+
+console.log("📞 Pending call saved:", pendingCall._id);
+
           // 🔔 Push so the callee is alerted even if the app/tab is
           // closed. Note: this can only show a tappable "Incoming call"
           // notification, not a true ringing/full-screen call UI like a
           // native VoIP app — that needs OS-level CallKit/ConnectionService
           // integration that a web app can't do.
-          sendPushToUser(to, {
-            type: "incoming_call",
-            title: `Incoming ${callType || "audio"} call`,
-            body: `${fromName || "Someone"} is calling you`,
-            url: chatId ? `/chat/${chatId}` : "/",
-            tag: chatId ? `call-${chatId}` : "call",
-          });
+          await sendPushToUser(to, {
+  type: "incoming_call",
 
+  callId: pendingCall._id.toString(),
+
+  callerId: from,
+  callerName: fromName || "Someone",
+  callerPic: fromPic || "",
+
+  callType: callType || "audio",
+  chatId: chatId || "",
+
+  title: `${fromName || "Someone"} is calling`,
+
+  body:
+    callType === "video"
+      ? "Incoming video call"
+      : "Incoming audio call",
+
+  url: chatId
+    ? `/chat/${chatId}`
+    : "/",
+
+  tag: chatId
+    ? `incoming-call-${chatId}`
+    : `incoming-call-${from}`,
+});
         } catch (error) {
           console.error("CALL INVITE ERROR:", error);
         }
@@ -159,6 +197,17 @@ export const initSocket = (server) => {
         callType,
       }) => {
         try {
+          await PendingCall.findOneAndUpdate(
+  {
+    caller: to,
+    receiver: from,
+    chat: chatId,
+    status: "ringing",
+  },
+  {
+    status: "accepted",
+  }
+);
 
           // Send answer back to caller
           io.to(to).emit("call:accept", {
@@ -185,14 +234,45 @@ export const initSocket = (server) => {
 
     // ❌ CALL REJECT
     socket.on(
-      "call:reject",
-      async ({
-        to,
-        chatId,
-        from,
-        callType,
-      }) => {
+  "call:reject",
+  async ({
+    to,
+    chatId,
+    from,
+    callType,
+    callId,
+  }) => {
         try {
+          if (callId) {
+  await PendingCall.findOneAndUpdate(
+    {
+      _id: callId,
+      status: "ringing",
+    },
+    {
+      status: "declined",
+    }
+  );
+} else {
+  await PendingCall.findOneAndUpdate(
+    {
+      caller: to,
+      receiver: from,
+      chat: chatId,
+      status: "ringing",
+    },
+    {
+      status: "declined",
+    }
+  );
+}
+
+await Notification.deleteMany({
+  sender: to,
+  receiver: from,
+  type: "incoming_call",
+  status: "pending",
+});
           io.to(to).emit("call:reject");
 
           // Previously nothing was saved here, so a rejected/busy call
@@ -264,6 +344,28 @@ export const initSocket = (server) => {
 
           if (!wasAnswered) {
 
+        const pendingCall = await PendingCall.findOneAndUpdate(
+  {
+    caller: from,
+    receiver: to,
+    chat: chatId,
+    status: "ringing",
+  },
+  {
+    status: "missed",
+  },
+  {
+    new: true,
+    sort: { createdAt: -1 },
+  }
+);
+
+if (!pendingCall) {
+  console.log(
+    "⚠️ No ringing pending call found. Missed call already handled."
+  );
+  return;
+}
             const callerMissedMessage = await Message.create({
               chat: chatId,
               sender: from,
@@ -302,6 +404,31 @@ export const initSocket = (server) => {
               status: "missed",
               chat: chatId,
             });
+
+            const caller = await User.findById(from).select(
+  "name profilePic"
+);
+
+await sendPushToUser(to, {
+  type: "missed_call",
+
+  callerId: from,
+  callerName: caller?.name || "Someone",
+  callerPic: caller?.profilePic || "",
+
+  callType: callType || "audio",
+  chatId,
+
+  title: `Missed call from ${caller?.name || "Someone"}`,
+  body:
+    callType === "video"
+      ? "Missed video call"
+      : "Missed audio call",
+
+  url: `/chat/${chatId}`,
+
+  tag: `missed-call-${chatId}`,
+});
 
             io.to(from).emit("newMessage", callerMissedMessage);
             io.to(to).emit("newMessage", receiverMissedMessage);
