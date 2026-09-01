@@ -12,6 +12,7 @@ import chatRoutes from "./routes/chat.routes.js";
 import messageRoutes from "./routes/message.routes.js";
 import taskRoutes from "./routes/task.routes.js";
 import pushRoutes from "./routes/push.routes.js";
+import callRoutes from "./routes/call.routes.js";
 
 const app = express();
 
@@ -42,6 +43,8 @@ app.use("/api/v1/chat", chatRoutes);
 app.use("/api/v1/messages", messageRoutes);
 app.use("/api/v1/tasks", taskRoutes);
 app.use("/api/v1/push", pushRoutes);
+
+app.use("/api/v1/calls", callRoutes);
 
 app.use(errorMiddleware);
 export default app;
