@@ -8,6 +8,7 @@ import {
 } from "react";
 import { useSocket } from "./SocketContext";
 import { useAuth } from "./AuthContext";
+import api from "../services/api";
 
 const CallContext = createContext();
 
@@ -230,6 +231,147 @@ export const CallProvider = ({ children }) => {
     [socket, user, callStatus, createPeerConnection]
   );
 
+  const loadPendingCall = useCallback(async () => {
+  try {
+    const response = await api.get("/calls/pending");
+
+    const pendingCall = response.data.call;
+
+    if (!pendingCall) {
+      console.log("No pending call found");
+      return false;
+    }
+
+    console.log("📞 Pending call loaded:", pendingCall);
+
+    incomingCallRef.current = {
+      from: pendingCall.callerId,
+      offer: pendingCall.offer,
+      type: pendingCall.callType || "audio",
+      chatId: pendingCall.chatId,
+      callId: pendingCall.callId,
+    };
+
+    setRemoteUser({
+      _id: pendingCall.callerId,
+      name: pendingCall.callerName,
+      profilePic: pendingCall.callerPic,
+    });
+
+    setActiveChatId(pendingCall.chatId);
+    setCallType(pendingCall.callType || "audio");
+    setCallStatus("incoming");
+
+    return true;
+  } catch (error) {
+    if (error.response?.status === 404) {
+      console.log("No active pending call");
+      return false;
+    }
+
+    console.error(
+      "Failed to load pending call:",
+      error
+    );
+
+    return false;
+  }
+}, []);
+
+useEffect(() => {
+  if (!user || !socket) return;
+
+  const params = new URLSearchParams(
+    window.location.search
+  );
+
+  const callAction = params.get("callAction");
+
+  if (
+    callAction !== "accept" &&
+    callAction !== "open" &&
+    callAction !== "decline"
+  ) {
+    return;
+  }
+
+  const handleNotificationCall = async () => {
+    const loaded = await loadPendingCall();
+
+    if (!loaded) {
+      // Remove old call parameters even if call expired
+      const url = new URL(window.location.href);
+
+      url.searchParams.delete("callAction");
+      url.searchParams.delete("callerId");
+      url.searchParams.delete("callType");
+      url.searchParams.delete("callId");
+
+      window.history.replaceState(
+        {},
+        "",
+        url.pathname + url.search
+      );
+
+      return;
+    }
+
+    // ==========================================
+    // 🔴 DECLINE FROM PUSH NOTIFICATION
+    // ==========================================
+
+    if (
+      callAction === "decline" &&
+      incomingCallRef.current
+    ) {
+      const {
+        from,
+        chatId,
+        type,
+        callId,
+      } = incomingCallRef.current;
+
+      socket.emit("call:reject", {
+        to: from,
+        from: user._id,
+        chatId,
+        callType: type,
+        callId,
+      });
+
+      cleanup();
+    }
+
+    // ==========================================
+    // 🟢 ACCEPT / OPEN
+    // ==========================================
+    // For accept/open we keep the incoming call
+    // loaded so CallOverlay can show it.
+    // User can then accept the call normally.
+
+    // Remove call parameters from URL
+    const url = new URL(window.location.href);
+
+    url.searchParams.delete("callAction");
+    url.searchParams.delete("callerId");
+    url.searchParams.delete("callType");
+    url.searchParams.delete("callId");
+
+    window.history.replaceState(
+      {},
+      "",
+      url.pathname + url.search
+    );
+  };
+
+  handleNotificationCall();
+}, [
+  user,
+  socket,
+  loadPendingCall,
+  cleanup,
+]);
+
   // ---- Callee: accept the incoming call ----
   const acceptCall = useCallback(async () => {
     if (!socket || !incomingCallRef.current) return;
@@ -242,11 +384,12 @@ export const CallProvider = ({ children }) => {
     }
 
     const {
-      from,
-      offer,
-      type,
-      chatId,
-    } = incomingCallRef.current;
+  from,
+  offer,
+  type,
+  chatId,
+  callId,
+} = incomingCallRef.current;
 
     try {
       const stream = await getMedia(type);
@@ -267,6 +410,12 @@ export const CallProvider = ({ children }) => {
 
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
+
+      if (callId) {
+  await api.post("/calls/accept", {
+    callId,
+  });
+}
 
       socket.emit("call:accept", {
         to: from,
@@ -293,27 +442,26 @@ export const CallProvider = ({ children }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [socket, createPeerConnection]);
 
-  const rejectCall = useCallback(() => {
-    if (socket && incomingCallRef.current) {
-      const {
-        from,
-        chatId,
-        type,
-      } = incomingCallRef.current;
+ const rejectCall = useCallback(() => {
+  if (socket && incomingCallRef.current) {
+    const {
+      from,
+      chatId,
+      type,
+      callId,
+    } = incomingCallRef.current;
 
-      socket.emit("call:end", {
-        to: from,
-        from: user._id,
-        chatId,
-        callType: type,
-        callDuration: 0,
-        wasAnswered: false,
-        endedBy: user._id,
-      });
-    }
+    socket.emit("call:reject", {
+      to: from,
+      from: user._id,
+      chatId,
+      callType: type,
+      callId,
+    });
+  }
 
-    cleanup();
-  }, [socket, user, cleanup]);
+  cleanup();
+}, [socket, user, cleanup]);
 
   const endCall = useCallback(() => {
     if (socket && remoteUser) {
@@ -372,14 +520,16 @@ export const CallProvider = ({ children }) => {
       callType: type,
       chatId,
     }) => {
-      if (callStatus !== "idle") {
-        socket.emit("call:reject", {
-          to: from,
-          chatId,
-          callType: type || "audio",
-        });
-        return;
-      }
+     if (callStatus !== "idle") {
+  socket.emit("call:reject", {
+    to: from,
+    from: user._id,
+    chatId,
+    callType: type || "audio",
+  });
+
+  return;
+}
 
       incomingCallRef.current = {
         from,
@@ -418,20 +568,10 @@ export const CallProvider = ({ children }) => {
       }
 
       autoEndCallTimerRef.current = setTimeout(() => {
-        socket.emit("call:end", {
-          to: from,
-          from: user._id,
-          chatId,
-          callType: type || "audio",
-          callDuration: 0,
-          wasAnswered: false,
-
-          reason: "missed",
-          endedBy: user._id,
-        });
-
-        cleanup();
-      }, 30000);
+  // Receiver only closes the incoming-call UI.
+  // Caller is responsible for emitting the missed call.
+  cleanup();
+}, 30000);
     };
 
 
