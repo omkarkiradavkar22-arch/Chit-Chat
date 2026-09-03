@@ -1,6 +1,5 @@
 import {
   FaHome,
-  FaSearch,
   FaCompass,
   FaBell,
   FaComments,
@@ -70,13 +69,6 @@ const { socket } = useSocket();
         className={pathname === "/" ? activeClass : inactiveClass}
       >
         <FaHome size={22} />
-      </Link>
-
-      <Link
-        to="/search"
-        className={pathname === "/search" ? activeClass : inactiveClass}
-      >
-        <FaSearch size={22} />
       </Link>
 
       <Link
