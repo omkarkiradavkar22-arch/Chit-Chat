@@ -548,57 +548,54 @@ function Profile() {
         </div>
 
         {/* =========================
-            POSTS GRID
-        ========================= */}
-        <div
+    POSTS GRID
+========================= */}
+<div className="w-full grid grid-cols-3 gap-[2px] mt-5">
+
+  {currentPosts?.length === 0 ? (
+    <p
+      className="
+        col-span-3
+        text-center
+        text-gray-500
+        dark:text-gray-400
+        py-10
+      "
+    >
+      No posts found.
+    </p>
+  ) : (
+    currentPosts?.map((post) => (
+      <Link
+        key={post._id}
+        to={`/post/${post._id}`}
+        className="
+          block
+          w-full
+          aspect-[3/4]
+          overflow-hidden
+          bg-gray-200
+          dark:bg-gray-800
+        "
+      >
+        <img
+          src={
+            post.images?.[0] ||
+            "https://placehold.co/400x400"
+          }
+          alt="Post"
           className="
-            grid
-            grid-cols-2
-            sm:grid-cols-3
-            gap-2
-            sm:gap-3
-            mt-5
+            w-full
+            h-full
+            object-cover
+            block
           "
-        >
+        />
+      </Link>
+    ))
+  )}
 
-          {currentPosts?.length === 0 ? (
-            <p
-              className="
-                col-span-2
-                sm:col-span-3
-                text-center
-                text-gray-500
-                dark:text-gray-400
-                py-10
-              "
-            >
-              No posts found.
-            </p>
-          ) : (
-            currentPosts?.map((post) => (
-              <Link
-                key={post._id}
-                to={`/post/${post._id}`}
-                className="min-w-0"
-              >
-                <img
-                  src={post.images?.[0]}
-                  alt=""
-                  className="
-                    w-full
-                    aspect-square
-                    object-cover
-                    rounded-lg
-                    sm:rounded-xl
-                    hover:opacity-80
-                    transition
-                  "
-                />
-              </Link>
-            ))
-          )}
-
-        </div>
+</div>
       </div>
 
       {/* =========================
