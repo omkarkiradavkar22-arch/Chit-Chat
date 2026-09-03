@@ -10,12 +10,13 @@ function ExploreGrid({ posts }) {
   }
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+    <div className="w-full grid grid-cols-3 gap-[2px]">
 
       {posts.map((post) => (
         <Link
           key={post._id}
           to={`/post/${post._id}`}
+          className="block w-full aspect-[3/4] overflow-hidden bg-gray-200 dark:bg-gray-800"
         >
           <img
             src={
@@ -23,7 +24,7 @@ function ExploreGrid({ posts }) {
               "https://placehold.co/400x400"
             }
             alt="Post"
-            className="w-full h-64 object-cover rounded-xl hover:scale-105 transition"
+            className="w-full h-full object-cover"
           />
         </Link>
       ))}
