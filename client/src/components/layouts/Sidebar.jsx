@@ -1,6 +1,5 @@
 import {
   FaHome,
-  FaSearch,
   FaCompass,
   FaBell,
   FaComments,
@@ -92,14 +91,6 @@ const normalClass =
       >
         <FaHome />
         Home
-      </Link>
-
-      <Link
-        to="/search"
-        className={pathname === "/search" ? activeClass : normalClass}
-      >
-        <FaSearch />
-        Search
       </Link>
 
       <Link
