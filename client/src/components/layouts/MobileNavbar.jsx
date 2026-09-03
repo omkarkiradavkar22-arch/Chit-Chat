@@ -71,6 +71,39 @@ const { socket } = useSocket();
         <FaHome size={22} />
       </Link>
 
+     <Link
+  to="/chat"
+  className={`relative ${
+    pathname === "/chat"
+      ? activeClass
+      : inactiveClass
+  }`}
+>
+  <FaComments size={22} />
+
+  {messageUnreadCount > 0 && (
+    <span
+      className="
+      absolute
+      -top-2
+      -right-2
+      bg-red-500
+      text-white
+      text-[10px]
+      rounded-full
+      min-w-5
+      h-5
+      flex
+      items-center
+      justify-center
+      px-1
+      "
+    >
+      {messageUnreadCount}
+    </span>
+  )}
+</Link>
+
       <Link
         to="/explore"
         className={pathname === "/explore" ? activeClass : inactiveClass}
@@ -111,38 +144,7 @@ const { socket } = useSocket();
   )}
 </Link>
 
-      <Link
-  to="/chat"
-  className={`relative ${
-    pathname === "/chat"
-      ? activeClass
-      : inactiveClass
-  }`}
->
-  <FaComments size={22} />
-
-  {messageUnreadCount > 0 && (
-    <span
-      className="
-      absolute
-      -top-2
-      -right-2
-      bg-red-500
-      text-white
-      text-[10px]
-      rounded-full
-      min-w-5
-      h-5
-      flex
-      items-center
-      justify-center
-      px-1
-      "
-    >
-      {messageUnreadCount}
-    </span>
-  )}
-</Link>
+      
 
     </div>
   );
