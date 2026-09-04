@@ -1,5 +1,6 @@
 import {
   FaHome,
+  FaTasks,
   FaCompass,
   FaBell,
   FaComments,
@@ -93,6 +94,7 @@ const normalClass =
         Home
       </Link>
 
+
       <Link
         to="/explore"
         className={pathname === "/explore" ? activeClass : normalClass}
@@ -178,6 +180,18 @@ const normalClass =
 
         Messages
       </Link>
+
+      <Link
+  to="/tasks"
+  className={
+    pathname === "/tasks"
+      ? activeClass
+      : normalClass
+  }
+>
+  <FaTasks />
+  Tasks
+</Link>
 
       {user && (
         <Link
