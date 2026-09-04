@@ -1,5 +1,6 @@
 import {
   FaHome,
+  FaTasks,
   FaCompass,
   FaBell,
   FaComments,
@@ -71,7 +72,7 @@ const { socket } = useSocket();
         <FaHome size={22} />
       </Link>
 
-     <Link
+      <Link
   to="/chat"
   className={`relative ${
     pathname === "/chat"
@@ -104,12 +105,24 @@ const { socket } = useSocket();
   )}
 </Link>
 
+
       <Link
         to="/explore"
         className={pathname === "/explore" ? activeClass : inactiveClass}
       >
         <FaCompass size={22} />
       </Link>
+
+      <Link
+  to="/tasks"
+  className={
+    pathname === "/tasks"
+      ? activeClass
+      : inactiveClass
+  }
+>
+  <FaTasks size={22} />
+</Link>
 
       <Link
   to="/notifications"
@@ -143,8 +156,6 @@ const { socket } = useSocket();
     </span>
   )}
 </Link>
-
-      
 
     </div>
   );
