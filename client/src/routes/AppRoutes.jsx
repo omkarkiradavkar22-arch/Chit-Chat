@@ -1,215 +1,144 @@
-import {
-  FaHome,
-  FaTasks,
-  FaCompass,
-  FaBell,
-  FaComments,
-  FaUser,
-} from "react-icons/fa";
-import { Link, useLocation } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
-import { useEffect, useState } from "react";
-import api from "../../services/api";
-import { useSocket } from "../../context/SocketContext";
+import { Routes, Route } from "react-router-dom";
 
-function Sidebar() {
-  const { pathname } = useLocation();
-  const { user } = useAuth();
-  const { socket } = useSocket();
-
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [messageUnreadCount, setMessageUnreadCount] = useState(0);
-
- const activeClass =
-  "flex items-center gap-4 text-lg font-semibold text-blue-600";
-
-const normalClass =
-  "flex items-center gap-4 text-lg text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition";
-  // Notification Badge
-  const loadUnread = async () => {
-    try {
-      const { data } = await api.get("/notifications");
-      setUnreadCount(data.unreadCount);
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
-  // Message Badge
-  const loadMessageUnread = async () => {
-    try {
-      const { data } = await api.get("/chat");
-
-      const total = data.chats.reduce(
-        (sum, chat) => sum + chat.unreadCount,
-        0
-      );
-
-      setMessageUnreadCount(total);
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
-  useEffect(() => {
-    if (user) {
-      loadUnread();
-      loadMessageUnread();
-    }
-  }, [user]);
-
-  // Live Notification Badge
-  useEffect(() => {
-    if (!socket) return;
-
-    socket.on("newNotification", loadUnread);
-
-    return () => {
-      socket.off("newNotification", loadUnread);
-    };
-  }, [socket]);
-
-  // Live Message Badge
-  useEffect(() => {
-    if (!socket) return;
-
-    socket.on("newMessage", loadMessageUnread);
-    socket.on("messagesSeen", loadMessageUnread);
-
-    return () => {
-      socket.off("newMessage", loadMessageUnread);
-      socket.off("messagesSeen", loadMessageUnread);
-    };
-  }, [socket]);
-
+import Home from "../pages/Home";
+import Login from "../pages/Login";
+import Register from "../pages/Register";
+import Profile from "../pages/Profile";
+import EditProfile from "../pages/EditProfile";
+import Notifications from "../pages/Notifications";
+import Chat from "../pages/Chat";
+import Explore from "../pages/Explore";
+import Search from "../pages/Search";
+import NotFound from "../pages/NotFound";
+import ProtectedRoute from "../components/ProtectedRoute";
+import GuestRoute from "../components/GuestRoute";
+import Post from "../pages/Post";
+import SavedPosts from "../pages/SavedPosts";
+import TasksPage from "../pages/TasksPage";
+function AppRoutes() {
   return (
-  <div className="h-screen pt-10 px-5">
-    <nav className="space-y-6">
+    <Routes>
 
-      <Link
-        to="/"
-        className={pathname === "/" ? activeClass : normalClass}
-      >
-        <FaHome />
-        Home
-      </Link>
-
-
-      <Link
-        to="/explore"
-        className={pathname === "/explore" ? activeClass : normalClass}
-      >
-        <FaCompass />
-        Explore
-      </Link>
-
-      {/* Notification */}
-      <Link
-        to="/notifications"
-        className={
-          pathname === "/notifications"
-            ? activeClass
-            : normalClass
-        }
-      >
-        <div className="relative">
-          <FaBell />
-
-          {unreadCount > 0 && (
-            <span
-              className="
-              absolute
-              -top-2
-              -right-2
-              bg-red-500
-              text-white
-              text-[10px]
-              rounded-full
-              min-w-5
-              h-5
-              flex
-              items-center
-              justify-center
-              px-1
-              "
-            >
-              {unreadCount > 99 ? "99+" : unreadCount}
-            </span>
-          )}
-        </div>
-
-        Notifications
-      </Link>
-
-      {/* Messages */}
-      <Link
-        to="/chat"
-        className={
-          pathname.startsWith("/chat")
-            ? activeClass
-            : normalClass
-        }
-      >
-        <div className="relative">
-          <FaComments />
-
-          {messageUnreadCount > 0 && (
-            <span
-              className="
-              absolute
-              -top-2
-              -right-2
-              bg-red-500
-              text-white
-              text-[10px]
-              rounded-full
-              min-w-5
-              h-5
-              flex
-              items-center
-              justify-center
-              px-1
-              "
-            >
-              {messageUnreadCount > 99
-                ? "99+"
-                : messageUnreadCount}
-            </span>
-          )}
-        </div>
-
-        Messages
-      </Link>
-
-      <Link
-  to="/tasks"
-  className={
-    pathname === "/tasks"
-      ? activeClass
-      : normalClass
+      <Route
+  path="/login"
+  element={
+    <GuestRoute>
+      <Login />
+    </GuestRoute>
   }
->
-  <FaTasks />
-  Tasks
-</Link>
+/>
 
-      {user && (
-        <Link
-          to={`/profile/${user.username}`}
-          className={
-            pathname.startsWith("/profile")
-              ? activeClass
-              : normalClass
-          }
-        >
-          <FaUser />
-          Profile
-        </Link>
-      )}
+<Route
+  path="/register"
+  element={
+    <GuestRoute>
+      <Register />
+    </GuestRoute>
+  }
+/>
+      <Route
+        path="/"
+        element={
+          <ProtectedRoute>
+            <Home />
+          </ProtectedRoute>
+        }
+      />
 
-    </nav>
-  </div>
-);
+     <Route
+  path="/tasks"
+  element={
+    <ProtectedRoute>
+      <TasksPage />
+    </ProtectedRoute>
+  }
+/>
+
+      <Route
+path="/post/:id"
+element={
+<ProtectedRoute>
+  <Post />
+  </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/saved-posts"
+  element={
+  <ProtectedRoute>
+    <SavedPosts />
+    </ProtectedRoute>
+  }
+/>
+
+      <Route
+        path="/profile/:username"
+        element={
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/edit-profile"
+        element={
+          <ProtectedRoute>
+            <EditProfile />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/notifications"
+        element={
+          <ProtectedRoute>
+            <Notifications />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/chat/:chatId"
+        element={
+          <ProtectedRoute>
+            <Chat />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+  path="/chat"
+  element={
+    <ProtectedRoute>
+      <Chat />
+    </ProtectedRoute>
+  }
+/>
+
+      <Route
+        path="/explore"
+        element={
+          <ProtectedRoute>
+            <Explore />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/search"
+        element={
+          <ProtectedRoute>
+            <Search />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route path="*" element={<NotFound />} />
+
+    </Routes>
+  );
 }
 
-export default Sidebar;
+export default AppRoutes;
