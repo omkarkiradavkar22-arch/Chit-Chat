@@ -190,16 +190,36 @@ const receiver = chat.participants.find(
           }
 
           await Promise.all(
-            recipients.map((userId) =>
-              Task.create({
-                user: userId,
-                chat: chat._id,
-                message: message._id,
-                title: detection.title,
-                deadline: detection.deadline,
-              })
-            )
-          );
+  recipients.map(async (userId) => {
+    const task = await Task.create({
+      user: userId,
+      chat: chat._id,
+      message: message._id,
+      title: detection.title,
+      deadline: detection.deadline,
+    });
+
+    // 🔔 PUSH NOTIFICATION FOR GENERATED TASK
+    await sendPushToUser(userId.toString(), {
+      type: "task",
+
+      title: "📋 New Task Generated",
+
+      body: `${detection.title} — Complete it soon!`,
+
+      taskId: task._id.toString(),
+
+      url: "/tasks",
+
+      // Each task gets its own notification
+      tag: `task-${task._id}`,
+      
+      requireInteraction: true,
+    });
+
+    return task;
+  })
+);
         }
       } catch (taskError) {
         console.error("AI TASK DETECTION ERROR:", taskError);
