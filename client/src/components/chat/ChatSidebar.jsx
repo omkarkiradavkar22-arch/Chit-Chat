@@ -10,6 +10,7 @@ function ChatSidebar({ chats, loading ,onlineUsers}) {
   const [showStarred, setShowStarred] = useState(false);
   const [showTasks, setShowTasks] = useState(false);
 const [pendingTaskCount, setPendingTaskCount] = useState(0);
+const [search, setSearch] = useState("");
 
 useEffect(() => {
   const fetchPendingTasks = async () => {
@@ -31,8 +32,19 @@ useEffect(() => {
   fetchPendingTasks();
 }, []);
 
-  if (loading) {
-    return (
+  const filteredChats = chats.filter((chat) => {
+  const name = chat.otherUser?.name?.toLowerCase() || "";
+  const username = chat.otherUser?.username?.toLowerCase() || "";
+  const query = search.toLowerCase().trim();
+
+  return (
+    name.includes(query) ||
+    username.includes(query)
+  );
+});
+
+if (loading) {
+  return (
       <div className="w-full h-full bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex items-center justify-center text-gray-900 dark:text-white">
         Loading...
       </div>
@@ -46,6 +58,16 @@ useEffect(() => {
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
   Messages
 </h2>
+
+<div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+  <input
+    type="text"
+    value={search}
+    onChange={(e) => setSearch(e.target.value)}
+    placeholder="Search chats..."
+    className="w-full px-4 py-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-blue-500"
+  />
+</div>
 
         {/* TASKS */}
   <button
@@ -82,12 +104,12 @@ useEffect(() => {
   onPendingCountChange={setPendingTaskCount}
 />
 
-      {chats.length === 0 ? (
-        <div className="p-5 text-gray-500 dark:text-gray-400">
-  No chats yet.
+      {filteredChats.length === 0 ? (
+       <div className="p-5 text-gray-500 dark:text-gray-400">
+  {search ? "No chats found." : "No chats yet."}
 </div>
       ) : (
-        chats.map((chat) => (
+        filteredChats.map((chat) => (
           <Link
             key={chat._id}
             to={`/chat/${chat._id}`}
