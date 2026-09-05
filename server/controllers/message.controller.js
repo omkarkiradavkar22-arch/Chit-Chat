@@ -203,7 +203,7 @@ const receiver = chat.participants.find(
     await sendPushToUser(userId.toString(), {
       type: "task",
 
-      title: "📋 New Task Generated",
+      title: "New Task Generated",
 
       body: `${detection.title} — Complete it soon!`,
 
