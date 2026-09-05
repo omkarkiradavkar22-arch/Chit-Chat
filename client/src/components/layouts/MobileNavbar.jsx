@@ -15,6 +15,7 @@ function MobileNavbar() {
   const { pathname } = useLocation();
   const [unreadCount, setUnreadCount] = useState(0);
   const [messageUnreadCount, setMessageUnreadCount] = useState(0);
+  const [taskPendingCount, setTaskPendingCount] = useState(0);
 const { user } = useAuth();
 const { socket } = useSocket();
   const activeClass = "text-blue-600";
@@ -56,11 +57,29 @@ const { socket } = useSocket();
     setMessageUnreadCount(total);
   } catch (err) {}
 };
+
+const loadTaskPending = async () => {
+  try {
+    const { data } = await api.get("/tasks");
+
+    const taskList = data.tasks || [];
+
+    const pending = taskList.filter(
+      (task) => !task.completed
+    ).length;
+
+    setTaskPendingCount(pending);
+  } catch (err) {
+    console.log(err);
+  }
+};
+
   useEffect(() => {
   if (user) {
-  loadUnread();
-  loadMessageUnread();
-}
+    loadUnread();
+    loadMessageUnread();
+    loadTaskPending();
+  }
 }, [user]);
 
   return (
@@ -115,13 +134,37 @@ const { socket } = useSocket();
 
       <Link
   to="/tasks"
-  className={
+  className={`relative ${
     pathname === "/tasks"
       ? activeClass
       : inactiveClass
-  }
+  }`}
 >
   <FaTasks size={22} />
+
+  {taskPendingCount > 0 && (
+    <span
+      className="
+        absolute
+        -top-2
+        -right-2
+        bg-red-500
+        text-white
+        text-[10px]
+        rounded-full
+        min-w-5
+        h-5
+        flex
+        items-center
+        justify-center
+        px-1
+      "
+    >
+      {taskPendingCount > 99
+        ? "99+"
+        : taskPendingCount}
+    </span>
+  )}
 </Link>
 
       <Link
