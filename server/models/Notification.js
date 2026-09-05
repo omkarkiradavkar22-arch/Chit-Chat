@@ -17,16 +17,16 @@ const notificationSchema = new mongoose.Schema(
     type: {
       type: String,
       enum: [
-        "follow",
-        "follow_request",
-        "follow_accept",
-        "like",
-        "comment",
-        "message",
-        // 📞 CALLS
-    "incoming_call",
-    "missed_call",
-      ],
+  "follow",
+  "follow_request",
+  "follow_accept",
+  "like",
+  "comment",
+  "message",
+  "incoming_call",
+  "missed_call",
+  "task",
+],
       required: true,
     },
 
