@@ -1,5 +1,5 @@
 import Task from "../models/Task.js";
-
+import Notification from "../models/Notification.js";
 // =========================
 // CREATE TASK
 // =========================
@@ -21,6 +21,16 @@ export const createTask = async (req, res) => {
       title,
       deadline: deadline || null,
     });
+
+    await Notification.create({
+  sender: req.user._id,
+  receiver: req.user._id,
+  type: "task",
+  text: `New task generated: ${title}. Complete it soon!`,
+  chat,
+  message,
+  priority: "important",
+});
 
     return res.status(201).json({
       success: true,
