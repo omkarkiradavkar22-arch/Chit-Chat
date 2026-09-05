@@ -200,23 +200,23 @@ const receiver = chat.participants.find(
     });
 
     // 🔔 PUSH NOTIFICATION FOR GENERATED TASK
-    await sendPushToUser(userId.toString(), {
-      type: "task",
+   await sendPushToUser(userId.toString(), {
+  type: "task",
 
-      title: "New Task Generated",
+  title: "New Task Generated",
 
-      body: `${detection.title} — Complete it soon!`,
+  body: `${detection.title} — Complete it soon!`,
 
-      taskId: task._id.toString(),
+  taskId: task._id.toString(),
 
-      url: "/tasks",
+  url: "/tasks",
 
-      // Each task gets its own notification
-      tag: `task-${task._id}`,
-      
-      requireInteraction: true,
-    });
+  tag: `task-${task._id}`,
 
+  requireInteraction: true,
+
+  icon: "/task-icon.png",
+});
     return task;
   })
 );
