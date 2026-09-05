@@ -19,6 +19,7 @@ function Sidebar() {
 
   const [unreadCount, setUnreadCount] = useState(0);
   const [messageUnreadCount, setMessageUnreadCount] = useState(0);
+  const [taskPendingCount, setTaskPendingCount] = useState(0);
 
  const activeClass =
   "flex items-center gap-4 text-lg font-semibold text-blue-600";
@@ -50,13 +51,30 @@ const normalClass =
       console.log(err);
     }
   };
+  
+  const loadTaskPending = async () => {
+  try {
+    const { data } = await api.get("/tasks");
 
-  useEffect(() => {
-    if (user) {
-      loadUnread();
-      loadMessageUnread();
-    }
-  }, [user]);
+    const taskList = data.tasks || [];
+
+    const pending = taskList.filter(
+      (task) => !task.completed
+    ).length;
+
+    setTaskPendingCount(pending);
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+ useEffect(() => {
+  if (user) {
+    loadUnread();
+    loadMessageUnread();
+    loadTaskPending();
+  }
+}, [user]);
 
   // Live Notification Badge
   useEffect(() => {
@@ -189,7 +207,34 @@ const normalClass =
       : normalClass
   }
 >
-  <FaTasks />
+  <div className="relative">
+    <FaTasks />
+
+    {taskPendingCount > 0 && (
+      <span
+        className="
+          absolute
+          -top-2
+          -right-2
+          bg-red-500
+          text-white
+          text-[10px]
+          rounded-full
+          min-w-5
+          h-5
+          flex
+          items-center
+          justify-center
+          px-1
+        "
+      >
+        {taskPendingCount > 99
+          ? "99+"
+          : taskPendingCount}
+      </span>
+    )}
+  </div>
+
   Tasks
 </Link>
 
