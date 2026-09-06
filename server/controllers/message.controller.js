@@ -131,6 +131,21 @@ if (
       chat.disappearingMessages.duration * 1000
   );
 }
+
+
+
+
+console.log("DISAPPEARING DEBUG:", {
+  enabled: chat?.disappearingMessages?.enabled,
+  duration: chat?.disappearingMessages?.duration,
+  expiresAt,
+  now: new Date(),
+});
+
+
+
+
+
     const message = await Message.create({
   chat: chat._id,
   sender: req.user._id,
@@ -1284,6 +1299,71 @@ export const createMissedCallMessage = async (req, res) => {
     res.status(500).json({
       success: false,
       message: error.message,
+    });
+  }
+};
+
+export const clearChatForMe = async (req, res) => {
+  try {
+    const { chatId } = req.params;
+
+    const chat = await Chat.findById(chatId);
+
+    if (!chat) {
+      return res.status(404).json({
+        success: false,
+        message: "Chat not found",
+      });
+    }
+
+    // User must belong to this chat
+    const isParticipant = chat.participants.some(
+      (id) => id.toString() === req.user._id.toString()
+    );
+
+    if (!isParticipant) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    // Hide ALL messages only for current user
+const result = await Message.updateMany(
+  {
+    chat: chatId,
+  },
+  {
+    $addToSet: {
+      deletedFor: req.user._id,
+    },
+  }
+);
+
+console.log("CLEAR CHAT DEBUG:", {
+  chatId,
+  userId: req.user._id.toString(),
+  matched: result.matchedCount,
+  modified: result.modifiedCount,
+});
+
+console.log("CLEAR CHAT DEBUG:", {
+  chatId,
+  userId: req.user._id.toString(),
+  matchedCount: result.matchedCount,
+  modifiedCount: result.modifiedCount,
+});
+
+    return res.status(200).json({
+      success: true,
+      message: "Chat cleared successfully",
+    });
+  } catch (error) {
+    console.error("CLEAR CHAT ERROR:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to clear chat",
     });
   }
 };
