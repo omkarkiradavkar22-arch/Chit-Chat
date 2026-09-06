@@ -4,6 +4,7 @@ import { protect } from "../middleware/auth.middleware.js";
 import {
   sendMessage,
   getMessages,
+  clearChatForMe,
   editMessage,
   deleteForMe,
   deleteForEveryone,
@@ -55,5 +56,5 @@ router.put("/:messageId", protect, editMessage);
 router.delete("/:messageId/me", protect, deleteForMe);
 
 router.delete("/:messageId/everyone", protect, deleteForEveryone);
-
+router.delete("/:chatId/clear", protect, clearChatForMe);
 export default router;
