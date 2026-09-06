@@ -18,6 +18,7 @@ function ChatWindow({
 }) {
   const [chatInfo, setChatInfo] = useState(null);
   const [messages, setMessages] = useState([]);
+  const [now, setNow] = useState(Date.now());
   const [loading, setLoading] = useState(true);
   const [liveLocation, setLiveLocation] = useState(null);
 
@@ -46,6 +47,15 @@ function ChatWindow({
     socket.off("messagesSeen");
   };
 }, [socket, chatId]);
+
+// Auto update time for disappearing messages
+useEffect(() => {
+  const interval = setInterval(() => {
+    setNow(Date.now());
+  }, 1000);
+
+  return () => clearInterval(interval);
+}, []);
 
 const [typingUser, setTypingUser] = useState("");
 
@@ -412,7 +422,18 @@ const getMessageDateLabel = (date) => {
   });
 };
 
-  return (
+// =========================
+// DISAPPEARING MESSAGES
+// =========================
+const visibleMessages = messages.filter((message) => {
+  if (!message.expiresAt) {
+    return true;
+  }
+
+  return new Date(message.expiresAt).getTime() > now;
+});
+
+return (
 
     
 <div className="
@@ -690,12 +711,12 @@ const getMessageDateLabel = (date) => {
          <div className="text-center text-gray-700 dark:text-gray-300">
             Loading...
           </div>
-        ) : messages.length === 0 ? (
+        ) : visibleMessages.length === 0 ? (
          <div className="text-center text-gray-500 dark:text-gray-400">
             No messages yet.
           </div>
         ) : (
-          messages.map((message, index) => {
+          visibleMessages.map((message, index) => {
   const matchIndex = searchMatches.findIndex(
     (item) => item._id === message._id
   );
@@ -705,11 +726,11 @@ const getMessageDateLabel = (date) => {
   );
 
   const previousDateLabel =
-    index > 0
-      ? getMessageDateLabel(
-          messages[index - 1].createdAt
-        )
-      : null;
+  index > 0
+    ? getMessageDateLabel(
+        visibleMessages[index - 1].createdAt
+      )
+    : null;
 
   const showDateSeparator =
     currentDateLabel !== previousDateLabel;
