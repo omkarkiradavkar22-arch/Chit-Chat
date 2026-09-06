@@ -1,13 +1,18 @@
 import { useNavigate } from "react-router-dom";
-import { FaPhone, FaVideo, FaEllipsisV,FaArrowLeft,
+import {
+  FaPhone,
+  FaVideo,
+  FaEllipsisV,
+  FaArrowLeft,
   FaSearch,
   FaImages,
   FaTimes,
   FaCalendar,
-FaClock,
-FaBan,
-FaHourglassHalf
- } from "react-icons/fa";
+  FaClock,
+  FaBan,
+  FaHourglassHalf,
+  FaTrash,
+} from "react-icons/fa";
 import { useState } from "react";
 import api from "../../services/api";
 import { toast } from "react-hot-toast";
@@ -54,11 +59,22 @@ function ChatHeader({
     setShowMenu(false);
 
     const labels = {
-      0: "Disappearing messages turned off",
-      [24 * 60 * 60]: "Messages will disappear after 24 hours",
-      [7 * 24 * 60 * 60]: "Messages will disappear after 7 days",
-      [90 * 24 * 60 * 60]: "Messages will disappear after 90 days",
-    };
+  0: "Disappearing messages turned off",
+
+   [60 * 60]:
+   "Messages will disappear after 1 hour",
+
+  // [2 * 60]: "Messages will disappear after 2 minutes",
+
+  [24 * 60 * 60]:
+    "Messages will disappear after 24 hours",
+
+  [7 * 24 * 60 * 60]:
+    "Messages will disappear after 7 days",
+
+  [90 * 24 * 60 * 60]:
+    "Messages will disappear after 90 days",
+};
 
     toast.success(labels[duration] || "Setting updated");
   } catch (err) {
@@ -235,6 +251,38 @@ function ChatHeader({
         </span>
     </button>
 
+    <button
+  onClick={async () => {
+    const confirmed = window.confirm(
+      "Clear this chat?\n\nAll messages will be removed only for you."
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await api.delete(`/chat/${chatId}/clear`);
+
+      toast.success("Chat cleared");
+
+      setShowMenu(false);
+
+      // Refresh current chat immediately
+      window.location.reload();
+    } catch (err) {
+      toast.error(
+        err.response?.data?.message ||
+          "Failed to clear chat"
+      );
+    }
+  }}
+  className="w-full text-left px-4 py-3 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 border-b border-gray-200 dark:border-gray-700"
+>
+  <span className="inline-flex items-center gap-2">
+    <FaTrash />
+    Clear Chat
+  </span>
+</button>
+
     {/* Disappearing Messages */}
 <button
   onClick={() => setShowDisappearingMenu(!showDisappearingMenu)}
@@ -270,6 +318,34 @@ function ChatHeader({
         <span className="text-blue-600">✓</span>
       )}
     </button>
+
+    {/* 1 Hour */}
+ <button
+  onClick={() =>
+    setDisappearingDuration(60 * 60)
+  }
+  className="w-full text-left px-6 py-2.5 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 flex justify-between"
+>
+  <span className="inline-flex items-center gap-1">
+    <FaClock /> 1 hour
+  </span>
+
+  {chatInfo?.disappearingMessages?.duration ===
+    60 * 60 && (
+    <span className="text-blue-600">✓</span>
+  )}
+</button> 
+
+{/* <button
+  onClick={() => setDisappearingDuration(2 * 60)}
+  className="w-full text-left px-6 py-2.5 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 flex justify-between"
+>
+  <span>2 minutes</span>
+
+  {chatInfo?.disappearingMessages?.duration === 2 * 60 && (
+    <span className="text-blue-600">✓</span>
+  )}
+</button> */}
 
     {/* 24 Hours */}
     <button
