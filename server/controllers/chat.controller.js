@@ -371,12 +371,22 @@ export const setDisappearingMessages = async (req, res) => {
       });
     }
 
-    // Allowed durations
+   // Allowed durations
     const allowedDurations = [
-      24 * 60 * 60,          // 24 hours
-      7 * 24 * 60 * 60,      // 7 days
-      90 * 24 * 60 * 60,     // 90 days
-    ];
+  60 * 60,           // ✅ 1 hour
+  24 * 60 * 60,      // 24 hours
+  7 * 24 * 60 * 60,  // 7 days
+  90 * 24 * 60 * 60, // 90 days
+];
+
+// Allowed durations
+// const allowedDurations = [
+//   2 * 60,            // 🧪 2 minutes - testing
+//   60 * 60,           // 1 hour
+//   24 * 60 * 60,      // 24 hours
+//   7 * 24 * 60 * 60,  // 7 days
+//   90 * 24 * 60 * 60, // 90 days
+// ];
 
     if (!allowedDurations.includes(duration)) {
       return res.status(400).json({
