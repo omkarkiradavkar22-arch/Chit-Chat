@@ -17,7 +17,6 @@ function Search() {
       const { data } = await api.get(
         `/users/search?keyword=${keyword}`
       );
-
       setUsers(data.users);
     } catch (error) {
       toast.error(
