@@ -260,7 +260,7 @@ function ChatHeader({
     if (!confirmed) return;
 
     try {
-      await api.delete(`/chat/${chatId}/clear`);
+      await api.delete(`/messages/${chatId}/clear`);
 
       toast.success("Chat cleared");
 
