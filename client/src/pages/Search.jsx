@@ -70,7 +70,6 @@ function Search() {
               />
             ))
           )}
-
         </div>
 
       </div>
