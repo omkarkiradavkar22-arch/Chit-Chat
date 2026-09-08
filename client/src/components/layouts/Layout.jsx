@@ -8,7 +8,6 @@ function Layout({ children, fullScreen = false }) {
     <div className="min-h-screen bg-gray-100 dark:bg-gray-950 text-gray-900 dark:text-white transition-colors">
 
       <Navbar />
-
       <div
         className={`max-w-screen-2xl mx-auto flex ${
           fullScreen
