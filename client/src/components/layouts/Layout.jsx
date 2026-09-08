@@ -39,7 +39,6 @@ function Layout({ children, fullScreen = false }) {
       </div>
 
       <MobileNavbar />
-
     </div>
   );
 }
