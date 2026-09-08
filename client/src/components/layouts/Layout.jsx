@@ -16,7 +16,6 @@ function Layout({ children, fullScreen = false }) {
             : "pt-20"
         }`}
       >
-
         {/* Left Sidebar */}
         <aside className="hidden lg:block w-64 fixed">
           <Sidebar />
