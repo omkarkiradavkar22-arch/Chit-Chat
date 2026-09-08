@@ -207,28 +207,28 @@ const handlePrivacy = async () => {
           </div>
 
           <div className="flex items-center justify-between border border-gray-300 dark:border-gray-700 rounded-lg p-4">
-  <div>
-    <h3 className="font-semibold">
-      Private Account
-    </h3>
-
-    <p className="text-sm text-gray-500 dark:text-gray-400">
-      Only approved followers can see your profile.
-    </p>
-  </div>
-
-  <button
-    type="button"
-    onClick={handlePrivacy}
-    className={`px-5 py-2 rounded-lg text-white ${
-      isPrivate
-        ? "bg-red-500"
-        : "bg-green-500"
-    }`}
-  >
-    {isPrivate ? "Private" : "Public"}
-  </button>
-</div>
+            <div>
+              <h3 className="font-semibold">
+                Private Account
+              </h3>
+          
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Only approved followers can see your profile.
+              </p>
+            </div>
+          
+            <button
+              type="button"
+              onClick={handlePrivacy}
+              className={`px-5 py-2 rounded-lg text-white ${
+                isPrivate
+                  ? "bg-red-500"
+                  : "bg-green-500"
+              }`}
+            >
+              {isPrivate ? "Private" : "Public"}
+            </button>
+          </div>
 
           <button
             disabled={loading}
