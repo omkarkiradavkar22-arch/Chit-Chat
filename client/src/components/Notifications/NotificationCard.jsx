@@ -480,6 +480,29 @@ isFollowing && (
   </button>
 )}
 
+{/* Desktop Delete Button */}
+<button
+  onClick={(e) => {
+    e.stopPropagation();
+    handleDeleteNotification();
+  }}
+  className="
+    hidden md:flex
+    items-center justify-center
+    text-red-500
+    hover:text-red-700
+    p-2
+    rounded-full
+    hover:bg-red-100
+    dark:hover:bg-red-900/30
+    transition
+    flex-shrink-0
+  "
+  title="Delete notification"
+>
+  <FaTrash />
+</button>
+
             </div>
     </div>
 
