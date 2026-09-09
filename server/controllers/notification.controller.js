@@ -82,3 +82,48 @@ export const markAsRead = async (req, res) => {
     });
   }
 };
+
+export const deleteNotification = async (req, res) => {
+  try {
+    const notification = await Notification.findById(
+      req.params.id
+    );
+
+    if (!notification) {
+      return res.status(404).json({
+        success: false,
+        message: "Notification not found",
+      });
+    }
+
+    // Only notification owner can delete it
+    if (
+      notification.receiver.toString() !==
+      req.user._id.toString()
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    await Notification.findByIdAndDelete(
+      req.params.id
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Notification deleted",
+    });
+  } catch (error) {
+    console.error(
+      "DELETE NOTIFICATION ERROR:",
+      error
+    );
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete notification",
+    });
+  }
+};
