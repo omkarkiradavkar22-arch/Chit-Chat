@@ -50,12 +50,20 @@ function Notifications() {
             No notifications yet.
           </p>
         ) : (
-          notifications.map((notification) => (
-            <NotificationCard
-              key={notification._id}
-              notification={notification}
-            />
-          ))
+         notifications.map((notification) => (
+  <NotificationCard
+    key={notification._id}
+    notification={notification}
+    onDeleted={(notificationId) => {
+      setNotifications((prev) =>
+        prev.filter(
+          (item) =>
+            item._id !== notificationId
+        )
+      );
+    }}
+  />
+))
         )}
 
       </div>
