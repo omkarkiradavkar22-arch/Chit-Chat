@@ -79,13 +79,21 @@ useEffect(() => {
     >
       <div className="max-w-7xl mx-auto h-full flex items-center justify-between px-6">
 
-        {/* LOGO */}
-        <Link
-          to="/"
-          className="text-3xl font-bold text-blue-600"
-        >
-          ChitChat
-        </Link>
+{/* LOGO + CHITCHAT */}
+<Link
+  to="/"
+  className="flex items-center gap-2"
+>
+  <img
+    src="/chit-chat-logo-512x512.png"
+    alt="ChitChat"
+    className="w-10 h-10 object-contain"
+  />
+
+  <span className="text-2xl font-bold text-blue-600">
+    ChitChat
+  </span>
+</Link>
 
         {user && (
           <div
