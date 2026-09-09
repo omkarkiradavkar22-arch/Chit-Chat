@@ -4,12 +4,20 @@ import api from "../../services/api";
 import { toast } from "react-hot-toast";
 import { useState } from "react";
 import { useTheme } from "../../context/ThemeContext";
-import { FaHeart, FaRegComment, FaUserPlus, FaEnvelope, FaCheck,
+import { FaHeart,
+  FaRegComment,
+  FaUserPlus,
+  FaEnvelope,
+  FaCheck,
   FaPhone,
-  FaPhoneSlash
+  FaPhoneSlash,
+FaTrash
  } from "react-icons/fa";
 
-function NotificationCard({ notification }) {
+function NotificationCard({
+  notification,
+  onDeleted,
+}) {
 
     const { theme } = useTheme();
   const darkMode = theme === "dark";
@@ -18,10 +26,80 @@ function NotificationCard({ notification }) {
 
   const [currentNotification, setCurrentNotification] =
     useState(notification);
+
+  const [touchStartX, setTouchStartX] =
+  useState(null);
+
+const [translateX, setTranslateX] =
+  useState(0);
+
+const [isDeleting, setIsDeleting] =
+  useState(false);
   
   const [isFollowing, setIsFollowing] = useState(
     notification.isFollowing
   );
+
+  const handleDeleteNotification = async () => {
+  if (isDeleting) return;
+
+  try {
+    setIsDeleting(true);
+
+    await api.delete(
+      `/notifications/${notification._id}`
+    );
+
+    // Swipe-out animation
+    setTranslateX(-500);
+
+    setTimeout(() => {
+      onDeleted?.(notification._id);
+    }, 200);
+  } catch (err) {
+    setTranslateX(0);
+    setIsDeleting(false);
+
+    toast.error(
+      err.response?.data?.message ||
+        "Failed to delete notification"
+    );
+  }
+};
+
+const handleTouchStart = (e) => {
+  setTouchStartX(
+    e.touches[0].clientX
+  );
+};
+
+const handleTouchMove = (e) => {
+  if (touchStartX === null) return;
+
+  const currentX =
+    e.touches[0].clientX;
+
+  const difference =
+    currentX - touchStartX;
+
+  // Only allow left swipe
+  if (difference < 0) {
+    setTranslateX(
+      Math.max(difference, -120)
+    );
+  }
+};
+
+const handleTouchEnd = () => {
+  // Swipe threshold
+  if (translateX <= -80) {
+    handleDeleteNotification();
+  } else {
+    setTranslateX(0);
+  }
+
+  setTouchStartX(null);
+};
 
  const handleClick = () => {
   if (
@@ -225,18 +303,65 @@ case "missed_call":
 
 
   return (
+  <div className="relative overflow-hidden rounded-xl mb-3">
+
+    {/* Delete background */}
     <div
-  onClick={handleClick}
-  className={`cursor-pointer rounded-xl shadow p-4 transition border ${
-  darkMode
-    ? "bg-[#111827] border-gray-700 text-white hover:bg-[#172235] hover:shadow-lg"
-    : "bg-white border-gray-200 text-gray-900 hover:bg-gray-50 hover:shadow-md"
-} ${
-  !notification.isRead
-    ? "border-l-4 border-l-blue-500"
-    : ""
-}`}
->
+      className="
+        absolute
+        inset-0
+        bg-red-600
+        flex
+        items-center
+        justify-end
+        pr-6
+        text-white
+        font-semibold
+      "
+    >
+      <FaTrash size={20} />
+    </div>
+
+    {/* Notification Card */}
+    <div
+      onClick={() => {
+        if (translateX === 0) {
+          handleClick();
+        }
+      }}
+
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+
+      style={{
+        transform: `translateX(${translateX}px)`,
+      }}
+
+      className={`
+        relative
+        cursor-pointer
+        rounded-xl
+        shadow
+        p-4
+        border
+        transition-transform
+        duration-200
+        ease-out
+
+        ${
+          darkMode
+            ? "bg-[#111827] border-gray-700 text-white hover:bg-[#172235] hover:shadow-lg"
+            : "bg-white border-gray-200 text-gray-900 hover:bg-gray-50 hover:shadow-md"
+        }
+
+        ${
+          !notification.isRead
+            ? "border-l-4 border-l-blue-500"
+            : ""
+        }
+      `}
+    >
       <div className="flex items-center gap-4">
         {!notification.isRead && (
     <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
@@ -355,8 +480,10 @@ isFollowing && (
   </button>
 )}
 
-      </div>
+            </div>
     </div>
+
+  </div>
   );
 }
 
