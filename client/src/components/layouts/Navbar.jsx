@@ -90,7 +90,7 @@ useEffect(() => {
     className="w-10 h-10 object-contain"
   />
 
-  <span className="text-2xl font-bold text-blue-600">
+  <span className="text-3xl font-bold text-blue-600">
     ChitChat
   </span>
 </Link>
