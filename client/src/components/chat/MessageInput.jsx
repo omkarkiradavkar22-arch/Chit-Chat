@@ -43,6 +43,7 @@ function MessageInput({
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [showAttachMenu, setShowAttachMenu] = useState(false);
   const attachMenuRef = useRef(null);
+  const emojiPickerRef = useRef(null);
 
   // Recording
   const [isRecording, setIsRecording] = useState(false);
@@ -700,11 +701,21 @@ useEffect(() => {
 
 useEffect(() => {
   const handleOutsideClick = (event) => {
+
+    // Close attachment menu
     if (
       attachMenuRef.current &&
       !attachMenuRef.current.contains(event.target)
     ) {
       setShowAttachMenu(false);
+    }
+
+    // Close emoji picker
+    if (
+      emojiPickerRef.current &&
+      !emojiPickerRef.current.contains(event.target)
+    ) {
+      setShowEmojiPicker(false);
     }
   };
 
@@ -963,6 +974,7 @@ useEffect(() => {
       ========================= */}
 
       <div className="flex items-center gap-3">
+        
 
       <div
   ref={attachMenuRef}
@@ -1067,15 +1079,19 @@ useEffect(() => {
           onClick={() =>
             setShowEmojiPicker(!showEmojiPicker)
           }
-          className="text-yellow-500 text-xl"
+          ref={emojiPickerRef}
+          className="hidden md:flex
+    items-center justify-center
+text-yellow-500 text-xl"
         >
           <FaSmile />
         </button>
 
         {/* Emoji Picker */}
         {showEmojiPicker && (
-          <div className="absolute bottom-20 left-4 z-50">
+          <div className="hidden md:block absolute bottom-20 left-4 z-50">
            <EmojiPicker
+           
   onEmojiClick={handleEmojiClick}
   theme={theme === "dark" ? "dark" : "light"}
 />
