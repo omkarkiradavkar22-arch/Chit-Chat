@@ -13,7 +13,7 @@ import {
   FaHourglassHalf,
   FaTrash,
 } from "react-icons/fa";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import api from "../../services/api";
 import { toast } from "react-hot-toast";
 import MediaGallery from "./MediaGallery";
@@ -32,7 +32,28 @@ function ChatHeader({
    const [showMenu, setShowMenu] = useState(false);
    const [showGallery, setShowGallery] = useState(false);
    const [showDisappearingMenu, setShowDisappearingMenu] = useState(false);
+   const menuRef = useRef(null);
    const { startCall } = useCall();
+
+   useEffect(() => {
+  const handleOutsideClick = (event) => {
+    if (
+      menuRef.current &&
+      !menuRef.current.contains(event.target)
+    ) {
+      setShowMenu(false);
+      setShowDisappearingMenu(false);
+    }
+  };
+
+  document.addEventListener("mousedown", handleOutsideClick);
+  document.addEventListener("touchstart", handleOutsideClick);
+
+  return () => {
+    document.removeEventListener("mousedown", handleOutsideClick);
+    document.removeEventListener("touchstart", handleOutsideClick);
+  };
+}, []);
   if (!otherUser) {
     return (
       <div className="h-16 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 flex items-center px-5 transition-colors">
@@ -201,18 +222,19 @@ function ChatHeader({
         <FaVideo size={18} />
       </button>
 
-        <button
-  onClick={() => setShowMenu(!showMenu)}
-  className="text-gray-700 dark:text-gray-200 hover:text-blue-600"
+       <div
+  ref={menuRef}
+  className="relative"
 >
-  <FaEllipsisV size={18} />
-</button>
+  <button
+    onClick={() => setShowMenu((prev) => !prev)}
+    className="text-gray-700 dark:text-gray-200 hover:text-blue-600"
+  >
+    <FaEllipsisV size={18} />
+  </button>
 
-
-
-{showMenu && (
-  <div className="absolute top-10 right-0 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 w-48 z-50 overflow-hidden">
-
+  {showMenu && (
+    <div className="absolute top-10 right-0 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 w-48 z-50 overflow-hidden">f
 
 <button
   onClick={() => {
@@ -453,7 +475,7 @@ function ChatHeader({
 
   </div>
 )}
-
+</div>
       </div>
 
     </div>
