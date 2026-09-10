@@ -6,6 +6,7 @@ import {
   FaMicrophone,
   FaStop,
   FaTrash,
+  FaPlus,
   FaPlay,
   FaPause,
   FaMapMarkerAlt,
@@ -40,6 +41,7 @@ function MessageInput({
   const [attachments, setAttachments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [showAttachMenu, setShowAttachMenu] = useState(false);
 
   // Recording
   const [isRecording, setIsRecording] = useState(false);
@@ -941,48 +943,100 @@ useEffect(() => {
 
       <div className="flex items-center gap-3">
 
-        {/* Image / File */}
-        <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          className="text-blue-600 text-xl"
-        >
-          <FaImage />
-        </button>
+       <div className="relative flex-shrink-0">
+  <button
+    type="button"
+    onClick={() => setShowAttachMenu((prev) => !prev)}
+    className="
+      w-9 h-9
+      flex items-center justify-center
+      rounded-full
+      text-blue-500
+      hover:bg-gray-200
+      dark:hover:bg-gray-700
+      transition
+    "
+  >
+    <FaPlus size={18} />
+  </button>
 
-        <button
-  type="button"
-  onClick={shareLocation}
-  disabled={loading}
-  className="text-red-500 text-xl disabled:opacity-50"
-  title="Share location"
->
-  <FaMapMarkerAlt />
-</button>
+  {showAttachMenu && (
+    <div
+      className="
+        absolute bottom-12 left-0
+        w-48
+        bg-white dark:bg-gray-800
+        border border-gray-200 dark:border-gray-700
+        rounded-xl
+        shadow-xl
+        overflow-hidden
+        z-50
+      "
+    >
 
-{/* Live Location */}
-<button
-  type="button"
-  onClick={
-    isLiveLocation
-      ? stopLiveLocation
-      : startLiveLocation
-  }
-  disabled={loading}
-  className={`text-xl ${
-    isLiveLocation
-      ? "text-red-500"
-      : "text-green-600"
-  }`}
-  title={
-    isLiveLocation
-      ? "Stop Live Location"
-      : "Share Live Location"
-  }
->
-  <FaLocationArrow />
-</button>
+      {/* IMAGE */}
+      <button
+        type="button"
+        onClick={() => {
+          setShowAttachMenu(false);
+          handleImage();
+        }}
+        className="
+          w-full
+          flex items-center gap-3
+          px-4 py-3
+          text-left
+          hover:bg-gray-100
+          dark:hover:bg-gray-700
+        "
+      >
+        <FaImage className="text-blue-500" />
+        <span>Image</span>
+      </button>
 
+      {/* LOCATION */}
+      <button
+        type="button"
+        onClick={() => {
+          setShowAttachMenu(false);
+          handleLocation();
+        }}
+        className="
+          w-full
+          flex items-center gap-3
+          px-4 py-3
+          text-left
+          hover:bg-gray-100
+          dark:hover:bg-gray-700
+        "
+      >
+        <FaMapMarkerAlt className="text-red-500" />
+        <span>Location</span>
+      </button>
+
+      {/* LIVE LOCATION */}
+      <button
+        type="button"
+        onClick={() => {
+          setShowAttachMenu(false);
+          handleLiveLocation();
+        }}
+        className="
+          w-full
+          flex items-center gap-3
+          px-4 py-3
+          text-left
+          hover:bg-gray-100
+          dark:hover:bg-gray-700
+        "
+      >
+        <FaLocationArrow className="text-green-500" />
+        <span>Live Location</span>
+      </button>
+
+    </div>
+  )}
+</div>
         {/* Emoji */}
         <button
           type="button"
