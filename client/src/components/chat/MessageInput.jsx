@@ -42,6 +42,7 @@ function MessageInput({
   const [loading, setLoading] = useState(false);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [showAttachMenu, setShowAttachMenu] = useState(false);
+  const attachMenuRef = useRef(null);
 
   // Recording
   const [isRecording, setIsRecording] = useState(false);
@@ -697,6 +698,26 @@ useEffect(() => {
 }, []);
 
 
+useEffect(() => {
+  const handleOutsideClick = (event) => {
+    if (
+      attachMenuRef.current &&
+      !attachMenuRef.current.contains(event.target)
+    ) {
+      setShowAttachMenu(false);
+    }
+  };
+
+  document.addEventListener("mousedown", handleOutsideClick);
+  document.addEventListener("touchstart", handleOutsideClick);
+
+  return () => {
+    document.removeEventListener("mousedown", handleOutsideClick);
+    document.removeEventListener("touchstart", handleOutsideClick);
+  };
+}, []);
+
+
   // =========================
   // UI
   // =========================
@@ -943,7 +964,10 @@ useEffect(() => {
 
       <div className="flex items-center gap-3">
 
-       <div className="relative flex-shrink-0">
+      <div
+  ref={attachMenuRef}
+  className="relative flex-shrink-0"
+>
   <button
     type="button"
     onClick={() => setShowAttachMenu((prev) => !prev)}
