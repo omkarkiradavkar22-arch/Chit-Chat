@@ -701,8 +701,6 @@ useEffect(() => {
 
 useEffect(() => {
   const handleOutsideClick = (event) => {
-
-    // Close attachment menu
     if (
       attachMenuRef.current &&
       !attachMenuRef.current.contains(event.target)
@@ -710,7 +708,6 @@ useEffect(() => {
       setShowAttachMenu(false);
     }
 
-    // Close emoji picker
     if (
       emojiPickerRef.current &&
       !emojiPickerRef.current.contains(event.target)
@@ -719,12 +716,10 @@ useEffect(() => {
     }
   };
 
-  document.addEventListener("mousedown", handleOutsideClick);
-  document.addEventListener("touchstart", handleOutsideClick);
+  document.addEventListener("click", handleOutsideClick);
 
   return () => {
-    document.removeEventListener("mousedown", handleOutsideClick);
-    document.removeEventListener("touchstart", handleOutsideClick);
+    document.removeEventListener("click", handleOutsideClick);
   };
 }, []);
 
@@ -1012,30 +1007,30 @@ useEffect(() => {
 
       {/* IMAGE */}
       <button
-        type="button"
-        onClick={() => {
-          setShowAttachMenu(false);
-          handleImage();
-        }}
-        className="
-          w-full
-          flex items-center gap-3
-          px-4 py-3
-          text-left
-          hover:bg-gray-100
-          dark:hover:bg-gray-700
-        "
-      >
-        <FaImage className="text-blue-500" />
-        <span>Image</span>
-      </button>
+  type="button"
+  onClick={() => {
+    setShowAttachMenu(false);
+    fileInputRef.current?.click();
+  }}
+  className="
+    w-full
+    flex items-center gap-3
+    px-4 py-3
+    text-left
+    hover:bg-gray-100
+    dark:hover:bg-gray-700
+  "
+>
+  <FaImage className="text-blue-500" />
+  <span>Image / File</span>
+</button>
 
       {/* LOCATION */}
       <button
         type="button"
         onClick={() => {
           setShowAttachMenu(false);
-          handleLocation();
+            shareLocation();
         }}
         className="
           w-full
@@ -1055,7 +1050,7 @@ useEffect(() => {
         type="button"
         onClick={() => {
           setShowAttachMenu(false);
-          handleLiveLocation();
+          startLiveLocation();
         }}
         className="
           w-full
@@ -1073,19 +1068,43 @@ useEffect(() => {
     </div>
   )}
 </div>
-        {/* Emoji */}
-        <button
-          type="button"
-          onClick={() =>
-            setShowEmojiPicker(!showEmojiPicker)
-          }
-          ref={emojiPickerRef}
-          className="hidden md:flex
-    items-center justify-center
-text-yellow-500 text-xl"
-        >
-          <FaSmile />
-        </button>
+        {/* EMOJI */}
+<div
+  ref={emojiPickerRef}
+  className="relative hidden md:block flex-shrink-0"
+>
+  <button
+    type="button"
+    onClick={() =>
+      setShowEmojiPicker((prev) => !prev)
+    }
+    className="
+      flex
+      items-center justify-center
+      text-yellow-500
+      text-xl
+    "
+  >
+    <FaSmile />
+  </button>
+
+  {/* Emoji Picker */}
+  {showEmojiPicker && (
+    <div
+      className="
+        absolute
+        bottom-12
+        left-0
+        z-50
+      "
+    >
+      <EmojiPicker
+        onEmojiClick={handleEmojiClick}
+        theme={theme === "dark" ? "dark" : "light"}
+      />
+    </div>
+  )}
+</div>
 
         {/* Emoji Picker */}
         {showEmojiPicker && (
