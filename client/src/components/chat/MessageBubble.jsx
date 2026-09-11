@@ -152,6 +152,10 @@ function MessageBubble({
 
   const isMine = message.sender?._id === user?._id;
 const [showMenu, setShowMenu] = useState(false);
+
+const menuButtonRef = useRef(null);
+const menuRef = useRef(null);
+
 const [editing, setEditing] = useState(false);
 const [editedText, setEditedText] = useState(message.text);
 //const [liveLocation, setLiveLocation] = useState(null);
@@ -373,6 +377,28 @@ const renderHighlightedText = () => {
   });
 };
 
+useEffect(() => {
+  const handleOutsideClick = (event) => {
+    const clickedButton =
+      menuButtonRef.current?.contains(event.target);
+
+    const clickedMenu =
+      menuRef.current?.contains(event.target);
+
+    if (!clickedButton && !clickedMenu) {
+      setShowMenu(false);
+    }
+  };
+
+  document.addEventListener("mousedown", handleOutsideClick);
+  document.addEventListener("touchstart", handleOutsideClick);
+
+  return () => {
+    document.removeEventListener("mousedown", handleOutsideClick);
+    document.removeEventListener("touchstart", handleOutsideClick);
+  };
+}, []);
+
   return (
     <div
       className={`flex ${
@@ -428,7 +454,8 @@ const renderHighlightedText = () => {
 {/* Three Dot Menu Button */}
 {!message.deletedForEveryone && (
   <button
-    onClick={() => setShowMenu(!showMenu)}
+    ref={menuButtonRef}
+    onClick={() => setShowMenu((prev) => !prev)}
     className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition"
   >
     <FaEllipsisV size={14} />
@@ -674,7 +701,9 @@ const renderHighlightedText = () => {
   )}
 
 {showMenu && (
-  <div className="absolute top-8 right-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 w-44 z-50">
+  <div 
+  ref={menuRef}
+  className="absolute top-8 right-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 w-44 z-50">
 
     <button
       onClick={handleDeleteForMe}
