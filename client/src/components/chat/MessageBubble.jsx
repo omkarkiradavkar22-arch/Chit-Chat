@@ -512,6 +512,7 @@ const handleTouchEnd = () => {
       onTouchStart={handleTouchStart}
   onTouchMove={handleTouchMove}
   onTouchEnd={handleTouchEnd}
+  id={`message-${message._id}`}
  className={`relative group min-w-0 max-w-[85%] sm:max-w-[70%] rounded-2xl px-4 py-3 shadow transition-all ${
      isSearchMatch
       ? "ring-4 ring-yellow-400 ring-offset-2"
@@ -934,13 +935,37 @@ className="w-full text-left px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-
 
         {/* Reply Preview */}
         {message.replyTo && (
-          <div
-            className={`mb-3 border-l-4 pl-3 py-2 rounded ${
-              isMine
-  ? "bg-blue-500 hover:bg-blue-400"
-  : "bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600"
-            }`}
-          >
+  <div
+    onClick={() => {
+      const target = document.getElementById(
+        `message-${message.replyTo._id}`
+      );
+
+      if (target) {
+        target.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+
+        target.classList.add(
+          "ring-4",
+          "ring-yellow-400"
+        );
+
+        setTimeout(() => {
+          target.classList.remove(
+            "ring-4",
+            "ring-yellow-400"
+          );
+        }, 1500);
+      }
+    }}
+    className={`mb-3 border-l-4 pl-3 py-2 rounded cursor-pointer ${
+      isMine
+        ? "bg-blue-500 hover:bg-blue-400"
+        : "bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600"
+    }`}
+  >
             <p className="text-xs font-semibold">
               {message.replyTo.sender?.name}
             </p>
