@@ -1088,7 +1088,7 @@ useEffect(() => {
     <FaSmile />
   </button>
 
-  {/* Emoji Picker */}
+  {/* Emoji Picker
   {showEmojiPicker && (
     <div
       className="
@@ -1103,7 +1103,7 @@ useEffect(() => {
         theme={theme === "dark" ? "dark" : "light"}
       />
     </div>
-  )}
+  )} */}
 </div>
 
         {/* Emoji Picker */}
