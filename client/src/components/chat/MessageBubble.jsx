@@ -154,6 +154,8 @@ function MessageBubble({
 const [showMenu, setShowMenu] = useState(false);
 const touchStartXRef = useRef(null);
 const touchCurrentXRef = useRef(null);
+const longPressTimerRef = useRef(null);
+const longPressTriggeredRef = useRef(false);
 const menuButtonRef = useRef(null);
 const menuRef = useRef(null);
 
@@ -401,15 +403,52 @@ useEffect(() => {
 }, []);
 
 const handleTouchStart = (e) => {
-  touchStartXRef.current = e.touches[0].clientX;
-  touchCurrentXRef.current = e.touches[0].clientX;
+  const x = e.touches[0].clientX;
+
+  touchStartXRef.current = x;
+  touchCurrentXRef.current = x;
+  longPressTriggeredRef.current = false;
+
+  longPressTimerRef.current = setTimeout(() => {
+    longPressTriggeredRef.current = true;
+
+    setShowMenu(true);
+
+    // Mobile vibration supported असेल तर
+    if (navigator.vibrate) {
+      navigator.vibrate(40);
+    }
+  }, 500);
 };
 
 const handleTouchMove = (e) => {
-  touchCurrentXRef.current = e.touches[0].clientX;
+  const x = e.touches[0].clientX;
+
+  touchCurrentXRef.current = x;
+
+  const movement = Math.abs(
+    x - touchStartXRef.current
+  );
+
+  // User swipe करत असेल तर long press cancel
+  if (movement > 10) {
+    clearTimeout(longPressTimerRef.current);
+  }
 };
 
 const handleTouchEnd = () => {
+  clearTimeout(longPressTimerRef.current);
+
+  // Long press झाला असेल तर swipe-to-reply run करू नको
+  if (longPressTriggeredRef.current) {
+    longPressTriggeredRef.current = false;
+
+    touchStartXRef.current = null;
+    touchCurrentXRef.current = null;
+
+    return;
+  }
+
   if (
     touchStartXRef.current === null ||
     touchCurrentXRef.current === null
@@ -423,12 +462,12 @@ const handleTouchEnd = () => {
 
   const swipeThreshold = 60;
 
-  // My message → swipe LEFT
+  // My message → LEFT swipe
   if (isMine && diff < -swipeThreshold) {
     onReply(message);
   }
 
-  // Received message → swipe RIGHT
+  // Received message → RIGHT swipe
   if (!isMine && diff > swipeThreshold) {
     onReply(message);
   }
@@ -497,8 +536,8 @@ const handleTouchEnd = () => {
   <button
     ref={menuButtonRef}
     onClick={() => setShowMenu((prev) => !prev)}
-    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition"
-  >
+   className="hidden md:block absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition"
+     >
     <FaEllipsisV size={14} />
   </button>
 )}
