@@ -152,7 +152,8 @@ function MessageBubble({
 
   const isMine = message.sender?._id === user?._id;
 const [showMenu, setShowMenu] = useState(false);
-
+const touchStartXRef = useRef(null);
+const touchCurrentXRef = useRef(null);
 const menuButtonRef = useRef(null);
 const menuRef = useRef(null);
 
@@ -399,6 +400,43 @@ useEffect(() => {
   };
 }, []);
 
+const handleTouchStart = (e) => {
+  touchStartXRef.current = e.touches[0].clientX;
+  touchCurrentXRef.current = e.touches[0].clientX;
+};
+
+const handleTouchMove = (e) => {
+  touchCurrentXRef.current = e.touches[0].clientX;
+};
+
+const handleTouchEnd = () => {
+  if (
+    touchStartXRef.current === null ||
+    touchCurrentXRef.current === null
+  ) {
+    return;
+  }
+
+  const diff =
+    touchCurrentXRef.current -
+    touchStartXRef.current;
+
+  const swipeThreshold = 60;
+
+  // My message → swipe LEFT
+  if (isMine && diff < -swipeThreshold) {
+    onReply(message);
+  }
+
+  // Received message → swipe RIGHT
+  if (!isMine && diff > swipeThreshold) {
+    onReply(message);
+  }
+
+  touchStartXRef.current = null;
+  touchCurrentXRef.current = null;
+};
+
   return (
     <div
       className={`flex ${
@@ -432,6 +470,9 @@ useEffect(() => {
   </div>
 )}
       <div
+      onTouchStart={handleTouchStart}
+  onTouchMove={handleTouchMove}
+  onTouchEnd={handleTouchEnd}
  className={`relative group min-w-0 max-w-[85%] sm:max-w-[70%] rounded-2xl px-4 py-3 shadow transition-all ${
      isSearchMatch
       ? "ring-4 ring-yellow-400 ring-offset-2"
