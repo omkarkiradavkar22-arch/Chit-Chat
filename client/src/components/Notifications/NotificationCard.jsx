@@ -103,12 +103,19 @@ const handleTouchEnd = () => {
 
  const handleClick = () => {
   if (
-    notification.type === "like" ||
-    notification.type === "comment"
-  ) {
-    navigate(`/post/${notification.post._id}`);
-    return;
+  notification.type === "like" ||
+  notification.type === "comment" ||
+  notification.type === "post"
+) {
+  const postId =
+    notification.post?._id || notification.post;
+
+  if (postId) {
+    navigate(`/post/${postId}`);
   }
+
+  return;
+}
 
   if (
     notification.type === "follow" ||
@@ -238,6 +245,9 @@ switch (currentNotification.type) {
           <FaRegComment className="text-blue-500" />
         </span>
       );
+
+      case "post":
+  return "posted something new";
 
 case "follow":
   return (
@@ -391,11 +401,12 @@ case "missed_call":
           <p>
 
             <Link
-              to={`/profile/${notification.sender.username}`}
-              className="font-semibold"
-            >
-              {notification.sender.name}
-            </Link>{" "}
+  to={`/profile/${notification.sender.username}`}
+  onClick={(e) => e.stopPropagation()}
+  className="font-semibold"
+>
+  {notification.sender.name}
+</Link>{" "}
 
             {getMessage()}
 
