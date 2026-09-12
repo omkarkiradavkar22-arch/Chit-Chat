@@ -15,8 +15,8 @@ import {
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import { toast } from "react-hot-toast";
-import CommentModal from "../comments/CommentModal";
 import { useAuth } from "../../context/AuthContext";
+import CommentSection from "../comments/CommentSection";
 
 function PostCard({ post }) {
   const navigate = useNavigate();
@@ -409,13 +409,13 @@ const updatePost = async () => {
       )}
     </button>
 
-    <button
-      onClick={() => navigate(`/post/${post._id}`)}
-      className="flex items-center gap-2"
-    >
-      <span>{commentsCount}</span>
-      <FaRegComment />
-    </button>
+   <button
+  onClick={() => navigate(`/post/${post._id}/comments`)}
+  className="flex items-center gap-2"
+>
+  <span>{commentsCount}</span>
+  <FaRegComment />
+</button>
 
     <button>
       <FaShare />
@@ -485,12 +485,14 @@ const updatePost = async () => {
 
       </div>
 
-      <CommentModal
-  open={openComments}
-  onClose={() => setOpenComments(false)}
-  post={post}
-  setCommentsCount={setCommentsCount}
-/>
+{openComments && (
+  <div className="border-t border-gray-200 dark:border-gray-700">
+    <CommentSection
+      post={post}
+      setCommentsCount={setCommentsCount}
+    />
+  </div>
+)}
 
     </div>
   );
