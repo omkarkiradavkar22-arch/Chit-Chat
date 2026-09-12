@@ -28,6 +28,9 @@ function PostCard({ post }) {
   const [commentsCount, setCommentsCount] = useState(post.commentsCount);
   const { user } = useAuth();
 
+  const [showHeart, setShowHeart] = useState(false);
+const lastTapRef = useRef(0);
+
   const [isFollowing, setIsFollowing] = useState(
   post.user.isFollowing || false
 );
@@ -63,6 +66,37 @@ const menuRef = useRef(null);
       );
     }
   };
+
+  const handleDoubleTapLike = async () => {
+  const now = Date.now();
+  const DOUBLE_TAP_DELAY = 300;
+
+  if (now - lastTapRef.current < DOUBLE_TAP_DELAY) {
+    // Instagram सारखं:
+    // already liked असेल तर unlike करायचं नाही
+    if (!liked) {
+      try {
+        await api.post(`/posts/${post._id}/toggle-like`);
+
+        setLiked(true);
+        setLikes((prev) => prev + 1);
+      } catch (error) {
+        toast.error(
+          error.response?.data?.message || "Failed to like post"
+        );
+      }
+    }
+
+    // Heart animation
+    setShowHeart(true);
+
+    setTimeout(() => {
+      setShowHeart(false);
+    }, 700);
+  }
+
+  lastTapRef.current = now;
+};
 
   const handleFollow = async () => {
   if (followLoading) return;
