@@ -782,9 +782,23 @@ const handleTouchEnd = () => {
   )}
 
 {showMenu && (
-  <div 
-  ref={menuRef}
-  className="absolute top-8 right-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 w-44 z-50">
+  <div
+    ref={menuRef}
+    className="
+      fixed
+      left-1/2 top-1/2
+      -translate-x-1/2 -translate-y-1/2
+
+      w-56
+      bg-white dark:bg-gray-800
+      text-gray-900 dark:text-white
+      rounded-xl
+      shadow-2xl
+      border border-gray-200 dark:border-gray-700
+      z-[9999]
+      overflow-hidden
+    "
+  >
 
     <button
       onClick={handleDeleteForMe}
