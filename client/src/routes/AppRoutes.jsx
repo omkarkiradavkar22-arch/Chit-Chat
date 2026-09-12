@@ -1,4 +1,5 @@
 import { Routes, Route } from "react-router-dom";
+
 import Home from "../pages/Home";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
@@ -14,6 +15,8 @@ import GuestRoute from "../components/GuestRoute";
 import Post from "../pages/Post";
 import SavedPosts from "../pages/SavedPosts";
 import TasksPage from "../pages/TasksPage";
+import PostComments from "../pages/PostComments";
+
 function AppRoutes() {
   return (
     <Routes>
@@ -124,6 +127,16 @@ element={
           </ProtectedRoute>
         }
       />
+
+
+      <Route
+  path="/post/:id/comments"
+  element={
+    <ProtectedRoute>
+      <PostComments />
+    </ProtectedRoute>
+  }
+/>
 
       <Route
         path="/search"
