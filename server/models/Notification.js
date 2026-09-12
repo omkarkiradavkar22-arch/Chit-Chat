@@ -26,6 +26,7 @@ const notificationSchema = new mongoose.Schema(
   "incoming_call",
   "missed_call",
   "task",
+  "post",
 ],
       required: true,
     },
