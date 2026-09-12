@@ -52,6 +52,39 @@ export const createPost = async (req, res) => {
       },
     });
 
+    // --------------------------------------------------
+// NOTIFY ALL FOLLOWERS ABOUT NEW POST
+// --------------------------------------------------
+
+const creator = await User.findById(req.user._id).select(
+  "name followers"
+);
+
+if (creator && creator.followers.length > 0) {
+  await Promise.all(
+    creator.followers.map(async (followerId) => {
+      // Save notification in ChitChat notification feed
+      await Notification.create({
+        sender: req.user._id,
+        receiver: followerId,
+        type: "post",
+        post: post._id,
+        priority: "normal",
+      });
+
+      // Send Web Push notification
+      await sendPushToUser(followerId.toString(), {
+        type: "post",
+        title: `${creator.name} posted something new`,
+        body: "Tap to view the new post.",
+        postId: post._id.toString(),
+        url: `/post/${post._id}`,
+        tag: `post-${post._id}`,
+      });
+    })
+  );
+}
+
     res.status(201).json({
       success: true,
       message: "Post created successfully",
