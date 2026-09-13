@@ -35,7 +35,13 @@ const uploadToCloudinary = (buffer, folder = "messages", resourceType = "auto") 
 
 export const sendMessage = async (req, res) => {
   try {
-    const { text, replyTo, latitude, longitude } = req.body;
+    const {
+  text,
+  replyTo,
+  latitude,
+  longitude,
+  sharedPost,
+} = req.body;
 
     const chat = await Chat.findById(req.params.chatId);
 
@@ -110,7 +116,8 @@ if (
   !text &&
   attachments.length === 0 &&
   !audio &&
-  !(latitude && longitude)
+  !(latitude && longitude) &&
+  !sharedPost
 ) {
   return res.status(400).json({
     success: false,
@@ -146,18 +153,28 @@ console.log("DISAPPEARING DEBUG:", {
 
 
 
-    const message = await Message.create({
+   const message = await Message.create({
   chat: chat._id,
   sender: req.user._id,
-  text,
+
+  text: text || "",
+
   attachments,
-   expiresAt,
+
+  expiresAt,
+
   audio,
+
   replyTo: replyTo || null,
+
+  // Shared Chit-Chat post
+  sharedPost: sharedPost || null,
+
   delivered: true,
+
   seenBy: [req.user._id],
 
-   location:
+  location:
     latitude && longitude
       ? {
           latitude: Number(latitude),
@@ -274,6 +291,16 @@ if (text && receiver) {
 
 const populatedMessage = await Message.findById(message._id)
   .populate("sender", "name username profilePic")
+
+  .populate({
+    path: "sharedPost",
+    select: "user images description createdAt",
+    populate: {
+      path: "user",
+      select: "name username profilePic",
+    },
+  })
+
   .populate({
     path: "replyTo",
     populate: {
@@ -297,7 +324,11 @@ if (receiver) {
     sendPushToUser(receiver.toString(), {
       type: "message",
       title: req.user.name || "New message",
-      body: text || "📎 Sent you an attachment",
+     body:
+  text ||
+  (sharedPost
+    ? "📮 Shared a post with you"
+    : "📎 Sent you an attachment"),
       senderId: req.user._id.toString(),
       chatId: chat._id.toString(),
       url: `/chat/${chat._id}`,
@@ -342,20 +373,35 @@ export const getMessages = async (req, res) => {
       });
     }
 
-    const messages = await Message.find({
-      chat: chat._id,
-      deletedFor: {
-        $ne: req.user._id,
-      },
-    })
-      .populate("sender", "name username profilePic")
-.populate({
-  path: "replyTo",
-  populate: {
-    path: "sender",
-    select: "name username",
+   const messages = await Message.find({
+  chat: chat._id,
+  deletedFor: {
+    $ne: req.user._id,
   },
-}).sort({ createdAt: 1 });
+})
+  .populate(
+    "sender",
+    "name username profilePic"
+  )
+
+  .populate({
+    path: "sharedPost",
+    select: "user images description createdAt",
+    populate: {
+      path: "user",
+      select: "name username profilePic",
+    },
+  })
+
+  .populate({
+    path: "replyTo",
+    populate: {
+      path: "sender",
+      select: "name username",
+    },
+  })
+
+  .sort({ createdAt: 1 });
 
     res.status(200).json({
       success: true,
@@ -461,9 +507,14 @@ export const deleteForEveryone = async (req, res) => {
     }
 
     message.deletedForEveryone = true;
-    message.text = "This message was deleted";
-    message.attachments = [];
-    message.replyTo = null;
+
+message.text = "This message was deleted";
+
+message.attachments = [];
+
+message.replyTo = null;
+
+message.sharedPost = null;
 
     await message.save();
 
@@ -637,29 +688,36 @@ export const forwardMessage = async (req, res) => {
 
       // Create forwarded message
       const forwardedMessage = await Message.create({
-        chat: chat._id,
+  chat: chat._id,
 
-        sender: req.user._id,
+  sender: req.user._id,
 
-        text: originalMessage.text,
+  text: originalMessage.text,
 
-        messageType: originalMessage.messageType,
+  messageType:
+    originalMessage.messageType,
 
-        attachments:
-          originalMessage.attachments || [],
+  attachments:
+    originalMessage.attachments || [],
 
-        audio: originalMessage.audio || null,
+  audio:
+    originalMessage.audio || null,
 
-        location: originalMessage.location || null,
+  location:
+    originalMessage.location || null,
 
-        replyTo: null,
+  sharedPost:
+    originalMessage.sharedPost || null,
 
-        forwardedFrom: originalMessage._id,
+  replyTo: null,
 
-        delivered: true,
+  forwardedFrom:
+    originalMessage._id,
 
-        seenBy: [req.user._id],
-      });
+  delivered: true,
+
+  seenBy: [req.user._id],
+});
 
       // Update last message
       chat.lastMessage = forwardedMessage._id;
@@ -668,12 +726,24 @@ export const forwardMessage = async (req, res) => {
 
       // Populate message
       const populatedMessage =
-        await Message.findById(forwardedMessage._id)
-          .populate(
-            "sender",
-            "name username profilePic"
-          )
-          .populate("forwardedFrom");
+  await Message.findById(
+    forwardedMessage._id
+  )
+    .populate(
+      "sender",
+      "name username profilePic"
+    )
+
+    .populate({
+      path: "sharedPost",
+      select: "user images description createdAt",
+      populate: {
+        path: "user",
+        select: "name username profilePic",
+      },
+    })
+
+    .populate("forwardedFrom");
 
       forwardedMessages.push(populatedMessage);
 
