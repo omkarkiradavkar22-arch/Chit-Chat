@@ -27,6 +27,10 @@ function PostCard({ post }) {
   const [openComments, setOpenComments] = useState(false);
   const [commentsCount, setCommentsCount] = useState(post.commentsCount);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showChatShare, setShowChatShare] = useState(false);
+const [shareChats, setShareChats] = useState([]);
+const [shareLoading, setShareLoading] = useState(false);
+const [sendingChatId, setSendingChatId] = useState(null);
   const { user } = useAuth();
 
   const [showHeart, setShowHeart] = useState(false);
@@ -254,6 +258,62 @@ const shareToTelegram = () => {
   );
 
   setShowShareModal(false);
+};
+
+const openChatShare = async () => {
+  try {
+    setShareLoading(true);
+
+    const { data } = await api.get("/chat");
+
+    setShareChats(data.chats || []);
+
+    setShowShareModal(false);
+    setShowChatShare(true);
+  } catch (error) {
+    console.error("LOAD CHATS ERROR:", error);
+
+    toast.error(
+      error.response?.data?.message ||
+        "Failed to load chats"
+    );
+  } finally {
+    setShareLoading(false);
+  }
+};
+
+const sendPostToChat = async (chatId) => {
+  try {
+    setSendingChatId(chatId);
+
+    const formData = new FormData();
+
+    formData.append("text", "");
+    formData.append("sharedPost", post._id);
+
+    await api.post(
+      `/messages/${chatId}`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+
+    toast.success("Post sent!");
+    setShowChatShare(false);
+
+  } catch (error) {
+    console.error("SEND POST ERROR:", error);
+
+    toast.error(
+      error.response?.data?.message ||
+        "Failed to send post"
+    );
+  } finally {
+    setSendingChatId(null);
+  }
 };
 
 const nativeShare = async () => {
@@ -643,6 +703,13 @@ const updatePost = async () => {
       <div className="grid grid-cols-2 gap-3">
 
         <button
+  onClick={openChatShare}
+  className="p-4 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
+>
+  💬 Send in Chit-Chat
+</button>
+
+        <button
           onClick={shareToWhatsApp}
           className="p-4 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
         >
@@ -678,6 +745,97 @@ const updatePost = async () => {
       >
         More Share Options
       </button>
+    </div>
+  </div>
+)}
+
+{showChatShare && (
+  <div
+    className="fixed inset-0 bg-black/60 flex items-center justify-center z-[110]"
+    onClick={() => setShowChatShare(false)}
+  >
+    <div
+      onClick={(e) => e.stopPropagation()}
+      className="
+        bg-white dark:bg-gray-900
+        w-[90%] max-w-md
+        max-h-[70vh]
+        rounded-2xl
+        shadow-xl
+        overflow-hidden
+      "
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+        <h2 className="text-lg font-semibold">
+          Send to
+        </h2>
+
+        <button
+          onClick={() => setShowChatShare(false)}
+          className="text-2xl text-gray-500"
+        >
+          ×
+        </button>
+      </div>
+
+      {/* Chats */}
+      <div className="overflow-y-auto max-h-[55vh]">
+        {shareLoading ? (
+          <p className="text-center py-6 text-gray-500">
+            Loading chats...
+          </p>
+        ) : shareChats.length === 0 ? (
+          <p className="text-center py-6 text-gray-500">
+            No chats found
+          </p>
+        ) : (
+          shareChats.map((chat) => (
+            <button
+              key={chat._id}
+              onClick={() =>
+                sendPostToChat(chat._id)
+              }
+              disabled={sendingChatId === chat._id}
+              className="
+                w-full
+                flex items-center
+                gap-3
+                px-4 py-3
+                text-left
+                hover:bg-gray-100
+                dark:hover:bg-gray-800
+                transition
+              "
+            >
+              <img
+                src={
+                  chat.otherUser?.profilePic ||
+                  "/default-profile-picture.png"
+                }
+                alt=""
+                className="w-11 h-11 rounded-full object-cover"
+              />
+
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold truncate">
+                  {chat.otherUser?.name}
+                </p>
+
+                <p className="text-sm text-gray-500 truncate">
+                  @{chat.otherUser?.username}
+                </p>
+              </div>
+
+              <span className="text-blue-600 text-sm font-semibold">
+                {sendingChatId === chat._id
+                  ? "Sending..."
+                  : "Send"}
+              </span>
+            </button>
+          ))
+        )}
+      </div>
     </div>
   </div>
 )}
