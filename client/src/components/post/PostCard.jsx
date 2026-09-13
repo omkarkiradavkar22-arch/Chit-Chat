@@ -26,6 +26,7 @@ function PostCard({ post }) {
   const [currentImage, setCurrentImage] = useState(0);
   const [openComments, setOpenComments] = useState(false);
   const [commentsCount, setCommentsCount] = useState(post.commentsCount);
+  const [showShareModal, setShowShareModal] = useState(false);
   const { user } = useAuth();
 
   const [showHeart, setShowHeart] = useState(false);
@@ -144,7 +145,7 @@ const menuRef = useRef(null);
   }
 };
 
-  const toggleSave = async () => {
+const toggleSave = async () => {
   try {
     const { data } = await api.post(
       `/posts/${post._id}/toggle-save`
@@ -153,16 +154,138 @@ const menuRef = useRef(null);
     setSaved(data.saved);
 
     toast.success(data.message);
-
   } catch (error) {
     toast.error(
       error.response?.data?.message ||
-      "Failed to save post"
+        "Failed to save post"
     );
   }
 };
 
-  const deletePost = async () => {
+// =============================
+// SHARE POST
+// =============================
+
+const getPostUrl = () => {
+  return `${window.location.origin}/post/${post._id}/comments`;
+};
+
+const copyPostLink = async () => {
+  const postUrl = getPostUrl();
+
+  try {
+    if (
+      navigator.clipboard &&
+      window.isSecureContext
+    ) {
+      await navigator.clipboard.writeText(postUrl);
+    } else {
+      const textArea =
+        document.createElement("textarea");
+
+      textArea.value = postUrl;
+      textArea.style.position = "fixed";
+      textArea.style.opacity = "0";
+
+      document.body.appendChild(textArea);
+
+      textArea.focus();
+      textArea.select();
+
+      document.execCommand("copy");
+
+      document.body.removeChild(textArea);
+    }
+
+    toast.success("Post link copied!");
+
+    setShowShareModal(false);
+  } catch (error) {
+    console.error("Copy error:", error);
+
+    toast.error("Failed to copy link");
+  }
+};
+
+const shareToWhatsApp = () => {
+  const postUrl = getPostUrl();
+
+  const text = encodeURIComponent(
+    `${
+      post.description ||
+      "Check out this post on Chit-Chat"
+    }\n\n${postUrl}`
+  );
+
+  window.open(
+    `https://wa.me/?text=${text}`,
+    "_blank"
+  );
+
+  setShowShareModal(false);
+};
+
+const shareToFacebook = () => {
+  const postUrl = encodeURIComponent(
+    getPostUrl()
+  );
+
+  window.open(
+    `https://www.facebook.com/sharer/sharer.php?u=${postUrl}`,
+    "_blank"
+  );
+
+  setShowShareModal(false);
+};
+
+const shareToTelegram = () => {
+  const postUrl = encodeURIComponent(
+    getPostUrl()
+  );
+
+  const text = encodeURIComponent(
+    post.description ||
+      "Check out this post on Chit-Chat"
+  );
+
+  window.open(
+    `https://t.me/share/url?url=${postUrl}&text=${text}`,
+    "_blank"
+  );
+
+  setShowShareModal(false);
+};
+
+const nativeShare = async () => {
+  const postUrl = getPostUrl();
+
+  try {
+    if (!navigator.share) {
+      toast.error(
+        "Sharing is not supported on this device"
+      );
+      return;
+    }
+
+    await navigator.share({
+      title: "Chit-Chat Post",
+      text:
+        post.description ||
+        "Check out this post on Chit-Chat",
+      url: postUrl,
+    });
+
+    setShowShareModal(false);
+  } catch (error) {
+    if (error.name !== "AbortError") {
+      console.error("Share error:", error);
+
+      toast.error("Failed to share post");
+    }
+  }
+};
+
+const deletePost = async () => {
   const confirmDelete = window.confirm(
     "Are you sure you want to delete this post?"
   );
@@ -170,23 +293,20 @@ const menuRef = useRef(null);
   if (!confirmDelete) return;
 
   try {
-    console.log("Deleting post:", post._id);
-
-    const { data } = await api.delete(`/posts/${post._id}`);
-
-    console.log(data);
+    const { data } = await api.delete(
+      `/posts/${post._id}`
+    );
 
     toast.success(data.message);
 
     window.location.reload();
 
   } catch (error) {
-    console.log(error);
-    console.log(error.response);
+    console.error("Delete error:", error);
 
     toast.error(
       error.response?.data?.message ||
-      "Failed to delete post"
+        "Failed to delete post"
     );
   }
 };
@@ -415,11 +535,15 @@ const updatePost = async () => {
 >
   <span>{commentsCount}</span>
   <FaRegComment />
+
 </button>
 
-    <button>
-      <FaShare />
-    </button>
+<button
+  onClick={() => setShowShareModal(true)}
+  title="Share post"
+>
+  <FaShare />
+</button>
 
   </div>
 
@@ -491,6 +615,70 @@ const updatePost = async () => {
       post={post}
       setCommentsCount={setCommentsCount}
     />
+  </div>
+)}
+
+{showShareModal && (
+  <div
+    className="fixed inset-0 bg-black/60 flex items-center justify-center z-[100]"
+    onClick={() => setShowShareModal(false)}
+  >
+    <div
+      onClick={(e) => e.stopPropagation()}
+      className="bg-white dark:bg-gray-900 w-[90%] max-w-sm rounded-2xl shadow-xl p-5"
+    >
+      <div className="flex items-center justify-between mb-5">
+        <h2 className="text-lg font-semibold">
+          Share Post
+        </h2>
+
+        <button
+          onClick={() => setShowShareModal(false)}
+          className="text-2xl text-gray-500 hover:text-gray-800 dark:hover:text-white"
+        >
+          ×
+        </button>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+
+        <button
+          onClick={shareToWhatsApp}
+          className="p-4 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
+        >
+          🟢 WhatsApp
+        </button>
+
+        <button
+          onClick={shareToFacebook}
+          className="p-4 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
+        >
+          🔵 Facebook
+        </button>
+
+        <button
+          onClick={shareToTelegram}
+          className="p-4 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
+        >
+          ✈️ Telegram
+        </button>
+
+        <button
+          onClick={copyPostLink}
+          className="p-4 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
+        >
+          🔗 Copy Link
+        </button>
+
+      </div>
+
+      <button
+        onClick={nativeShare}
+        className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl transition"
+      >
+        More Share Options
+      </button>
+    </div>
   </div>
 )}
 
