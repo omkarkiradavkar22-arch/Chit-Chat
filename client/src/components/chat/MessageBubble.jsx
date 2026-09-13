@@ -612,58 +612,104 @@ const handleTouchEnd = () => {
 
 
 {!message.deletedForEveryone &&
-  message.location?.latitude != null &&
-  message.location?.longitude != null && (
+  message.sharedPost && (
     <div
-      className={`mb-2 rounded-xl overflow-hidden border ${
-        isMine
-          ? "bg-blue-500 border-blue-400"
-          : "bg-gray-100 border-gray-200"
-      }`}
+      onClick={() =>
+        window.location.href =
+          `/post/${message.sharedPost._id}/comments`
+      }
+      className={`
+        mb-2
+        rounded-xl
+        overflow-hidden
+        border
+        cursor-pointer
+        transition
+        ${
+          isMine
+            ? "bg-blue-500 border-blue-400"
+            : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+        }
+      `}
     >
-      {/* Map Preview */}
-      <div className="h-32 bg-gray-200 dark:bg-gray-700 flex items-center justify-center relative">
-        <FaMapMarkerAlt
-          className="text-red-500 drop-shadow-md"
-          size={42}
+      {/* POST USER */}
+      <div className="flex items-center gap-2 p-3">
+        <img
+          src={
+            message.sharedPost.user?.profilePic ||
+            "/default-profile-picture.png"
+          }
+          alt=""
+          className="w-8 h-8 rounded-full object-cover"
         />
 
-        <span className="absolute bottom-2 left-2 bg-white/90 text-gray-700 text-xs px-2 py-1 rounded-md shadow inline-flex items-center gap-1">
-          <FaMapMarkerAlt/> Shared Location
-        </span>
+        <div className="min-w-0">
+          <p
+            className={`text-sm font-semibold truncate ${
+              isMine
+                ? "text-white"
+                : "text-gray-900 dark:text-white"
+            }`}
+          >
+            {message.sharedPost.user?.name}
+          </p>
+
+          <p
+            className={`text-xs truncate ${
+              isMine
+                ? "text-blue-100"
+                : "text-gray-500 dark:text-gray-400"
+            }`}
+          >
+            @{message.sharedPost.user?.username}
+          </p>
+        </div>
       </div>
 
-      {/* Location Details */}
-      <div className="p-3">
-        <p
-          className={`font-semibold text-sm inline-flex items-center gap-1 ${
-            isMine ? "text-white" : "text-gray-800"
-          }`}
-        >
-          <FaMapMarkerAlt/> Location
-        </p>
+      {/* POST IMAGE */}
+      {message.sharedPost.images?.[0] && (
+        <img
+          src={message.sharedPost.images[0]}
+          alt="Shared post"
+          className="
+            w-full
+            max-h-72
+            object-cover
+          "
+        />
+      )}
 
-        <p
-          className={`text-xs mt-1 ${
-            isMine ? "text-blue-100" : "text-gray-500"
-          }`}
-        >
-          {Number(message.location.latitude).toFixed(5)},{" "}
-          {Number(message.location.longitude).toFixed(5)}
-        </p>
+      {/* CAPTION */}
+      {message.sharedPost.description && (
+        <div className="px-3 py-2">
+          <p
+            className={`text-sm line-clamp-2 ${
+              isMine
+                ? "text-white"
+                : "text-gray-800 dark:text-gray-200"
+            }`}
+          >
+            {message.sharedPost.description}
+          </p>
+        </div>
+      )}
 
-        <a
-          href={`https://www.google.com/maps?q=${message.location.latitude},${message.location.longitude}`}
-          target="_blank"
-          rel="noreferrer"
-          className={`mt-3 flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition inline-flex items-center gap-1 ${
+      {/* VIEW POST */}
+      <div
+        className={`
+          px-3 py-2
+          text-center
+          text-sm
+          font-semibold
+          border-t
+          ${
             isMine
-              ? "bg-white text-blue-600 hover:bg-blue-50"
-              : "bg-blue-600 text-white hover:bg-blue-700"
-          }`}
-        >
-          <FaMapMarkedAlt/> Open in Google Maps
-        </a>
+              ? "text-white border-blue-400"
+              : "text-blue-600 border-gray-200 dark:border-gray-700"
+          }
+        `}
+      >
+        View Post
       </div>
     </div>
   )}
