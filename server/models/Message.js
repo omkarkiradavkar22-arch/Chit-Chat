@@ -80,6 +80,12 @@ attachments: [
   },
 },
 
+sharedPost: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "Post",
+  default: null,
+},
+
 replyTo: {
   type: mongoose.Schema.Types.ObjectId,
   ref: "Message",
