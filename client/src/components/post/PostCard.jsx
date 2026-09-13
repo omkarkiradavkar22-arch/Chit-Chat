@@ -174,6 +174,13 @@ const getPostUrl = () => {
   return `${window.location.origin}/post/${post._id}/comments`;
 };
 
+const getSharePreviewUrl = () => {
+  const backendUrl =
+    import.meta.env.VITE_BACKEND_URL;
+
+  return `${backendUrl}/api/share/post/${post._id}`;
+};
+
 const copyPostLink = async () => {
   const postUrl = getPostUrl();
 
@@ -211,19 +218,44 @@ const copyPostLink = async () => {
   }
 };
 
+const shareToInstagram = async () => {
+  const shareUrl = getSharePreviewUrl();
+
+  try {
+    if (
+      navigator.clipboard &&
+      window.isSecureContext
+    ) {
+      await navigator.clipboard.writeText(shareUrl);
+    }
+
+    toast.success(
+      "Post link copied! Paste it in Instagram."
+    );
+
+    setShowShareModal(false);
+
+    window.open(
+      "https://www.instagram.com/",
+      "_blank",
+      "noopener,noreferrer"
+    );
+  } catch (error) {
+    toast.error("Failed to prepare Instagram share");
+  }
+};
+
 const shareToWhatsApp = () => {
-  const postUrl = getPostUrl();
+  const shareUrl = getSharePreviewUrl();
 
   const text = encodeURIComponent(
-    `${
-      post.description ||
-      "Check out this post on Chit-Chat"
-    }\n\n${postUrl}`
+    `${post.description || "Check out this post on Chit-Chat"}\n\n${shareUrl}`
   );
 
   window.open(
     `https://wa.me/?text=${text}`,
-    "_blank"
+    "_blank",
+    "noopener,noreferrer"
   );
 
   setShowShareModal(false);
@@ -236,7 +268,8 @@ const shareToFacebook = () => {
 
   window.open(
     `https://www.facebook.com/sharer/sharer.php?u=${postUrl}`,
-    "_blank"
+    "_blank",
+    "noopener,noreferrer"
   );
 
   setShowShareModal(false);
@@ -254,7 +287,8 @@ const shareToTelegram = () => {
 
   window.open(
     `https://t.me/share/url?url=${postUrl}&text=${text}`,
-    "_blank"
+    "_blank",
+    "noopener,noreferrer"
   );
 
   setShowShareModal(false);
@@ -707,6 +741,13 @@ const updatePost = async () => {
   className="p-4 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
 >
   💬 Send in Chit-Chat
+</button>
+
+<button
+  onClick={shareToInstagram}
+  className="p-4 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
+>
+  📸 Instagram
 </button>
 
         <button
