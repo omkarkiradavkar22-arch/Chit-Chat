@@ -25,9 +25,9 @@ export const sharePostPreview = async (req, res) => {
         .send("Post not found");
     }
 
-   const frontendUrl =
-  process.env.CLIENT_URL ||
-  "https://chit-chat-six-eta.vercel.app";
+    const frontendUrl =
+      process.env.CLIENT_URL ||
+      "https://chit-chat-six-eta.vercel.app";
 
     const backendUrl =
       process.env.BACKEND_URL ||
@@ -55,6 +55,9 @@ export const sharePostPreview = async (req, res) => {
     const title =
       `${authorName} on Chit-Chat`;
 
+    console.log("POST IMAGE:", post.images?.[0]);
+    console.log("FINAL SHARE IMAGE:", image);
+
     res.setHeader(
       "Content-Type",
       "text/html; charset=utf-8"
@@ -62,11 +65,9 @@ export const sharePostPreview = async (req, res) => {
 
     return res.send(`
       <!DOCTYPE html>
-
       <html lang="en">
 
       <head>
-
         <meta charset="UTF-8" />
 
         <meta
@@ -76,11 +77,9 @@ export const sharePostPreview = async (req, res) => {
 
         <title>${escapeHtml(title)}</title>
 
-        <!-- Open Graph -->
-
         <meta
           property="og:type"
-          content="website"
+          content="article"
         />
 
         <meta
@@ -113,8 +112,6 @@ export const sharePostPreview = async (req, res) => {
           content="${escapeHtml(shareUrl)}"
         />
 
-        <!-- Twitter / other platforms -->
-
         <meta
           name="twitter:card"
           content="summary_large_image"
@@ -134,30 +131,52 @@ export const sharePostPreview = async (req, res) => {
           name="twitter:image"
           content="${escapeHtml(image)}"
         />
-
-        <!-- Human visitor redirect -->
-
-        <meta
-          http-equiv="refresh"
-          content="0;url=${escapeHtml(postUrl)}"
-        />
-
       </head>
 
-      <body>
+      <body
+        style="
+          font-family: Arial, sans-serif;
+          max-width: 600px;
+          margin: 40px auto;
+          padding: 20px;
+        "
+      >
+
+        <h2>
+          ${escapeHtml(title)}
+        </h2>
 
         <p>
-          Opening Chit-Chat post...
+          ${escapeHtml(description)}
         </p>
 
-        <script>
-          window.location.replace(
-            ${JSON.stringify(postUrl)}
-          );
-        </script>
+        <img
+          src="${escapeHtml(image)}"
+          alt="Post"
+          style="
+            width: 100%;
+            max-width: 500px;
+            border-radius: 12px;
+          "
+        />
+
+        <br /><br />
+
+        <a
+          href="${escapeHtml(postUrl)}"
+          style="
+            display: inline-block;
+            padding: 12px 20px;
+            background: #2563eb;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+          "
+        >
+          Open Post in Chit-Chat
+        </a>
 
       </body>
-
       </html>
     `);
 
@@ -171,6 +190,5 @@ export const sharePostPreview = async (req, res) => {
     return res
       .status(500)
       .send("Failed to load post");
-
   }
 };
