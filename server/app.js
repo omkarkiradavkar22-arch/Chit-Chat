@@ -13,7 +13,7 @@ import messageRoutes from "./routes/message.routes.js";
 import taskRoutes from "./routes/task.routes.js";
 import pushRoutes from "./routes/push.routes.js";
 import callRoutes from "./routes/call.routes.js";
-
+import shareRoutes from "./routes/shareRoutes.js";
 const app = express();
 
 app.use(express.json());
@@ -48,6 +48,10 @@ app.use("/api/v1/chat", chatRoutes);
 app.use("/api/v1/messages", messageRoutes);
 app.use("/api/v1/tasks", taskRoutes);
 app.use("/api/v1/push", pushRoutes);
+
+console.log("✅ Mounting share routes");
+
+app.use("/api/share", shareRoutes);
 
 app.use("/api/v1/calls", callRoutes);
 
