@@ -6,13 +6,12 @@ import {
 
 const router = express.Router();
 
+console.log("✅ shareRoutes.js loaded");
+
 router.get("/test", (req, res) => {
   res.send("Share router working");
 });
 
-router.get(
-  "/post/:postId",
-  sharePostPreview
-);
+router.get("/post/:postId", sharePostPreview);
 
 export default router;
