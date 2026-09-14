@@ -11,4 +11,8 @@ router.get(
   sharePostPreview
 );
 
+router.get("/test", (req, res) => {
+  res.send("Share router working");
+});
+
 export default router;
