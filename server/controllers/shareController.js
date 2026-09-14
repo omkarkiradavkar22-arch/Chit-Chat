@@ -14,15 +14,10 @@ export const sharePostPreview = async (req, res) => {
     const { postId } = req.params;
 
     const post = await Post.findById(postId)
-      .populate(
-        "user",
-        "name username profilePic"
-      );
+      .populate("user", "name username profilePic");
 
     if (!post) {
-      return res
-        .status(404)
-        .send("Post not found");
+      return res.status(404).send("Post not found");
     }
 
     const frontendUrl =
@@ -33,9 +28,11 @@ export const sharePostPreview = async (req, res) => {
       process.env.BACKEND_URL ||
       `${req.protocol}://${req.get("host")}`;
 
+    // Actual Chit-Chat post
     const postUrl =
       `${frontendUrl}/post/${post._id}/comments`;
 
+    // URL shared on WhatsApp
     const shareUrl =
       `${backendUrl}/api/share/post/${post._id}`;
 
@@ -55,8 +52,29 @@ export const sharePostPreview = async (req, res) => {
     const title =
       `${authorName} on Chit-Chat`;
 
-    console.log("POST IMAGE:", post.images?.[0]);
-    console.log("FINAL SHARE IMAGE:", image);
+    // ------------------------------------
+    // Detect social-media preview crawlers
+    // ------------------------------------
+
+    const userAgent =
+      req.get("user-agent") || "";
+
+    const isCrawler =
+      /WhatsApp|facebookexternalhit|Facebot|Twitterbot|TelegramBot|LinkedInBot|Discordbot/i.test(
+        userAgent
+      );
+
+    // ------------------------------------
+    // NORMAL USER -> OPEN CHIT-CHAT POST
+    // ------------------------------------
+
+    if (!isCrawler) {
+      return res.redirect(302, postUrl);
+    }
+
+    // ------------------------------------
+    // CRAWLER -> RETURN OG PREVIEW HTML
+    // ------------------------------------
 
     res.setHeader(
       "Content-Type",
@@ -68,6 +86,7 @@ export const sharePostPreview = async (req, res) => {
       <html lang="en">
 
       <head>
+
         <meta charset="UTF-8" />
 
         <meta
@@ -131,52 +150,14 @@ export const sharePostPreview = async (req, res) => {
           name="twitter:image"
           content="${escapeHtml(image)}"
         />
+
       </head>
 
-      <body
-        style="
-          font-family: Arial, sans-serif;
-          max-width: 600px;
-          margin: 40px auto;
-          padding: 20px;
-        "
-      >
-
-        <h2>
-          ${escapeHtml(title)}
-        </h2>
-
-        <p>
-          ${escapeHtml(description)}
-        </p>
-
-        <img
-          src="${escapeHtml(image)}"
-          alt="Post"
-          style="
-            width: 100%;
-            max-width: 500px;
-            border-radius: 12px;
-          "
-        />
-
-        <br /><br />
-
-        <a
-          href="${escapeHtml(postUrl)}"
-          style="
-            display: inline-block;
-            padding: 12px 20px;
-            background: #2563eb;
-            color: white;
-            text-decoration: none;
-            border-radius: 8px;
-          "
-        >
-          Open Post in Chit-Chat
-        </a>
-
+      <body>
+        <h1>${escapeHtml(title)}</h1>
+        <p>${escapeHtml(description)}</p>
       </body>
+
       </html>
     `);
 
