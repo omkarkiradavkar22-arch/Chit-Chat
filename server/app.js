@@ -31,7 +31,7 @@ app.use(
 app.get("/", (req, res) => {
     res.status(200).json({
         success: true,
-        message: "ChitChat API Working ",
+        message: "ChitChat is completely all API Working ",
     });
 });
 app.use("/api/v1/auth", authRoutes);
