@@ -34,6 +34,11 @@ app.get("/", (req, res) => {
         message: "ChitChat is completely all API Working ",
     });
 });
+
+app.get("/api/test-share", (req, res) => {
+  res.send("Share route working");
+});
+
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/posts", postRoutes);
