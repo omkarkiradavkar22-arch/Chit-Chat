@@ -87,6 +87,14 @@ function Login() {
            className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 rounded-lg p-3 outline-none focus:border-blue-500"
                      />
 
+          <div className="text-right mt-3">
+  <Link
+    to="/forgot-password"
+     className="text-blue-600 ml-2 font-semibold"
+  >
+    Forgot password?
+  </Link>
+</div>
           <button
             type="submit"
             disabled={loading}
@@ -104,6 +112,7 @@ function Login() {
           >
             Register
           </Link>
+
         </p>
       </div>
     </div>
