@@ -1,5 +1,6 @@
 import { useState , useRef, useEffect} from "react";
-import { FaHeart,
+import {
+  FaHeart,
   FaRegHeart,
   FaRegComment,
   FaShare,
@@ -16,8 +17,9 @@ import api from "../../services/api";
 import { toast } from "react-hot-toast";
 import { useAuth } from "../../context/AuthContext";
 import CommentSection from "../comments/CommentSection";
+import { optimizeImage } from "../../utils/optimizeImage";
 
-function PostCard({ post }) {
+function PostCard({ post, priority = false }) {
   const navigate = useNavigate();
   const [liked, setLiked] = useState(post.isLiked);
   const [saved, setSaved] = useState(post.isSaved);
@@ -557,11 +559,13 @@ const updatePost = async () => {
   onClick={handleDoubleTapLike}
 >
   <img
-    src={post.images[currentImage]}
-    alt=""
-    draggable="false"
-    className="w-full max-h-[600px] object-cover"
-  />
+  src={optimizeImage(post.images[currentImage], 900)}
+  alt={post.description || "Chit-Chat post"}
+  loading={priority ? "eager" : "lazy"}
+  fetchPriority={priority ? "high" : "auto"}
+  decoding="async"
+  className="w-full max-h-[600px] object-contain bg-black"
+/>
 
   {showHeart && (
     <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
