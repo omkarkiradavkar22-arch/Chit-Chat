@@ -39,6 +39,16 @@ const userSchema = new mongoose.Schema(
         minlength: 6,
         select: false,
     },
+
+    resetPasswordToken: {
+  type: String,
+  default: null,
+},
+
+resetPasswordExpire: {
+  type: Date,
+  default: null,
+},
     
   profilePic: {
   type: String,
