@@ -227,34 +227,44 @@ self.addEventListener("push", (event) => {
   }
 
 
-  // ======================================================
-  // 💬 NORMAL PUSH NOTIFICATION
-  // ======================================================
+ // ======================================================
+// 💬 NORMAL PUSH NOTIFICATION
+// ======================================================
 
-  const title =
-    payload.title || "Chit chat";
+const title =
+  payload.title || "Chit chat";
 
-  const options = {
-    body:
-      payload.body ||
-      "You have a new notification",
+const options = {
+  body:
+    payload.body ||
+    "You have a new notification",
 
-    icon:
-      "/chit-chat-logo-192x192.png",
+  icon:
+    "/chit-chat-logo-192x192.png",
 
-    badge:
-      "/chit-chat-logo-192x192.png",
+  badge:
+    "/chit-chat-logo-192x192.png",
 
-    tag: payload.tag,
+  tag: payload.tag,
 
-    renotify: Boolean(payload.tag),
+  renotify: Boolean(payload.tag),
 
-    data: {
-      url: payload.url || "/",
-      ...payload,
-    },
-  };
+  // Reply button only for message notifications
+  actions:
+    payload.type === "message"
+      ? [
+          {
+            action: "reply",
+            title: "Reply",
+          },
+        ]
+      : [],
 
+  data: {
+    url: payload.url || "/",
+    ...payload,
+  },
+};
   event.waitUntil(
     self.registration.showNotification(
       title,
@@ -283,6 +293,26 @@ self.addEventListener(
       action,
       data
     );
+
+
+    // ==================================================
+// 💬 REPLY TO MESSAGE
+// ==================================================
+
+if (action === "reply") {
+  event.notification.close();
+
+  const targetUrl =
+    data.chatId
+      ? `/chat/${data.chatId}`
+      : data.url || "/";
+
+  event.waitUntil(
+    openOrFocusApp(targetUrl)
+  );
+
+  return;
+}
 
 
     // ==================================================
