@@ -1,6 +1,30 @@
 /* eslint-disable no-restricted-globals */
 
-const __PRECACHE_MANIFEST__ = self.__WB_MANIFEST;
+import { precacheAndRoute } from "workbox-precaching";
+import { createHandlerBoundToURL } from "workbox-precaching";
+import { NavigationRoute, registerRoute } from "workbox-routing";
+
+// ======================================================
+// 📦 PRECACHE APP FILES
+// ======================================================
+
+precacheAndRoute(self.__WB_MANIFEST);
+
+// ======================================================
+// 🏠 OFFLINE SPA FALLBACK
+// React Router routes → cached index.html
+// ======================================================
+
+const navigationHandler =
+  createHandlerBoundToURL("index.html");
+
+registerRoute(
+  new NavigationRoute(navigationHandler)
+);
+
+// ======================================================
+// ⚙️ SERVICE WORKER LIFECYCLE
+// ======================================================
 
 self.addEventListener("install", () => {
   self.skipWaiting();
@@ -9,7 +33,6 @@ self.addEventListener("install", () => {
 self.addEventListener("activate", (event) => {
   event.waitUntil(self.clients.claim());
 });
-
 
 // ======================================================
 // 🔔 PUSH
