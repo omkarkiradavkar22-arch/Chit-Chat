@@ -263,9 +263,9 @@ const shareToWhatsApp = () => {
 };
 
 const shareToFacebook = () => {
-  const postUrl = encodeURIComponent(
-    getPostUrl()
-  );
+ const postUrl = encodeURIComponent(
+  getSharePreviewUrl()
+);
 
   window.open(
     `https://www.facebook.com/sharer/sharer.php?u=${postUrl}`,
@@ -278,8 +278,8 @@ const shareToFacebook = () => {
 
 const shareToTelegram = () => {
   const postUrl = encodeURIComponent(
-    getPostUrl()
-  );
+  getSharePreviewUrl()
+);
 
   const text = encodeURIComponent(
     post.description ||
