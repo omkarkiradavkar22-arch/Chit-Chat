@@ -1,4 +1,10 @@
-import { useEffect, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+
 import Layout from "../components/layouts/Layout";
 import CreatePost from "../components/post/CreatePost";
 import PostCard from "../components/post/PostCard";
@@ -7,25 +13,127 @@ import { toast } from "react-hot-toast";
 
 function Home() {
   const [posts, setPosts] = useState([]);
+
+  // First page loading
   const [loading, setLoading] = useState(true);
 
-  const getFeed = async () => {
-    try {
-      const { data } = await api.get("/posts/feed");
+  // Next page loading
+  const [loadingMore, setLoadingMore] = useState(false);
 
-      setPosts(data.posts);
+  // Current page
+  const [page, setPage] = useState(1);
+
+  // Are more posts available?
+  const [hasMore, setHasMore] = useState(true);
+
+  // Prevent multiple simultaneous requests
+  const fetchingRef = useRef(false);
+
+  // Element at bottom of feed
+  const observerRef = useRef(null);
+
+  // ---------------------------------------
+  // FETCH FEED
+  // ---------------------------------------
+  const getFeed = useCallback(async (pageNumber) => {
+    if (fetchingRef.current) return;
+
+    try {
+      fetchingRef.current = true;
+
+      if (pageNumber === 1) {
+        setLoading(true);
+      } else {
+        setLoadingMore(true);
+      }
+
+      const { data } = await api.get(
+        `/posts/feed?page=${pageNumber}&limit=10`
+      );
+
+      if (pageNumber === 1) {
+        setPosts(data.posts);
+      } else {
+        setPosts((prevPosts) => {
+          // Prevent duplicate posts
+          const existingIds = new Set(
+            prevPosts.map((post) => post._id)
+          );
+
+          const newPosts = data.posts.filter(
+            (post) => !existingIds.has(post._id)
+          );
+
+          return [...prevPosts, ...newPosts];
+        });
+      }
+
+      setHasMore(data.hasMore);
     } catch (error) {
       toast.error(
-        error.response?.data?.message || "Failed to load feed"
+        error.response?.data?.message ||
+          "Failed to load feed"
       );
     } finally {
+      fetchingRef.current = false;
       setLoading(false);
+      setLoadingMore(false);
     }
-  };
-
-  useEffect(() => {
-    getFeed();
   }, []);
+
+  // ---------------------------------------
+  // LOAD FIRST PAGE
+  // ---------------------------------------
+  useEffect(() => {
+    getFeed(1);
+  }, [getFeed]);
+
+  // ---------------------------------------
+  // INFINITE SCROLL
+  // ---------------------------------------
+  useEffect(() => {
+    const target = observerRef.current;
+
+    if (!target || loading || loadingMore || !hasMore) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const firstEntry = entries[0];
+
+        if (
+          firstEntry.isIntersecting &&
+          !fetchingRef.current
+        ) {
+          setPage((prevPage) => prevPage + 1);
+        }
+      },
+      {
+        root: null,
+
+        // Start loading before user reaches exact bottom
+        rootMargin: "300px",
+
+        threshold: 0,
+      }
+    );
+
+    observer.observe(target);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [loading, loadingMore, hasMore]);
+
+  // ---------------------------------------
+  // LOAD NEXT PAGE
+  // ---------------------------------------
+  useEffect(() => {
+    if (page === 1) return;
+
+    getFeed(page);
+  }, [page, getFeed]);
 
   return (
     <Layout>
@@ -33,22 +141,47 @@ function Home() {
 
         <CreatePost />
 
+        {/* FIRST LOAD */}
         {loading ? (
           <p className="text-center text-gray-600 dark:text-gray-300">
-  Loading...
-</p>
+            Loading...
+          </p>
         ) : posts.length === 0 ? (
           <p className="text-center text-gray-500 dark:text-gray-400">
-  No posts yet.
-</p>
+            No posts yet.
+          </p>
         ) : (
-          posts.map((post, index) => (
-  <PostCard
-    key={post._id}
-    post={post}
-    priority={index === 0}
-  />
-))
+          <>
+            {/* POSTS */}
+            {posts.map((post, index) => (
+              <PostCard
+                key={post._id}
+                post={post}
+                priority={index === 0}
+              />
+            ))}
+
+            {/* Infinite Scroll Trigger */}
+            {hasMore && (
+              <div
+                ref={observerRef}
+                className="h-10 flex items-center justify-center"
+              >
+                {loadingMore && (
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Loading more posts...
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* End of Feed */}
+            {!hasMore && posts.length > 0 && (
+              <p className="text-center text-sm text-gray-500 dark:text-gray-400 py-4">
+                You're all caught up.
+              </p>
+            )}
+          </>
         )}
 
       </div>
