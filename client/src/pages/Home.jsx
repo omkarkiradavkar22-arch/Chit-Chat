@@ -1,3 +1,4 @@
+const HOME_FEED_CACHE_KEY = "chitchat_home_feed_cache";
 import {
   useCallback,
   useEffect,
@@ -36,50 +37,93 @@ function Home() {
   // FETCH FEED
   // ---------------------------------------
   const getFeed = useCallback(async (pageNumber) => {
-    if (fetchingRef.current) return;
+  if (fetchingRef.current) return;
 
-    try {
-      fetchingRef.current = true;
+  try {
+    fetchingRef.current = true;
 
-      if (pageNumber === 1) {
-        setLoading(true);
-      } else {
-        setLoadingMore(true);
+    if (pageNumber === 1) {
+      setLoading(true);
+    } else {
+      setLoadingMore(true);
+    }
+
+    const { data } = await api.get(
+      `/posts/feed?page=${pageNumber}&limit=10`
+    );
+
+    if (pageNumber === 1) {
+      setPosts(data.posts);
+
+      // Save latest first page for offline use
+      try {
+        localStorage.setItem(
+          HOME_FEED_CACHE_KEY,
+          JSON.stringify(data.posts)
+        );
+      } catch (cacheError) {
+        console.log(
+          "Could not cache home feed:",
+          cacheError
+        );
       }
+    } else {
+      setPosts((prevPosts) => {
+        const existingIds = new Set(
+          prevPosts.map((post) => post._id)
+        );
 
-      const { data } = await api.get(
-        `/posts/feed?page=${pageNumber}&limit=10`
-      );
+        const newPosts = data.posts.filter(
+          (post) => !existingIds.has(post._id)
+        );
 
-      if (pageNumber === 1) {
-        setPosts(data.posts);
-      } else {
-        setPosts((prevPosts) => {
-          // Prevent duplicate posts
-          const existingIds = new Set(
-            prevPosts.map((post) => post._id)
+        return [...prevPosts, ...newPosts];
+      });
+    }
+
+    setHasMore(data.hasMore);
+  } catch (error) {
+    // ---------------------------------------
+    // OFFLINE FALLBACK
+    // ---------------------------------------
+    if (pageNumber === 1 && !navigator.onLine) {
+      try {
+        const cachedFeed =
+          localStorage.getItem(HOME_FEED_CACHE_KEY);
+
+        if (cachedFeed) {
+          const cachedPosts = JSON.parse(cachedFeed);
+
+          setPosts(cachedPosts);
+          setHasMore(false);
+
+          console.log(
+            "📦 Loaded Home feed from offline cache"
           );
 
-          const newPosts = data.posts.filter(
-            (post) => !existingIds.has(post._id)
-          );
-
-          return [...prevPosts, ...newPosts];
-        });
+          return;
+        }
+      } catch (cacheError) {
+        console.error(
+          "Failed to read cached feed:",
+          cacheError
+        );
       }
+    }
 
-      setHasMore(data.hasMore);
-    } catch (error) {
+    // Don't show repeated errors while offline
+    if (navigator.onLine) {
       toast.error(
         error.response?.data?.message ||
           "Failed to load feed"
       );
-    } finally {
-      fetchingRef.current = false;
-      setLoading(false);
-      setLoadingMore(false);
     }
-  }, []);
+  } finally {
+    fetchingRef.current = false;
+    setLoading(false);
+    setLoadingMore(false);
+  }
+}, []);
 
   // ---------------------------------------
   // LOAD FIRST PAGE
@@ -94,9 +138,15 @@ function Home() {
   useEffect(() => {
     const target = observerRef.current;
 
-    if (!target || loading || loadingMore || !hasMore) {
-      return;
-    }
+    if (
+  !target ||
+  loading ||
+  loadingMore ||
+  !hasMore ||
+  !navigator.onLine
+) {
+  return;
+}
 
     const observer = new IntersectionObserver(
       (entries) => {
