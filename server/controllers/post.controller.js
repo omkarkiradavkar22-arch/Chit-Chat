@@ -147,100 +147,145 @@ export const getFeedPosts = async (req, res) => {
   try {
     const currentUser = await User.findById(req.user._id);
 
-    const posts = await Post.find()
+    if (!currentUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // -----------------------------
+    // PAGINATION
+    // -----------------------------
+    const page = Math.max(
+      parseInt(req.query.page, 10) || 1,
+      1
+    );
+
+    const limit = Math.min(
+      Math.max(parseInt(req.query.limit, 10) || 10, 1),
+      20
+    );
+
+    /*
+      Find users whose posts current user is allowed to see:
+
+      1. Own posts
+      2. Public users
+      3. Private users followed by current user
+    */
+    const visibleUsers = await User.find({
+      $or: [
+        {
+          _id: req.user._id,
+        },
+        {
+          isPrivate: false,
+        },
+        {
+          isPrivate: true,
+          followers: req.user._id,
+        },
+      ],
+    }).select("_id");
+
+    const visibleUserIds = visibleUsers.map(
+      (user) => user._id
+    );
+
+    const query = {
+      user: {
+        $in: visibleUserIds,
+      },
+    };
+
+    const totalPosts = await Post.countDocuments(query);
+
+    const posts = await Post.find(query)
       .populate(
         "user",
-        "name username profilePic isPrivate followers"
+        "name username profilePic isPrivate followers followRequests"
       )
-      .sort({ createdAt: -1 });
+      .sort({
+        createdAt: -1,
+        _id: -1,
+      })
+      .skip((page - 1) * limit)
+      .limit(limit);
 
-  const visiblePosts = posts.filter((post) => {
-  const postUser = post.user;
+    const updatedPosts = posts
+      .filter((post) => post.user)
+      .map((post) => {
+        const postUser = post.user;
 
-  // User was deleted but post still exists
-  if (!postUser) {
-    return false;
-  }
-
-  // Own post -> always visible
-  if (
-    postUser._id.toString() ===
-    req.user._id.toString()
-  ) {
-    return true;
-  }
-
-  // Public account -> visible to everyone
-  if (!postUser.isPrivate) {
-    return true;
-  }
-
-  // Private account -> only followers can see
-  const isFollower = postUser.followers.some(
-    (id) =>
-      id.toString() ===
-      req.user._id.toString()
-  );
-
-  return isFollower;
-});
-
-    const updatedPosts = visiblePosts.map((post) => {
-      const postUser = post.user;
-
-      const liked = post.likes.some(
-        (id) =>
-          id.toString() ===
-          req.user._id.toString()
-      );
-
-      const saved = currentUser.savedPosts.some(
-        (id) =>
-          id.toString() === post._id.toString()
-      );
-
-      const isFollowing =
-        currentUser.following.some(
-          (id) =>
-            id.toString() ===
-            postUser._id.toString()
-        );
-
-      const isRequested =
-        postUser.followRequests?.some(
+        const liked = post.likes.some(
           (id) =>
             id.toString() ===
             req.user._id.toString()
-        ) || false;
+        );
 
-      return {
-        ...post.toObject(),
+        const saved = currentUser.savedPosts.some(
+          (id) =>
+            id.toString() ===
+            post._id.toString()
+        );
 
-        isLiked: liked,
-        isSaved: saved,
+        const isFollowing =
+          currentUser.following.some(
+            (id) =>
+              id.toString() ===
+              postUser._id.toString()
+          );
 
-        likesCount: post.likes.length,
-        commentsCount: post.comments.length,
+        const isRequested =
+          postUser.followRequests?.some(
+            (id) =>
+              id.toString() ===
+              req.user._id.toString()
+          ) || false;
 
-        // 👇 Follow relationship
-        user: {
-          ...postUser.toObject(),
-          isFollowing,
-          isRequested,
-        },
-      };
-    });
+        return {
+          ...post.toObject(),
 
-    res.status(200).json({
+          isLiked: liked,
+          isSaved: saved,
+
+          likesCount: post.likes.length,
+          commentsCount: post.comments.length,
+
+          user: {
+            ...postUser.toObject(),
+            isFollowing,
+            isRequested,
+          },
+        };
+      });
+
+    const hasMore =
+      page * limit < totalPosts;
+
+    return res.status(200).json({
       success: true,
+
       count: updatedPosts.length,
+
+      page,
+      limit,
+
+      totalPosts,
+
+      totalPages: Math.ceil(
+        totalPosts / limit
+      ),
+
+      hasMore,
+
       posts: updatedPosts,
     });
-
   } catch (error) {
-    console.error(error);
+    console.error("GET FEED ERROR:", error);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
@@ -258,53 +303,103 @@ export const getExplorePosts = async (req, res) => {
       });
     }
 
-    // Only posts from PUBLIC accounts
-    const posts = await Post.find()
+    // -----------------------------
+    // PAGINATION
+    // -----------------------------
+    const page = Math.max(
+      parseInt(req.query.page, 10) || 1,
+      1
+    );
+
+    const limit = Math.min(
+      Math.max(parseInt(req.query.limit, 10) || 12, 1),
+      30
+    );
+
+    // -----------------------------
+    // FIND PUBLIC USERS
+    // -----------------------------
+    const publicUsers = await User.find({
+      isPrivate: false,
+    }).select("_id");
+
+    const publicUserIds = publicUsers.map(
+      (user) => user._id
+    );
+
+    const query = {
+      user: {
+        $in: publicUserIds,
+      },
+    };
+
+    // Total public posts
+    const totalPosts = await Post.countDocuments(query);
+
+    // Only required page fetch
+    const posts = await Post.find(query)
       .populate(
         "user",
         "name username profilePic isPrivate"
       )
-      .sort({ createdAt: -1 });
+      .sort({
+        createdAt: -1,
+        _id: -1,
+      })
+      .skip((page - 1) * limit)
+      .limit(limit);
 
-    const publicPosts = posts.filter((post) => {
-      return (
-        post.user &&
-        post.user.isPrivate === false
-      );
-    });
+    const updatedPosts = posts
+      .filter((post) => post.user)
+      .map((post) => {
+        const liked = post.likes.some(
+          (id) =>
+            id.toString() ===
+            req.user._id.toString()
+        );
 
-    const updatedPosts = publicPosts.map((post) => {
-      const liked = post.likes.some(
-        (id) =>
-          id.toString() ===
-          req.user._id.toString()
-      );
+        const saved = currentUser.savedPosts.some(
+          (id) =>
+            id.toString() ===
+            post._id.toString()
+        );
 
-      const saved = currentUser.savedPosts.some(
-        (id) =>
-          id.toString() ===
-          post._id.toString()
-      );
+        return {
+          ...post.toObject(),
 
-      return {
-        ...post.toObject(),
-        isLiked: liked,
-        isSaved: saved,
-        likesCount: post.likes.length,
-        commentsCount: post.comments.length,
-      };
-    });
+          isLiked: liked,
+          isSaved: saved,
 
-    res.status(200).json({
+          likesCount: post.likes.length,
+          commentsCount: post.comments.length,
+        };
+      });
+
+    const hasMore =
+      page * limit < totalPosts;
+
+    return res.status(200).json({
       success: true,
+
       count: updatedPosts.length,
+
+      page,
+      limit,
+
+      totalPosts,
+
+      totalPages: Math.ceil(
+        totalPosts / limit
+      ),
+
+      hasMore,
+
       posts: updatedPosts,
     });
-
   } catch (error) {
     console.log("GET EXPLORE ERROR:", error);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
