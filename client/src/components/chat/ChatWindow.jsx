@@ -120,9 +120,37 @@ const messageRefs = useRef({});
       ? message.chat._id
       : message.chat;
 
-  if (String(messageChatId) === String(chatId)) {
-    setMessages((prev) => [...prev, message]);
+  if (String(messageChatId) !== String(chatId)) {
+    return;
   }
+
+  setMessages((prev) => {
+    // Prevent exact duplicate real messages
+    if (prev.some((msg) => msg._id === message._id)) {
+      return prev;
+    }
+
+    // Find matching offline pending message
+    const pendingIndex = prev.findIndex(
+      (msg) =>
+        msg.pending === true &&
+        msg.text === message.text &&
+        String(msg.sender?._id) ===
+          String(message.sender?._id)
+    );
+
+    // Replace pending bubble with real server message
+    if (pendingIndex !== -1) {
+      const updated = [...prev];
+
+      updated[pendingIndex] = message;
+
+      return updated;
+    }
+
+    // Normal incoming message
+    return [...prev, message];
+  });
 });
 
   return () => {
