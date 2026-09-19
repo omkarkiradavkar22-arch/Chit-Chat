@@ -11,6 +11,31 @@ import { useAuth } from "../../context/AuthContext";
 import TypingIndicator from "./TypingIndicator";
 import ChatHeader from "./ChatHeader";
 
+
+const getMessageCacheKey = (chatId) =>
+  `chitchat_messages_${chatId}`;
+
+const getCachedMessages = (chatId) => {
+  try {
+    return JSON.parse(
+      localStorage.getItem(getMessageCacheKey(chatId)) || "[]"
+    );
+  } catch {
+    return [];
+  }
+};
+
+const saveCachedMessages = (chatId, messages) => {
+  try {
+    localStorage.setItem(
+      getMessageCacheKey(chatId),
+      JSON.stringify(messages)
+    );
+  } catch (error) {
+    console.error("MESSAGE CACHE ERROR:", error);
+  }
+};
+
 function ChatWindow({
   chatId,
   otherUser,
@@ -79,25 +104,47 @@ const [aiSearchLoading, setAiSearchLoading] = useState(false);
 const messageRefs = useRef({});
 
   const getMessages = async () => {
-    try {
-      const { data } = await api.get(
-        `/messages/${chatId}`
-      );
+  try {
+    const { data } = await api.get(
+      `/messages/${chatId}`
+    );
 
-      setMessages(data.messages);
+    const serverMessages = data.messages || [];
 
-      await refreshChatInfo();
+    // Show latest messages from server
+    setMessages(serverMessages);
 
-      await api.put(`/messages/${chatId}/seen`);
-    } catch (error) {
-      toast.error(
-        error.response?.data?.message ||
-          "Failed to load messages"
-      );
-    } finally {
-      setLoading(false);
+    // Save this chat's messages for offline use
+    saveCachedMessages(chatId, serverMessages);
+
+    await refreshChatInfo();
+
+    await api.put(`/messages/${chatId}/seen`);
+
+  } catch (error) {
+    console.error("FETCH MESSAGES ERROR:", error);
+
+    // Network / offline error
+    if (!navigator.onLine || !error.response) {
+      const cachedMessages = getCachedMessages(chatId);
+
+      if (cachedMessages.length > 0) {
+        setMessages(cachedMessages);
+      }
+
+      return;
     }
-  };
+
+    // Actual backend error
+    toast.error(
+      error.response?.data?.message ||
+        "Failed to load messages"
+    );
+
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     if (chatId) {
@@ -130,14 +177,37 @@ const messageRefs = useRef({});
       return prev;
     }
 
-    // Find matching offline pending message
-    const pendingIndex = prev.findIndex(
-      (msg) =>
-        msg.pending === true &&
-        msg.text === message.text &&
-        String(msg.sender?._id) ===
-          String(message.sender?._id)
-    );
+    // First try to match using clientId
+    let pendingIndex = -1;
+
+    if (message.clientId) {
+      pendingIndex = prev.findIndex(
+        (msg) =>
+          msg.pending === true &&
+          msg.clientId === message.clientId
+      );
+    }
+
+    // Temporary fallback until backend clientId support is added
+    if (pendingIndex === -1) {
+      pendingIndex = prev.findIndex((msg) => {
+        const pendingSenderId =
+          typeof msg.sender === "object"
+            ? msg.sender?._id
+            : msg.sender;
+
+        const realSenderId =
+          typeof message.sender === "object"
+            ? message.sender?._id
+            : message.sender;
+
+        return (
+          msg.pending === true &&
+          msg.text === message.text &&
+          String(pendingSenderId) === String(realSenderId)
+        );
+      });
+    }
 
     // Replace pending bubble with real server message
     if (pendingIndex !== -1) {
@@ -145,11 +215,19 @@ const messageRefs = useRef({});
 
       updated[pendingIndex] = message;
 
+      // IMPORTANT: update offline cache too
+      saveCachedMessages(chatId, updated);
+
       return updated;
     }
 
     // Normal incoming message
-    return [...prev, message];
+    const updated = [...prev, message];
+
+    // Keep offline history updated
+    saveCachedMessages(chatId, updated);
+
+    return updated;
   });
 });
 
@@ -284,9 +362,43 @@ useEffect(() => {
 }, [socket, chatId]);
 
 
-  const handleMessageSent = (message) => {
-    setMessages((prev) => [...prev, message]);
-  };
+  const handleMessageSent = (newMessage) => {
+  setMessages((prev) => {
+    // Same real message already exists
+    if (
+      newMessage._id &&
+      prev.some((msg) => msg._id === newMessage._id)
+    ) {
+      return prev;
+    }
+
+    // If real server message has same clientId,
+    // replace its pending version
+    if (newMessage.clientId) {
+      const pendingIndex = prev.findIndex(
+        (msg) =>
+          msg.pending === true &&
+          msg.clientId === newMessage.clientId
+      );
+
+      if (pendingIndex !== -1) {
+        const updated = [...prev];
+        updated[pendingIndex] = newMessage;
+
+        saveCachedMessages(chatId, updated);
+
+        return updated;
+      }
+    }
+
+    const updated = [...prev, newMessage];
+
+    // Save pending/normal message in offline history
+    saveCachedMessages(chatId, updated);
+
+    return updated;
+  });
+};
 
   // =========================
 // SEARCH MESSAGES
