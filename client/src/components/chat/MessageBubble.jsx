@@ -533,7 +533,7 @@ const handleTouchEnd = () => {
 </button>
 
 {/* Three Dot Menu Button */}
-{!message.deletedForEveryone && (
+{!message.deletedForEveryone && !message.pending && (
   <button
     ref={menuButtonRef}
     onClick={() => setShowMenu((prev) => !prev)}
@@ -1188,11 +1188,18 @@ className="w-full text-left px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-
   </button>
 )} */}
           {isMine &&
-            (isSeen ? (
-              <FaCheckDouble className="text-blue-200" />
-            ) : (
-              <FaCheck />
-            ))}
+  (message.pending ? (
+    <span
+      title="Pending"
+      className="text-blue-100"
+    >
+      🕒
+    </span>
+  ) : isSeen ? (
+    <FaCheckDouble className="text-blue-200" />
+  ) : (
+    <FaCheck />
+  ))}
 
         </div>
       </div>
