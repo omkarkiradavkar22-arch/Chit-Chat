@@ -20,6 +20,25 @@ import api from "../../services/api";
 import { useSocket } from "../../context/SocketContext";
 import EmojiPicker from "emoji-picker-react";
 
+const OFFLINE_MESSAGE_QUEUE_KEY = "chitchat_offline_messages";
+
+const getOfflineMessages = () => {
+  try {
+    return JSON.parse(
+      localStorage.getItem(OFFLINE_MESSAGE_QUEUE_KEY) || "[]"
+    );
+  } catch {
+    return [];
+  }
+};
+
+const saveOfflineMessages = (messages) => {
+  localStorage.setItem(
+    OFFLINE_MESSAGE_QUEUE_KEY,
+    JSON.stringify(messages)
+  );
+};
+
 function MessageInput({
   chatId,
   receiverId,
@@ -452,6 +471,67 @@ const stopLiveLocation = async () => {
       return;
     }
 
+    if (!navigator.onLine) {
+  // For now offline queue supports TEXT only
+  if (attachments.length > 0 || audioBlob) {
+    toast.error(
+      "Images, files and voice messages need internet."
+    );
+    return;
+  }
+
+  const messageText = text.trim();
+
+  if (!messageText) return;
+
+  const pendingMessage = {
+    _id: `pending-${Date.now()}`,
+    chatId,
+    text: messageText,
+    sender: {
+      _id: senderId,
+    },
+    replyTo: replyMessage
+      ? {
+          _id: replyMessage._id,
+          text: replyMessage.text,
+          sender: replyMessage.sender,
+        }
+      : null,
+    createdAt: new Date().toISOString(),
+
+    // Local-only fields
+    pending: true,
+    clientId: `offline-${Date.now()}-${Math.random()
+      .toString(36)
+      .slice(2)}`,
+  };
+
+  const queue = getOfflineMessages();
+
+  queue.push({
+    clientId: pendingMessage.clientId,
+    chatId,
+    text: messageText,
+    replyTo: replyMessage?._id || null,
+    createdAt: pendingMessage.createdAt,
+  });
+
+  saveOfflineMessages(queue);
+
+  // Immediately show it in chat
+  if (onMessageSent) {
+    onMessageSent(pendingMessage);
+  }
+
+  setText("");
+  setReplyMessage(null);
+
+  toast("Message pending 🕒");
+
+  return;
+}
+
     try {
       setLoading(true);
 
@@ -546,6 +626,72 @@ const stopLiveLocation = async () => {
     }
   };
 
+
+  const sendPendingMessages = async () => {
+  if (!navigator.onLine) return;
+
+  const queue = getOfflineMessages();
+
+  if (!queue.length) return;
+
+  const remainingMessages = [];
+
+  for (const pending of queue) {
+    try {
+      const formData = new FormData();
+
+      formData.append("text", pending.text);
+
+      if (pending.replyTo) {
+        formData.append("replyTo", pending.replyTo);
+      }
+
+      await api.post(
+        `/messages/${pending.chatId}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      console.log(
+        "✅ Pending message sent:",
+        pending.clientId
+      );
+    } catch (error) {
+      console.error(
+        "PENDING MESSAGE SEND ERROR:",
+        error
+      );
+
+      remainingMessages.push(pending);
+    }
+  }
+
+  saveOfflineMessages(remainingMessages);
+};
+
+useEffect(() => {
+  const handleOnline = () => {
+    sendPendingMessages();
+  };
+
+  window.addEventListener("online", handleOnline);
+
+  // Also retry if component opens while already online
+  if (navigator.onLine) {
+    sendPendingMessages();
+  }
+
+  return () => {
+    window.removeEventListener(
+      "online",
+      handleOnline
+    );
+  };
+}, []);
   // =========================
   // ENTER TO SEND
   // =========================
