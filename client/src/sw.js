@@ -3,7 +3,9 @@
 import { precacheAndRoute } from "workbox-precaching";
 import { createHandlerBoundToURL } from "workbox-precaching";
 import { NavigationRoute, registerRoute } from "workbox-routing";
-
+import { CacheFirst } from "workbox-strategies";
+import { ExpirationPlugin } from "workbox-expiration";
+import { CacheableResponsePlugin } from "workbox-cacheable-response";
 // ======================================================
 // 📦 PRECACHE APP FILES
 // ======================================================
@@ -20,6 +22,22 @@ const navigationHandler =
 
 registerRoute(
   new NavigationRoute(navigationHandler)
+);
+
+registerRoute(
+  ({ request }) => request.destination === "image",
+  new CacheFirst({
+    cacheName: "chitchat-images",
+    plugins: [
+      new CacheableResponsePlugin({
+        statuses: [0, 200],
+      }),
+      new ExpirationPlugin({
+        maxEntries: 200,
+        maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+      }),
+    ],
+  })
 );
 
 // ======================================================
