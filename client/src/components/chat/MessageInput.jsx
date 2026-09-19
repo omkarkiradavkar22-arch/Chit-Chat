@@ -54,6 +54,7 @@ function MessageInput({
   const recordingSecondsRef = useRef(0);
   const audioPreviewRef = useRef(null);
   const typingTimeout = useRef(null);
+  const isFlushingRef = useRef(false);
 
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [text, setText] = useState("");
@@ -630,60 +631,69 @@ const stopLiveLocation = async () => {
   const sendPendingMessages = async () => {
   if (!navigator.onLine) return;
 
-  const queue = getOfflineMessages();
+  // Prevent two queue flushes at the same time
+  if (isFlushingRef.current) return;
 
+  const queue = getOfflineMessages();
   if (!queue.length) return;
+
+  isFlushingRef.current = true;
 
   const remainingMessages = [];
 
-  for (const pending of queue) {
-    try {
-      const formData = new FormData();
+  try {
+    for (const pending of queue) {
+      try {
+        const formData = new FormData();
 
-      formData.append("text", pending.text);
+        formData.append("text", pending.text);
+        formData.append("clientId", pending.clientId);
 
-      if (pending.replyTo) {
-        formData.append("replyTo", pending.replyTo);
-      }
-
-      const { data } = await api.post(
-        `/messages/${pending.chatId}`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
+        if (pending.replyTo) {
+          formData.append("replyTo", pending.replyTo);
         }
-      );
 
-      console.log(
-        "✅ Pending message sent:",
-        pending.clientId
-      );
+        const { data } = await api.post(
+          `/messages/${pending.chatId}`,
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
 
-      // Update current open chat immediately
-      if (
-        String(pending.chatId) === String(chatId) &&
-        data?.message
-      ) {
-        onMessageSent({
-          ...data.message,
-          clientId: pending.clientId,
-          pending: false,
-        });
+        console.log(
+          "✅ Pending message sent:",
+          pending.clientId
+        );
+
+        if (
+          String(pending.chatId) === String(chatId) &&
+          data?.message
+        ) {
+          onMessageSent({
+            ...data.message,
+            clientId:
+              data.message.clientId ||
+              pending.clientId,
+            pending: false,
+          });
+        }
+      } catch (error) {
+        console.error(
+          "PENDING MESSAGE SEND ERROR:",
+          error
+        );
+
+        remainingMessages.push(pending);
       }
-
-    } catch (error) {
-      console.error(
-        "PENDING MESSAGE SEND ERROR:",
-        error
-      );
-
-      remainingMessages.push(pending);
     }
-  }
 
-  saveOfflineMessages(remainingMessages);
+    saveOfflineMessages(remainingMessages);
+  } finally {
+    isFlushingRef.current = false;
+  }
 };
 
 useEffect(() => {
