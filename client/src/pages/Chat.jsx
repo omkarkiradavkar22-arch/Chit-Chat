@@ -10,6 +10,30 @@ import api from "../services/api";
 import { useSocket } from "../context/SocketContext";
 import { useAuth } from "../context/AuthContext";
 
+
+const CHAT_LIST_CACHE_KEY = "chitchat_chat_list";
+
+const getCachedChats = () => {
+  try {
+    return JSON.parse(
+      localStorage.getItem(CHAT_LIST_CACHE_KEY) || "[]"
+    );
+  } catch {
+    return [];
+  }
+};
+
+const saveCachedChats = (chats) => {
+  try {
+    localStorage.setItem(
+      CHAT_LIST_CACHE_KEY,
+      JSON.stringify(chats)
+    );
+  } catch (error) {
+    console.error("CHAT CACHE ERROR:", error);
+  }
+};
+
 function Chat() {
   const { chatId } = useParams();
 
@@ -25,12 +49,26 @@ function Chat() {
       const { data } = await api.get("/chat");
 
       setChats(data.chats);
-    } catch (error) {
-      toast.error(
-        error.response?.data?.message ||
-          "Failed to load chats"
-      );
-    } finally {
+      saveCachedChats(data.chats);
+
+    }catch (error) {
+  console.error("FETCH CHATS ERROR:", error);
+
+  if (!navigator.onLine || !error.response) {
+    const cachedChats = getCachedChats();
+
+    if (cachedChats.length > 0) {
+      setChats(cachedChats);
+    }
+
+    return;
+  }
+
+  toast.error(
+    error.response?.data?.message ||
+      "Failed to load chats"
+  );
+} finally {
       setLoading(false);
     }
   };
