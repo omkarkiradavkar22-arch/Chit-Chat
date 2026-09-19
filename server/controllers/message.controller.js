@@ -35,12 +35,13 @@ const uploadToCloudinary = (buffer, folder = "messages", resourceType = "auto") 
 
 export const sendMessage = async (req, res) => {
   try {
-    const {
+   const {
   text,
   replyTo,
   latitude,
   longitude,
   sharedPost,
+  clientId,
 } = req.body;
 
     const chat = await Chat.findById(req.params.chatId);
@@ -151,11 +152,46 @@ console.log("DISAPPEARING DEBUG:", {
 
 
 
+// ======================================
+// OFFLINE MESSAGE DUPLICATE PROTECTION
+// ======================================
 
+if (clientId) {
+  const existingMessage = await Message.findOne({
+    sender: req.user._id,
+    clientId,
+  })
+    .populate("sender", "name username profilePic")
+    .populate({
+      path: "sharedPost",
+      select: "user images description createdAt",
+      populate: {
+        path: "user",
+        select: "name username profilePic",
+      },
+    })
+    .populate({
+      path: "replyTo",
+      populate: {
+        path: "sender",
+        select: "name username",
+      },
+    });
+
+  if (existingMessage) {
+    return res.status(200).json({
+      success: true,
+      message: existingMessage,
+      duplicate: true,
+    });
+  }
+}
 
    const message = await Message.create({
   chat: chat._id,
   sender: req.user._id,
+
+  clientId: clientId || null,
 
   text: text || "",
 
@@ -167,7 +203,6 @@ console.log("DISAPPEARING DEBUG:", {
 
   replyTo: replyTo || null,
 
-  // Shared Chit-Chat post
   sharedPost: sharedPost || null,
 
   delivered: true,
