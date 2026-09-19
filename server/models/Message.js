@@ -14,6 +14,11 @@ const messageSchema = new mongoose.Schema(
       required: true,
     },
 
+    clientId: {
+  type: String,
+  default: null,
+},
+
     text: {
       type: String,
       trim: true,
@@ -161,6 +166,16 @@ expiresAt: {
 messageSchema.index(
   { expiresAt: 1 },
   { expireAfterSeconds: 0 }
+);
+
+messageSchema.index(
+  { sender: 1, clientId: 1 },
+  {
+    unique: true,
+    partialFilterExpression: {
+      clientId: { $type: "string" },
+    },
+  }
 );
 
 export default mongoose.model("Message", messageSchema);
