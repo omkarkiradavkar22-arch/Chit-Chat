@@ -20,18 +20,42 @@ export const AuthProvider = ({ children }) => {
   };
 
   const loadUser = async () => {
-    try {
-      const { data } = await api.get("/auth/me");
-      setUser(data.user);
-      // NOTE: push permission is now requested from a real user click
-      // (see NotificationPermissionBanner) instead of auto-firing here —
-      // browsers block/ignore permission prompts without a user gesture.
-    } catch (error) {
+  try {
+    const { data } = await api.get("/auth/me");
+
+    setUser(data.user);
+
+    // Save logged-in user for offline startup
+    localStorage.setItem(
+      "chitchat_user",
+      JSON.stringify(data.user)
+    );
+  } catch (error) {
+    // Internet OFF / network unavailable
+    if (!navigator.onLine || !error.response) {
+      try {
+        const cachedUser =
+          localStorage.getItem("chitchat_user");
+
+        if (cachedUser) {
+          setUser(JSON.parse(cachedUser));
+          console.log("📦 Using cached user offline");
+        } else {
+          setUser(null);
+        }
+      } catch {
+        setUser(null);
+      }
+    } else {
+      // Server actually rejected authentication
+      // e.g. 401 expired/invalid session
+      localStorage.removeItem("chitchat_user");
       setUser(null);
-    } finally {
-      setLoading(false);
     }
-  };
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     loadUser();
@@ -43,14 +67,20 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error(error);
     } finally {
-      localStorage.removeItem("token");
-      setUser(null);
+     localStorage.removeItem("token");
+localStorage.removeItem("chitchat_user");
+setUser(null);
     }
   };
 
   return (
     <AuthContext.Provider
-      value={{  user, setUser,  loading, loadUser, logout,
+      value={{
+        user,
+        setUser,
+        loading,
+        loadUser,
+        logout,
         darkMode,
         setDarkMode,
         toggleDarkMode,
