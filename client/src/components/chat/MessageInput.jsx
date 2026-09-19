@@ -646,7 +646,7 @@ const stopLiveLocation = async () => {
         formData.append("replyTo", pending.replyTo);
       }
 
-      await api.post(
+      const { data } = await api.post(
         `/messages/${pending.chatId}`,
         formData,
         {
@@ -660,6 +660,19 @@ const stopLiveLocation = async () => {
         "✅ Pending message sent:",
         pending.clientId
       );
+
+      // Update current open chat immediately
+      if (
+        String(pending.chatId) === String(chatId) &&
+        data?.message
+      ) {
+        onMessageSent({
+          ...data.message,
+          clientId: pending.clientId,
+          pending: false,
+        });
+      }
+
     } catch (error) {
       console.error(
         "PENDING MESSAGE SEND ERROR:",
