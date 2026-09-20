@@ -31,7 +31,9 @@ function PostCard({ post, priority = false }) {
   const [showChatShare, setShowChatShare] = useState(false);
 const [shareChats, setShareChats] = useState([]);
 const [shareLoading, setShareLoading] = useState(false);
-const [sendingChatId, setSendingChatId] = useState(null);
+
+const [selectedShareChats, setSelectedShareChats] = useState([]);
+const [sendingPosts, setSendingPosts] = useState(false);
   const { user } = useAuth();
 
   const [showHeart, setShowHeart] = useState(false);
@@ -302,6 +304,7 @@ const openChatShare = async () => {
     const { data } = await api.get("/chat");
 
     setShareChats(data.chats || []);
+    setSelectedShareChats([]);
 
     setShowShareModal(false);
     setShowChatShare(true);
@@ -317,26 +320,48 @@ const openChatShare = async () => {
   }
 };
 
-const sendPostToChat = async (chatId) => {
+const toggleShareChat = (chatId) => {
+  setSelectedShareChats((prev) =>
+    prev.includes(chatId)
+      ? prev.filter((id) => id !== chatId)
+      : [...prev, chatId]
+  );
+};
+
+const sendPostToChats = async () => {
+  if (selectedShareChats.length === 0) {
+    return toast.error("Select at least one chat");
+  }
+
   try {
-    setSendingChatId(chatId);
+    setSendingPosts(true);
 
-    const formData = new FormData();
+    await Promise.all(
+      selectedShareChats.map(async (chatId) => {
+        const formData = new FormData();
 
-    formData.append("text", "");
-    formData.append("sharedPost", post._id);
+        formData.append("text", "");
+        formData.append("sharedPost", post._id);
 
-    await api.post(
-      `/messages/${chatId}`,
-      formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      }
+        await api.post(
+          `/messages/${chatId}`,
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+      })
     );
 
-    toast.success("Post sent!");
+    toast.success(
+      `Post sent to ${selectedShareChats.length} ${
+        selectedShareChats.length === 1 ? "chat" : "chats"
+      }!`
+    );
+
+    setSelectedShareChats([]);
     setShowChatShare(false);
 
   } catch (error) {
@@ -347,7 +372,7 @@ const sendPostToChat = async (chatId) => {
         "Failed to send post"
     );
   } finally {
-    setSendingChatId(null);
+    setSendingPosts(false);
   }
 };
 
@@ -824,62 +849,109 @@ const updatePost = async () => {
       </div>
 
       {/* Chats */}
-      <div className="overflow-y-auto max-h-[55vh]">
-        {shareLoading ? (
-          <p className="text-center py-6 text-gray-500">
-            Loading chats...
-          </p>
-        ) : shareChats.length === 0 ? (
-          <p className="text-center py-6 text-gray-500">
-            No chats found
-          </p>
-        ) : (
-          shareChats.map((chat) => (
-            <button
-              key={chat._id}
-              onClick={() =>
-                sendPostToChat(chat._id)
+<div className="overflow-y-auto max-h-[55vh]">
+  {shareLoading ? (
+    <p className="text-center py-6 text-gray-500">
+      Loading chats...
+    </p>
+  ) : shareChats.length === 0 ? (
+    <p className="text-center py-6 text-gray-500">
+      No chats found
+    </p>
+  ) : (
+    shareChats.map((chat) => {
+      const selected = selectedShareChats.includes(chat._id);
+
+      return (
+        <button
+          key={chat._id}
+          onClick={() => toggleShareChat(chat._id)}
+          disabled={sendingPosts}
+          className={`
+            w-full
+            flex items-center
+            gap-3
+            px-4 py-3
+            text-left
+            transition
+            ${
+              selected
+                ? "bg-blue-50 dark:bg-blue-900/20"
+                : "hover:bg-gray-100 dark:hover:bg-gray-800"
+            }
+          `}
+        >
+          <img
+            src={
+              chat.otherUser?.profilePic ||
+              "/default-profile-picture.png"
+            }
+            alt={chat.otherUser?.name || ""}
+            className="w-11 h-11 rounded-full object-cover"
+          />
+
+          <div className="min-w-0 flex-1">
+            <p className="font-semibold truncate">
+              {chat.otherUser?.name}
+            </p>
+
+            <p className="text-sm text-gray-500 truncate">
+              @{chat.otherUser?.username}
+            </p>
+          </div>
+
+          <div
+            className={`
+              w-6 h-6
+              rounded-full
+              border-2
+              flex items-center justify-center
+              ${
+                selected
+                  ? "bg-blue-600 border-blue-600 text-white"
+                  : "border-gray-400 dark:border-gray-500"
               }
-              disabled={sendingChatId === chat._id}
-              className="
-                w-full
-                flex items-center
-                gap-3
-                px-4 py-3
-                text-left
-                hover:bg-gray-100
-                dark:hover:bg-gray-800
-                transition
-              "
-            >
-              <img
-                src={
-                  chat.otherUser?.profilePic ||
-                  "/default-profile-picture.png"
-                }
-                alt=""
-                className="w-11 h-11 rounded-full object-cover"
-              />
-
-              <div className="min-w-0 flex-1">
-                <p className="font-semibold truncate">
-                  {chat.otherUser?.name}
-                </p>
-
-                <p className="text-sm text-gray-500 truncate">
-                  @{chat.otherUser?.username}
-                </p>
-              </div>
-
-              <span className="text-blue-600 text-sm font-semibold">
-                {sendingChatId === chat._id
-                  ? "Sending..."
-                  : "Send"}
-              </span>
-            </button>
-          ))
-        )}
-      </div>
+            `}
+          >
+            {selected && (
+              <span className="text-sm font-bold">✓</span>
+            )}
+          </div>
+        </button>
+      );
+    })
+  )}
+</div>
+{shareChats.length > 0 && (
+  <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+    <button
+      onClick={sendPostToChats}
+      disabled={
+        selectedShareChats.length === 0 ||
+        sendingPosts
+      }
+      className="
+        w-full
+        bg-blue-600
+        hover:bg-blue-700
+        disabled:bg-gray-300
+        dark:disabled:bg-gray-700
+        disabled:cursor-not-allowed
+        text-white
+        font-semibold
+        py-3
+        rounded-xl
+        transition
+      "
+    >
+      {sendingPosts
+        ? "Sending..."
+        : selectedShareChats.length > 0
+        ? `Send (${selectedShareChats.length})`
+        : "Send"}
+    </button>
+  </div>
+)}
     </div>
   </div>
 )}
