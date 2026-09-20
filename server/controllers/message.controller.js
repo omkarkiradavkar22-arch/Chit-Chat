@@ -408,17 +408,30 @@ export const getMessages = async (req, res) => {
       });
     }
 
-   const messages = await Message.find({
+  const deletedEntry = chat.deletedFor?.find(
+  (entry) =>
+    entry.user.toString() === req.user._id.toString()
+);
+
+const messageFilter = {
   chat: chat._id,
+
   deletedFor: {
     $ne: req.user._id,
   },
-})
+};
+
+if (deletedEntry?.deletedAt) {
+  messageFilter.createdAt = {
+    $gt: deletedEntry.deletedAt,
+  };
+}
+
+const messages = await Message.find(messageFilter)
   .populate(
     "sender",
     "name username profilePic"
   )
-
   .populate({
     path: "sharedPost",
     select: "user images description createdAt",
@@ -427,7 +440,6 @@ export const getMessages = async (req, res) => {
       select: "name username profilePic",
     },
   })
-
   .populate({
     path: "replyTo",
     populate: {
@@ -435,7 +447,6 @@ export const getMessages = async (req, res) => {
       select: "name username",
     },
   })
-
   .sort({ createdAt: 1 });
 
     res.status(200).json({
@@ -516,6 +527,48 @@ export const deleteForMe = async (req, res) => {
     res.status(500).json({
       success: false,
       message: error.message,
+    });
+  }
+};
+
+export const deleteMultipleForMe = async (req, res) => {
+  try {
+    const { messageIds } = req.body;
+
+    if (
+      !messageIds ||
+      !Array.isArray(messageIds) ||
+      messageIds.length === 0
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Please select at least one message",
+      });
+    }
+
+    const result = await Message.updateMany(
+      {
+        _id: { $in: messageIds },
+        chat: req.params.chatId,
+      },
+      {
+        $addToSet: {
+          deletedFor: req.user._id,
+        },
+      }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Selected messages deleted for you",
+      deletedCount: result.modifiedCount,
+    });
+  } catch (error) {
+    console.error("DELETE MULTIPLE MESSAGES ERROR:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete selected messages",
     });
   }
 };
