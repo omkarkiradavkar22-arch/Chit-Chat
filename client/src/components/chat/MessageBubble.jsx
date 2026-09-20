@@ -142,6 +142,7 @@ function MessageBubble({
   onDelete,
   onEdit,
   onReaction,
+  onSelect,
   refreshChatInfo,
   searchQuery,
   isSearchMatch,
@@ -535,12 +536,12 @@ const handleTouchEnd = () => {
 {/* Three Dot Menu Button */}
 {!message.deletedForEveryone && !message.pending && (
   <button
-    ref={menuButtonRef}
-    onClick={() => setShowMenu((prev) => !prev)}
-   className="hidden md:block absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition"
-     >
-    <FaEllipsisV size={14} />
-  </button>
+  ref={menuButtonRef}
+  onClick={() => setShowMenu((prev) => !prev)}
+  className="hidden md:block absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition"
+>
+  <FaEllipsisV size={14} />
+</button>
 )}
 
 {/* =========================
@@ -845,6 +846,7 @@ const handleTouchEnd = () => {
       overflow-hidden
     "
   >
+
 
     <button
       onClick={handleDeleteForMe}
