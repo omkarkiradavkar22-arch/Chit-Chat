@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import {
+  useParams,
+  useNavigate,
+  useLocation,
+} from "react-router-dom";
 import { toast } from "react-hot-toast";
 
 import Layout from "../components/layouts/Layout";
@@ -36,7 +40,8 @@ const saveCachedChats = (chats) => {
 
 function Chat() {
   const { chatId } = useParams();
-
+const navigate = useNavigate();
+const location = useLocation();
   const { socket } = useSocket();
   const { user } = useAuth();
 
@@ -90,30 +95,118 @@ function Chat() {
     };
   }, [socket, user?._id, chatId]);
 
-  useEffect(() => {
-    if (!socket) return;
+useEffect(() => {
+  if (!socket) return;
 
-    socket.on("onlineUsers", (users) => {
-      setOnlineUsers(users);
+  // =========================
+  // ONLINE USERS
+  // =========================
+  const handleOnlineUsers = (users) => {
+    setOnlineUsers(users);
+  };
+
+  // =========================
+  // NEW MESSAGE
+  // =========================
+  const handleNewMessage = (message) => {
+    const messageChatId =
+      typeof message.chat === "object"
+        ? message.chat?._id
+        : message.chat;
+
+    // Sidebar preview instantly update
+    setChats((prevChats) => {
+      const updatedChats = prevChats.map((chat) => {
+        if (
+          String(chat._id) !==
+          String(messageChatId)
+        ) {
+          return chat;
+        }
+
+        return {
+          ...chat,
+
+          // latest message immediately
+          lastMessage: message,
+        };
+      });
+
+      saveCachedChats(updatedChats);
+
+      return updatedChats;
     });
 
-    socket.on("newMessage", () => {
-      getChats();
-    });
+    // Sync unread count + latest server data
+    getChats();
+  };
 
-    socket.on("messagesSeen", () => {
-      getChats();
-    });
+  // =========================
+  // SEEN STATUS
+  // =========================
+  const handleMessagesSeen = () => {
+    // Refresh unread counts
+    getChats();
+  };
 
-    return () => {
-      socket.off("onlineUsers");
-      socket.off("newMessage");
-      socket.off("messagesSeen");
-    };
-  }, [socket]);
+  socket.on(
+    "onlineUsers",
+    handleOnlineUsers
+  );
+
+  socket.on(
+    "newMessage",
+    handleNewMessage
+  );
+
+  socket.on(
+    "messagesSeen",
+    handleMessagesSeen
+  );
+
+  return () => {
+    socket.off(
+      "onlineUsers",
+      handleOnlineUsers
+    );
+
+    socket.off(
+      "newMessage",
+      handleNewMessage
+    );
+
+    socket.off(
+      "messagesSeen",
+      handleMessagesSeen
+    );
+  };
+}, [socket]);
+
+ const handleChatsDeleted = (deletedChatIds) => {
+  setChats((prevChats) => {
+    const updatedChats = prevChats.filter(
+      (chat) => !deletedChatIds.includes(chat._id)
+    );
+
+    saveCachedChats(updatedChats);
+
+    return updatedChats;
+  });
+
+  // Currently open chat delete केला असेल
+  if (chatId && deletedChatIds.includes(chatId)) {
+    navigate("/chat");
+  }
+};
 
   const selectedChat =
     chats.find((chat) => chat._id === chatId) || null;
+
+    const fallbackOtherUser =
+  location.state?.otherUser || null;
+
+const activeOtherUser =
+  selectedChat?.otherUser || fallbackOtherUser;
 
   return (
     <Layout fullScreen>
@@ -126,10 +219,11 @@ function Chat() {
           `}
         >
           <ChatSidebar
-            chats={chats}
-            loading={loading}
-            onlineUsers={onlineUsers}
-          />
+  chats={chats}
+  loading={loading}
+  onlineUsers={onlineUsers}
+  onChatsDeleted={handleChatsDeleted}
+/>
         </div>
 
         {/* CHAT WINDOW */}
@@ -139,11 +233,19 @@ function Chat() {
             ${chatId ? "block" : "hidden lg:block"}
           `}
         >
-          <ChatWindow
-            chatId={chatId}
-            otherUser={selectedChat?.otherUser}
-            onlineUsers={onlineUsers}
-          />
+         {chatId && activeOtherUser ? (
+  <ChatWindow
+    key={chatId}
+    chatId={chatId}
+    otherUser={activeOtherUser}
+    onlineUsers={onlineUsers}
+    onChatUpdate={getChats}
+  />
+) : (
+  <div className="w-full h-full flex items-center justify-center bg-white dark:bg-gray-950 text-gray-500 dark:text-gray-400">
+    Select a chat
+  </div>
+)}
         </div>
       </div>
     </Layout>
