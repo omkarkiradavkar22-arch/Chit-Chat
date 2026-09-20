@@ -137,7 +137,17 @@ function Profile() {
         `/chat/${profile._id}`
       );
 
-      navigate(`/chat/${data.chat._id}`);
+      navigate(`/chat/${data.chat._id}`, {
+  state: {
+    otherUser: {
+      _id: profile._id,
+      name: profile.name,
+      username: profile.username,
+      profilePic: profile.profilePic,
+      lastSeen: profile.lastSeen,
+    },
+  },
+});
     } catch (error) {
       toast.error(
         error.response?.data?.message ||
