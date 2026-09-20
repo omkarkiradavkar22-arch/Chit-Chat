@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { FaSearch, FaTimes, FaChevronUp, FaChevronDown,
-  FaBan,
+  FaBan,FaTrash,
  } from "react-icons/fa";
 import MessageBubble from "./MessageBubble";
 import MessageInput from "./MessageInput";
@@ -40,12 +40,101 @@ function ChatWindow({
   chatId,
   otherUser,
   onlineUsers,
+  onChatUpdate,
 }) {
   const [chatInfo, setChatInfo] = useState(null);
   const [messages, setMessages] = useState([]);
   const [now, setNow] = useState(Date.now());
   const [loading, setLoading] = useState(true);
   const [liveLocation, setLiveLocation] = useState(null);
+
+  const [selectedMessages, setSelectedMessages] = useState([]);
+const [isSelectionMode, setIsSelectionMode] = useState(false);
+
+const longPressTimerRef = useRef(null);
+
+const handleTouchStart = (messageId, isPending) => {
+  if (isPending) return;
+
+  longPressTimerRef.current = setTimeout(() => {
+    startMessageSelection(messageId);
+
+    // Small vibration on supported phones
+    if (navigator.vibrate) {
+      navigator.vibrate(50);
+    }
+  }, 500);
+};
+
+const cancelLongPress = () => {
+  if (longPressTimerRef.current) {
+    clearTimeout(longPressTimerRef.current);
+    longPressTimerRef.current = null;
+  }
+};
+
+const startMessageSelection = (messageId) => {
+  setIsSelectionMode(true);
+  setSelectedMessages([messageId]);
+};
+
+const toggleMessageSelection = (messageId) => {
+  setSelectedMessages((prev) =>
+    prev.includes(messageId)
+      ? prev.filter((id) => id !== messageId)
+      : [...prev, messageId]
+  );
+};
+
+const cancelMessageSelection = () => {
+  setIsSelectionMode(false);
+  setSelectedMessages([]);
+};
+
+
+const deleteSelectedMessages = async () => {
+  if (selectedMessages.length === 0) return;
+
+  try {
+    await api.delete(
+      `/messages/${chatId}/multiple/me`,
+      {
+        data: {
+          messageIds: selectedMessages,
+        },
+      }
+    );
+
+    setMessages((prev) => {
+      const updated = prev.filter(
+        (msg) => !selectedMessages.includes(msg._id)
+      );
+
+      // Offline cache मधूनही delete
+      saveCachedMessages(chatId, updated);
+
+      return updated;
+    });
+
+    toast.success(
+      `${selectedMessages.length} message${
+        selectedMessages.length > 1 ? "s" : ""
+      } deleted`
+    );
+
+    setSelectedMessages([]);
+    setIsSelectionMode(false);
+
+    onChatUpdate?.();
+  } catch (error) {
+    console.error("MULTIPLE DELETE ERROR:", error);
+
+    toast.error(
+      error.response?.data?.message ||
+        "Failed to delete messages"
+    );
+  }
+};
 
   const bottomRef = useRef(null);
   const { socket } = useSocket();
@@ -71,7 +160,7 @@ function ChatWindow({
   return () => {
     socket.off("messagesSeen");
   };
-}, [socket, chatId]);
+}, [socket, chatId, user?._id, onChatUpdate]);
 
 // Auto update time for disappearing messages
 useEffect(() => {
@@ -120,6 +209,7 @@ const messageRefs = useRef({});
     await refreshChatInfo();
 
     await api.put(`/messages/${chatId}/seen`);
+    onChatUpdate?.();
 
   } catch (error) {
     console.error("FETCH MESSAGES ERROR:", error);
@@ -170,6 +260,26 @@ const messageRefs = useRef({});
   if (String(messageChatId) !== String(chatId)) {
     return;
   }
+
+  // Chat is already open, so incoming message is seen immediately
+const senderId =
+  typeof message.sender === "object"
+    ? message.sender?._id
+    : message.sender;
+
+if (String(senderId) !== String(user?._id)) {
+  api
+    .put(`/messages/${chatId}/seen`)
+    .then(() => {
+      onChatUpdate?.();
+    })
+    .catch((error) => {
+      console.error(
+        "MARK MESSAGE AS SEEN ERROR:",
+        error
+      );
+    });
+}
 
   setMessages((prev) => {
     // Prevent exact duplicate real messages
@@ -398,6 +508,7 @@ useEffect(() => {
 
     return updated;
   });
+  onChatUpdate?.();
 };
 
   // =========================
@@ -583,16 +694,67 @@ return (
   bg-gray-100 dark:bg-gray-950
   transition-colors
 ">
-         <ChatHeader
-  otherUser={otherUser}
-  onlineUsers={onlineUsers}
-  chatInfo={chatInfo}
-  setChatInfo={setChatInfo}
-  chatId={chatId}
-  refreshChatInfo={refreshChatInfo}
-  setIsSearchOpen={setIsSearchOpen}
-  setIsAISearchOpen={setIsAISearchOpen}
-/>
+         {isSelectionMode ? (
+  <div
+    className="
+      h-16
+      px-4
+      flex items-center justify-between
+      bg-white dark:bg-gray-900
+      border-b border-gray-200 dark:border-gray-700
+      shrink-0
+    "
+  >
+    <div className="flex items-center gap-4">
+
+      <button
+        type="button"
+        onClick={cancelMessageSelection}
+        className="
+          text-xl
+          text-gray-700 dark:text-gray-200
+          hover:text-red-500
+        "
+        title="Cancel selection"
+      >
+        ✕
+      </button>
+
+      <span className="font-semibold text-gray-900 dark:text-white">
+        {selectedMessages.length} selected
+      </span>
+
+    </div>
+
+    <button
+      type="button"
+      onClick={deleteSelectedMessages}
+      disabled={selectedMessages.length === 0}
+      className="
+        p-2
+        text-red-500
+        hover:bg-red-50
+        dark:hover:bg-red-950/40
+        rounded-full
+        disabled:opacity-40
+      "
+      title="Delete selected messages"
+    >
+      <FaTrash size={18} />
+    </button>
+  </div>
+) : (
+  <ChatHeader
+    otherUser={otherUser}
+    onlineUsers={onlineUsers}
+    chatInfo={chatInfo}
+    setChatInfo={setChatInfo}
+    chatId={chatId}
+    refreshChatInfo={refreshChatInfo}
+    setIsSearchOpen={setIsSearchOpen}
+    setIsAISearchOpen={setIsAISearchOpen}
+  />
+)}
 
 {isAISearchOpen && (
   <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 p-4">
@@ -899,10 +1061,64 @@ return (
 
       {/* MESSAGE */}
       <div
-        ref={(el) => {
-          messageRefs.current[message._id] = el;
-        }}
-      >
+  ref={(el) => {
+    messageRefs.current[message._id] = el;
+  }}
+
+  onTouchStart={() => {
+  handleTouchStart(message._id, message.pending);
+}}
+
+onTouchEnd={cancelLongPress}
+
+onTouchMove={cancelLongPress}
+
+onTouchCancel={cancelLongPress}
+
+  onContextMenu={(e) => {
+    e.preventDefault();
+
+    if (!message.pending) {
+      startMessageSelection(message._id);
+    }
+  }}
+
+  onClick={() => {
+    if (isSelectionMode && !message.pending) {
+      toggleMessageSelection(message._id);
+    }
+  }}
+
+  className={`
+    relative rounded-lg transition
+    ${
+      selectedMessages.includes(message._id)
+        ? "bg-blue-100/70 dark:bg-blue-900/30"
+        : ""
+    }
+  `}
+>
+
+  {isSelectionMode && !message.pending && (
+  <div
+    className={`
+      absolute left-2 top-1/2 -translate-y-1/2
+      z-20
+      w-6 h-6
+      rounded-full
+      border-2
+      flex items-center justify-center
+      transition-all
+      ${
+        selectedMessages.includes(message._id)
+          ? "bg-blue-600 border-blue-600 text-white"
+          : "bg-white dark:bg-gray-800 border-gray-400 text-transparent"
+      }
+    `}
+  >
+    ✓
+  </div>
+)}
         <MessageBubble
           refreshChatInfo={refreshChatInfo}
           message={message}
@@ -919,6 +1135,10 @@ return (
           onPin={(updatedChat) => {
             setChatInfo(updatedChat);
           }}
+
+          onSelect={(messageId) => {
+  startMessageSelection(messageId);
+}}
 
           onReply={() =>
             setReplyMessage(message)
