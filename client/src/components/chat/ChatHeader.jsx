@@ -1,5 +1,8 @@
 import { useNavigate } from "react-router-dom";
-import { FaPhone, FaVideo, FaEllipsisV,
+import {
+  FaPhone,
+  FaVideo,
+  FaEllipsisV,
   FaArrowLeft,
   FaSearch,
   FaImages,
@@ -231,7 +234,19 @@ function ChatHeader({
   </button>
 
   {showMenu && (
-    <div className="absolute top-10 right-0 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 w-48 z-50 overflow-hidden">f
+    <div
+  className="
+    absolute top-10 right-0
+    bg-white dark:bg-gray-800
+    rounded-lg shadow-lg
+    border border-gray-200 dark:border-gray-700
+    w-48
+    z-[100]
+    max-h-[70vh]
+    overflow-y-auto
+    overflow-x-hidden
+  "
+>
 
 <button
   onClick={() => {
