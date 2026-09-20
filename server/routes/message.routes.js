@@ -7,7 +7,8 @@ import {
   clearChatForMe,
   editMessage,
   deleteForMe,
-  deleteForEveryone,
+deleteMultipleForMe,
+deleteForEveryone,
   markAsSeen,
   reactToMessage,
   forwardMessage,
@@ -52,6 +53,11 @@ router.post("/:messageId/star", protect, toggleStar);
 
 router.put("/:messageId", protect, editMessage);
 
+router.delete(
+  "/:chatId/multiple/me",
+  protect,
+  deleteMultipleForMe
+);
 
 router.delete("/:messageId/me", protect, deleteForMe);
 
