@@ -15,6 +15,25 @@ const chatSchema = new mongoose.Schema(
       ref: "Message",
       default: null,
     },
+
+
+    deletedFor: [
+  {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+
+    deletedAt: {
+      type: Date,
+      required: true,
+    },
+  },
+],
+
+
+
     pinnedMessage: {
   type: mongoose.Schema.Types.ObjectId,
   ref: "Message",
