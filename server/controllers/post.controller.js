@@ -691,22 +691,78 @@ export const toggleSavePost = async (req, res) => {
 
 export const getSavedPosts = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id).populate({
-      path: "savedPosts",
-      populate: {
-        path: "user",
-        select: "name username profilePic",
-      },
-    });
+    const currentUser = await User.findById(req.user._id)
+      .populate({
+        path: "savedPosts",
+        populate: {
+          path: "user",
+          select:
+            "name username profilePic followRequests",
+        },
+      });
 
-    res.status(200).json({
+    if (!currentUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const updatedPosts = currentUser.savedPosts
+      .filter((post) => post.user)
+      .map((post) => {
+        const postUser = post.user;
+
+        const isLiked = post.likes.some(
+          (id) =>
+            id.toString() ===
+            currentUser._id.toString()
+        );
+
+        const isFollowing =
+          currentUser.following.some(
+            (id) =>
+              id.toString() ===
+              postUser._id.toString()
+          );
+
+        const isRequested =
+          postUser.followRequests?.some(
+            (id) =>
+              id.toString() ===
+              currentUser._id.toString()
+          ) || false;
+
+        return {
+          ...post.toObject(),
+
+          isLiked,
+          isSaved: true,
+
+          likesCount: post.likes.length,
+          commentsCount: post.comments.length,
+
+          user: {
+            ...postUser.toObject(),
+            isFollowing,
+            isRequested,
+          },
+        };
+      });
+
+    return res.status(200).json({
       success: true,
-      count: user.savedPosts.length,
-      posts: user.savedPosts,
+      count: updatedPosts.length,
+      posts: updatedPosts,
     });
 
   } catch (error) {
-    res.status(500).json({
+    console.error(
+      "GET SAVED POSTS ERROR:",
+      error
+    );
+
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
@@ -715,22 +771,81 @@ export const getSavedPosts = async (req, res) => {
 
 export const getLikedPosts = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id).populate({
-      path: "likedPosts",
-      populate: {
-        path: "user",
-        select: "name username profilePic",
-      },
-    });
+    const currentUser = await User.findById(req.user._id)
+      .populate({
+        path: "likedPosts",
+        populate: {
+          path: "user",
+          select:
+            "name username profilePic followRequests",
+        },
+      });
 
-    res.status(200).json({
+    if (!currentUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const updatedPosts = currentUser.likedPosts
+      .filter((post) => post.user)
+      .map((post) => {
+        const postUser = post.user;
+
+        const isFollowing =
+          currentUser.following.some(
+            (id) =>
+              id.toString() ===
+              postUser._id.toString()
+          );
+
+        const isRequested =
+          postUser.followRequests?.some(
+            (id) =>
+              id.toString() ===
+              currentUser._id.toString()
+          ) || false;
+
+        const isSaved =
+          currentUser.savedPosts.some(
+            (id) =>
+              id.toString() ===
+              post._id.toString()
+          );
+
+        return {
+          ...post.toObject(),
+
+          // Because this post came from likedPosts
+          isLiked: true,
+
+          isSaved,
+
+          likesCount: post.likes.length,
+          commentsCount: post.comments.length,
+
+          user: {
+            ...postUser.toObject(),
+            isFollowing,
+            isRequested,
+          },
+        };
+      });
+
+    return res.status(200).json({
       success: true,
-      count: user.likedPosts.length,
-      posts: user.likedPosts,
+      count: updatedPosts.length,
+      posts: updatedPosts,
     });
 
   } catch (error) {
-    res.status(500).json({
+    console.error(
+      "GET LIKED POSTS ERROR:",
+      error
+    );
+
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
