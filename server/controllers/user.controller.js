@@ -99,9 +99,13 @@ export const getUserProfile = async (req, res) => {
   .populate("followers", "name username profilePic followRequests")
   .populate("following", "name username profilePic followRequests")
   .populate({
-    path: "posts",
-    options: { sort: { createdAt: -1 } },
-  });
+  path: "posts",
+  options: { sort: { createdAt: -1 } },
+  populate: {
+    path: "user",
+    select: "name username profilePic",
+  },
+});
 
     if (!user) {
       return res.status(404).json({
@@ -148,9 +152,54 @@ const followsMe = user.following.some(
   (id) => id.toString() === currentUser._id.toString()
 );
 
+// ==============================
+// FORMAT PROFILE POSTS
+// ==============================
+
+const formattedPosts = user.posts.map((post) => {
+  const postObj = post.toObject();
+
+  const likesArray = Array.isArray(post.likes)
+    ? post.likes
+    : [];
+
+  const commentsArray = Array.isArray(post.comments)
+    ? post.comments
+    : [];
+
+  const savedPostsArray = Array.isArray(currentUser.savedPosts)
+    ? currentUser.savedPosts
+    : [];
+
+  return {
+    ...postObj,
+
+    likesCount: likesArray.length,
+
+    commentsCount: commentsArray.length,
+
+    isLiked: likesArray.some(
+      (id) =>
+        id.toString() ===
+        currentUser._id.toString()
+    ),
+
+    isSaved: savedPostsArray.some(
+      (id) =>
+        id.toString() ===
+        post._id.toString()
+    ),
+  };
+});
+
 const userResponse = user.toObject();
+
 userResponse.followers = followers;
 userResponse.following = following;
+
+// IMPORTANT:
+// Use formatted posts instead of raw populated posts
+userResponse.posts = formattedPosts;
 
 res.status(200).json({
   success: true,
