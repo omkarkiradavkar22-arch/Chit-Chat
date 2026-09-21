@@ -775,37 +775,22 @@ export const forwardMessage = async (req, res) => {
       }
 
       // Create forwarded message
-      const forwardedMessage = await Message.create({
-  chat: chat._id,
-
-  sender: req.user._id,
-
-  text: originalMessage.text,
-
-  messageType:
-    originalMessage.messageType,
-
-  attachments:
-    originalMessage.attachments || [],
-
-  audio:
-    originalMessage.audio || null,
-
-  location:
-    originalMessage.location || null,
-
-  sharedPost:
-    originalMessage.sharedPost || null,
-
-  replyTo: null,
-
-  forwardedFrom:
-    originalMessage._id,
-
-  delivered: true,
-
-  seenBy: [req.user._id],
-});
+     const forwardedMessage = await Message.create({
+           chat: chat._id,
+           sender: req.user._id,
+     
+           text: originalMessage.text,
+     
+     attachments: originalMessage.attachments || [],
+     
+     replyTo: null,
+     
+           forwardedFrom: originalMessage._id,
+     
+           delivered: true,
+     
+           seenBy: [req.user._id],
+         });
 
       // Update last message
       chat.lastMessage = forwardedMessage._id;
