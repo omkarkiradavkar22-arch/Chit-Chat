@@ -10,8 +10,8 @@ import {
   setDisappearingMessages,
   startLiveLocation,
   stopLiveLocation,
+  deleteChatForMe,
 } from "../controllers/chat.controller.js";
-
 const router = express.Router();
 
 router.post("/:userId", protect, createChat);
@@ -42,6 +42,11 @@ router.post(
   stopLiveLocation
 );
 
+router.delete(
+  "/:chatId/me",
+  protect,
+  deleteChatForMe
+);
 router.get("/", protect, getMyChats);
 
 export default router;
