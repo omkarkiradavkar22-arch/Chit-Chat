@@ -545,69 +545,78 @@ const handleTouchEnd = () => {
 )}
 
 {/* =========================
-    LIVE LOCATION
+    NORMAL LOCATION
 ========================= */}
 
-{liveLocation?.active &&
+{!message.deletedForEveryone &&
   message.location?.latitude != null &&
-  message.location?.longitude != null && (
-  <div
-    className={`mb-2 rounded-xl overflow-hidden border ${
-      isMine
-  ? "bg-blue-500 border-blue-400"
-  : "bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700"
-    }`}
-  >
-    <div className="p-3">
+  message.location?.longitude != null &&
+  !liveLocation?.active && (
+    <div
+      className={`mb-2 rounded-xl overflow-hidden border ${
+        isMine
+          ? "bg-blue-500 border-blue-400"
+          : "bg-gray-100 dark:bg-gray-700 border-gray-200 dark:border-gray-600"
+      }`}
+    >
+      <div className="p-3">
+        <div className="flex items-center gap-2">
+          <FaMapMarkerAlt
+            className={
+              isMine
+                ? "text-white"
+                : "text-red-500"
+            }
+          />
 
-      <div className="flex items-center gap-2">
-        <FaLocationArrow
-          className={isMine ? "text-white" : "text-green-600"}
-        />
+          <p
+            className={`font-semibold text-sm ${
+              isMine
+                ? "text-white"
+                : "text-gray-900 dark:text-white"
+            }`}
+          >
+            Location
+          </p>
+        </div>
 
         <p
-          className={`font-semibold text-sm ${
-            isMine ? "text-white" : "text-green-700"
+          className={`text-xs mt-2 ${
+            isMine
+              ? "text-blue-100"
+              : "text-gray-600 dark:text-gray-300"
           }`}
         >
-           Live Location
+          {Number(message.location.latitude).toFixed(5)},{" "}
+          {Number(message.location.longitude).toFixed(5)}
         </p>
+
+        <a
+          href={`https://www.google.com/maps?q=${message.location.latitude},${message.location.longitude}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          className="
+            mt-3
+            flex
+            items-center
+            justify-center
+            gap-2
+            rounded-lg
+            px-3
+            py-2
+            text-sm
+            font-medium
+            bg-white
+            text-blue-600
+            hover:bg-gray-100
+          "
+        >
+          <FaMapMarkedAlt />
+          Open Location
+        </a>
       </div>
-
-      {liveLocation.latitude != null &&
-        liveLocation.longitude != null && (
-          <>
-            <p
-              className={`text-xs mt-2 ${
-                isMine ? "text-green-100" : "text-gray-600"
-              }`}
-            >
-              {Number(liveLocation.latitude).toFixed(5)},{" "}
-              {Number(liveLocation.longitude).toFixed(5)}
-            </p>
-
-            <a
-              href={`https://www.google.com/maps?q=${liveLocation.latitude},${liveLocation.longitude}`}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-3 flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium bg-white text-green-700 hover:bg-gray-100 "
-            >
-              <FaMapMarkedAlt/>
-               Open Live Location
-            </a>
-          </>
-        )}
-
-      <p
-        className={`text-xs mt-2 ${
-          isMine ? "text-green-100" : "text-green-600"
-        }`}
-      >
-        🟢 Location is being shared live
-      </p>
-
     </div>
-  </div>
 )}
 
 
