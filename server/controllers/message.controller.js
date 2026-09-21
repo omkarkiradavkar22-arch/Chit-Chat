@@ -775,22 +775,46 @@ export const forwardMessage = async (req, res) => {
       }
 
       // Create forwarded message
-     const forwardedMessage = await Message.create({
-           chat: chat._id,
-           sender: req.user._id,
-     
-           text: originalMessage.text,
-     
-     attachments: originalMessage.attachments || [],
-     
-     replyTo: null,
-     
-           forwardedFrom: originalMessage._id,
-     
-           delivered: true,
-     
-           seenBy: [req.user._id],
-         });
+     // Create forwarded message data
+const forwardedMessageData = {
+  chat: chat._id,
+  sender: req.user._id,
+
+  text: originalMessage.text || "",
+
+  attachments: originalMessage.attachments || [],
+
+  replyTo: null,
+
+  forwardedFrom: originalMessage._id,
+
+  delivered: true,
+
+  seenBy: [req.user._id],
+};
+
+// 📍 Add location ONLY if valid location exists
+if (
+  originalMessage.location &&
+  originalMessage.location.latitude != null &&
+  originalMessage.location.longitude != null
+) {
+  forwardedMessageData.location = {
+    latitude: originalMessage.location.latitude,
+    longitude: originalMessage.location.longitude,
+  };
+}
+
+// 📮 Add shared post ONLY if it exists
+if (originalMessage.sharedPost) {
+  forwardedMessageData.sharedPost =
+    originalMessage.sharedPost;
+}
+
+// Create forwarded message
+const forwardedMessage = await Message.create(
+  forwardedMessageData
+);
 
       // Update last message
       chat.lastMessage = forwardedMessage._id;
