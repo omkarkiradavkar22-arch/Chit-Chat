@@ -95,62 +95,148 @@ const createOrReturnChat = async (
 
 export const getMyChats = async (req, res) => {
   try {
+    const userId = req.user._id;
+
     const chats = await Chat.find({
-      participants: req.user._id,
+      participants: userId,
     })
-      .populate("participants", "name username profilePic isOnline lastSeen")
+      .populate(
+        "participants",
+        "name username profilePic isOnline lastSeen"
+      )
       .populate({
-  path: "lastMessage",
-  populate: {
-    path: "sender",
-    select: "name username profilePic",
-  },
-})
-.populate({
-  path: "pinnedMessage",
-  populate: {
-    path: "sender",
-    select: "name username",
-  },
-})
+        path: "lastMessage",
+        populate: {
+          path: "sender",
+          select: "name username profilePic",
+        },
+      })
+      .populate({
+        path: "pinnedMessage",
+        populate: {
+          path: "sender",
+          select: "name username",
+        },
+      })
       .sort({ updatedAt: -1 });
 
-    const formattedChats = await Promise.all(
-  chats.map(async (chat) => {
-    const otherUser = chat.participants.find(
-      (user) => user._id.toString() !== req.user._id.toString()
-    );
+    const formattedChats = [];
 
-    const unreadCount = await Message.countDocuments({
-      chat: chat._id,
-      sender: { $ne: req.user._id },
-      seenBy: { $ne: req.user._id },
-      deletedForEveryone: false,
-    });
+    for (const chat of chats) {
+      const otherUser = chat.participants.find(
+        (user) =>
+          user._id.toString() !== userId.toString()
+      );
 
-    return {
-  _id: chat._id,
-  otherUser,
-  lastMessage: chat.lastMessage,
-  unreadCount,
-  updatedAt: chat.updatedAt,
+      // =====================================
+      // DELETE CHAT CHECK
+      // =====================================
+      const deletedEntry = chat.deletedFor?.find(
+        (entry) =>
+          entry.user.toString() === userId.toString()
+      );
 
-  isBlocked: chat.isBlocked,
-  blockedBy: chat.blockedBy,
-  pinnedMessage: chat.pinnedMessage,
-  disappearingMessages: chat.disappearingMessages,
-};
-  })
-);
+      // Delete Chat केलेला असेल तर
+      // new message आल्याशिवाय sidebar मध्ये दाखवू नको
+      if (deletedEntry?.deletedAt) {
+        const hasNewMessage =
+          chat.lastMessage?.createdAt &&
+          new Date(chat.lastMessage.createdAt) >
+            new Date(deletedEntry.deletedAt);
 
-    res.status(200).json({
+        if (!hasNewMessage) {
+          continue;
+        }
+      }
+
+      // =====================================
+      // FIND LAST MESSAGE VISIBLE TO THIS USER
+      // =====================================
+      const visibleLastMessageFilter = {
+        chat: chat._id,
+
+        deletedFor: {
+          $ne: userId,
+        },
+      };
+
+      // Delete Chat नंतर फक्त नवीन messages consider कर
+      if (deletedEntry?.deletedAt) {
+        visibleLastMessageFilter.createdAt = {
+          $gt: deletedEntry.deletedAt,
+        };
+      }
+
+      const visibleLastMessage =
+        await Message.findOne(
+          visibleLastMessageFilter
+        )
+          .sort({ createdAt: -1 })
+          .populate(
+            "sender",
+            "name username profilePic"
+          )
+          .populate({
+            path: "sharedPost",
+            select: "user images description createdAt",
+            populate: {
+              path: "user",
+              select: "name username profilePic",
+            },
+          });
+
+      // =====================================
+      // UNREAD COUNT
+      // =====================================
+      const unreadFilter = {
+        chat: chat._id,
+        sender: { $ne: userId },
+        seenBy: { $ne: userId },
+        deletedForEveryone: false,
+        deletedFor: { $ne: userId },
+      };
+
+      if (deletedEntry?.deletedAt) {
+        unreadFilter.createdAt = {
+          $gt: deletedEntry.deletedAt,
+        };
+      }
+
+      const unreadCount =
+        await Message.countDocuments(unreadFilter);
+
+      // =====================================
+      // SIDEBAR CHAT
+      // =====================================
+      formattedChats.push({
+        _id: chat._id,
+        otherUser,
+
+        // IMPORTANT:
+        // Clear Chat झाल्यावर हे null होईल
+        // त्यामुळे sidebar = "No messages yet"
+        lastMessage: visibleLastMessage,
+
+        unreadCount,
+        updatedAt: chat.updatedAt,
+
+        isBlocked: chat.isBlocked,
+        blockedBy: chat.blockedBy,
+        pinnedMessage: chat.pinnedMessage,
+        disappearingMessages:
+          chat.disappearingMessages,
+      });
+    }
+
+    return res.status(200).json({
       success: true,
       count: formattedChats.length,
       chats: formattedChats,
     });
-
   } catch (error) {
-    res.status(500).json({
+    console.error("GET MY CHATS ERROR:", error);
+
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
@@ -542,6 +628,71 @@ export const stopLiveLocation = async (req, res) => {
     res.status(500).json({
       success: false,
       message: error.message,
+    });
+  }
+};
+
+// ===============================
+// DELETE CHAT FOR CURRENT USER
+// ===============================
+export const deleteChatForMe = async (req, res) => {
+  try {
+    const { chatId } = req.params;
+    const userId = req.user._id;
+
+    const chat = await Chat.findById(chatId);
+
+    if (!chat) {
+      return res.status(404).json({
+        success: false,
+        message: "Chat not found",
+      });
+    }
+
+    // User must be a participant of this chat
+    const isParticipant = chat.participants.some(
+      (id) => id.toString() === userId.toString()
+    );
+
+    if (!isParticipant) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    const deletedAt = new Date();
+
+    // Check whether this user already has a deletedFor entry
+    const existingEntry = chat.deletedFor?.find(
+      (entry) =>
+        entry.user.toString() === userId.toString()
+    );
+
+    if (existingEntry) {
+      // User deletes the chat again later:
+      // move the cutoff time forward
+      existingEntry.deletedAt = deletedAt;
+    } else {
+      chat.deletedFor.push({
+        user: userId,
+        deletedAt,
+      });
+    }
+
+    await chat.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Chat deleted for you",
+      deletedAt,
+    });
+  } catch (error) {
+    console.error("DELETE CHAT FOR ME ERROR:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete chat",
     });
   }
 };
