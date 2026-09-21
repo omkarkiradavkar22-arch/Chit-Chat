@@ -11,68 +11,183 @@ import {
   FaHourglassHalf,
 } from "react-icons/fa";
 
+const TASKS_CACHE_KEY = "chitchat_tasks_cache";
+
 function TasksPage() {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const fetchTasks = async () => {
-    try {
-      const { data } = await api.get("/tasks");
+  try {
+    setLoading(true);
 
-      if (data.success) {
-        setTasks(data.tasks || []);
+    // =========================
+    // OFFLINE → LOAD CACHE
+    // =========================
+
+    if (!navigator.onLine) {
+      const cachedData =
+        localStorage.getItem(TASKS_CACHE_KEY);
+
+      if (cachedData) {
+        try {
+          const parsedData =
+            JSON.parse(cachedData);
+
+          setTasks(parsedData.tasks || []);
+        } catch (error) {
+          console.error(
+            "Tasks cache parse error:",
+            error
+          );
+
+          setTasks([]);
+        }
+      } else {
+        setTasks([]);
       }
-    } catch (error) {
+
+      return;
+    }
+
+    // =========================
+    // ONLINE → API
+    // =========================
+
+    const { data } = await api.get("/tasks");
+
+    if (data.success) {
+      const latestTasks = data.tasks || [];
+
+      setTasks(latestTasks);
+
+      localStorage.setItem(
+        TASKS_CACHE_KEY,
+        JSON.stringify({
+          tasks: latestTasks,
+          cachedAt: Date.now(),
+        })
+      );
+    }
+  } catch (error) {
+    console.error(
+      "Fetch tasks error:",
+      error
+    );
+
+    // =========================
+    // NETWORK ERROR → CACHE
+    // =========================
+
+    const cachedData =
+      localStorage.getItem(TASKS_CACHE_KEY);
+
+    if (cachedData) {
+      try {
+        const parsedData =
+          JSON.parse(cachedData);
+
+        setTasks(parsedData.tasks || []);
+
+        return;
+      } catch (cacheError) {
+        console.error(
+          "Tasks cache parse error:",
+          cacheError
+        );
+      }
+    }
+
+    if (navigator.onLine) {
       toast.error(
         error.response?.data?.message ||
           "Failed to load tasks"
       );
-    } finally {
-      setLoading(false);
     }
-  };
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     fetchTasks();
   }, []);
 
   const completeTask = async (taskId) => {
-    try {
-      await api.put(`/tasks/${taskId}/complete`);
+  if (!navigator.onLine) {
+    toast.error(
+      "You're offline. Connect to the internet to complete this task."
+    );
+    return;
+  }
 
-      setTasks((prev) =>
-        prev.map((task) =>
-          task._id === taskId
-            ? { ...task, completed: true }
-            : task
-        )
+  try {
+    await api.put(
+      `/tasks/${taskId}/complete`
+    );
+
+    setTasks((prev) => {
+      const updatedTasks = prev.map((task) =>
+        task._id === taskId
+          ? { ...task, completed: true }
+          : task
       );
 
-      toast.success("Task completed ✅");
-    } catch (error) {
-      toast.error(
-        error.response?.data?.message ||
-          "Failed to complete task"
-      );
-    }
-  };
-
-  const deleteTask = async (taskId) => {
-    try {
-      await api.delete(`/tasks/${taskId}`);
-
-      setTasks((prev) =>
-        prev.filter((task) => task._id !== taskId)
+      localStorage.setItem(
+        TASKS_CACHE_KEY,
+        JSON.stringify({
+          tasks: updatedTasks,
+          cachedAt: Date.now(),
+        })
       );
 
-      toast.success("Task deleted");
-    } catch (error) {
-      toast.error(
-        error.response?.data?.message ||
-          "Failed to delete task"
+      return updatedTasks;
+    });
+
+    toast.success("Task completed ✅");
+  } catch (error) {
+    toast.error(
+      error.response?.data?.message ||
+        "Failed to complete task"
+    );
+  }
+};
+
+ const deleteTask = async (taskId) => {
+  if (!navigator.onLine) {
+    toast.error(
+      "You're offline. Connect to the internet to delete this task."
+    );
+    return;
+  }
+
+  try {
+    await api.delete(`/tasks/${taskId}`);
+
+    setTasks((prev) => {
+      const updatedTasks = prev.filter(
+        (task) => task._id !== taskId
       );
-    }
-  };
+
+      localStorage.setItem(
+        TASKS_CACHE_KEY,
+        JSON.stringify({
+          tasks: updatedTasks,
+          cachedAt: Date.now(),
+        })
+      );
+
+      return updatedTasks;
+    });
+
+    toast.success("Task deleted");
+  } catch (error) {
+    toast.error(
+      error.response?.data?.message ||
+        "Failed to delete task"
+    );
+  }
+};
 
   const pendingCount = tasks.filter(
     (task) => !task.completed
