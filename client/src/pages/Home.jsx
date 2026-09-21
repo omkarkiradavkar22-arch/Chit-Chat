@@ -125,6 +125,20 @@ function Home() {
   }
 }, []);
 
+const handlePostCreated = async () => {
+  // Reset feed to first page
+  setPage(1);
+  setHasMore(true);
+
+  // Reload latest feed immediately
+  await getFeed(1);
+
+  // Scroll to top so new post is visible
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth",
+  });
+};
   // ---------------------------------------
   // LOAD FIRST PAGE
   // ---------------------------------------
@@ -189,7 +203,7 @@ function Home() {
     <Layout>
       <div className="max-w-2xl mx-auto py-5 space-y-5 text-gray-900 dark:text-white">
 
-        <CreatePost />
+       <CreatePost onPostCreated={handlePostCreated} />
 
         {/* FIRST LOAD */}
         {loading ? (
