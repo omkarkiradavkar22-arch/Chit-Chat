@@ -8,6 +8,10 @@ import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import FollowersModal from "../components/profile/FollowersModal";
 
+const PROFILE_CACHE_PREFIX = "chitchat_profile_cache_";
+const LIKED_POSTS_CACHE_KEY = "chitchat_liked_posts_cache";
+const SAVED_POSTS_CACHE_KEY = "chitchat_saved_posts_cache";
+
 function Profile() {
   const { username } = useParams();
   const { user, loadUser } = useAuth();
@@ -32,49 +36,285 @@ function Profile() {
   // GET PROFILE
   // =========================
   const getProfile = async () => {
-    try {
-      const { data } = await api.get(`/users/${username}`);
+  const cacheKey =
+    `${PROFILE_CACHE_PREFIX}${username}`;
 
-      setProfile(data.user);
-      setRelationship(data.relationship);
-    } catch (error) {
-      toast.error(
-        error.response?.data?.message || "Failed to load profile"
-      );
-    } finally {
-      setLoading(false);
+  try {
+    setLoading(true);
+
+    // =========================
+    // OFFLINE → LOAD CACHE
+    // =========================
+
+    if (!navigator.onLine) {
+      const cachedData =
+        localStorage.getItem(cacheKey);
+
+      if (cachedData) {
+        try {
+          const parsedData =
+            JSON.parse(cachedData);
+
+          setProfile(parsedData.profile || null);
+          setRelationship(
+            parsedData.relationship || null
+          );
+        } catch (error) {
+          console.error(
+            "Profile cache parse error:",
+            error
+          );
+
+          setProfile(null);
+          setRelationship(null);
+        }
+      } else {
+        setProfile(null);
+        setRelationship(null);
+      }
+
+      return;
     }
-  };
+
+    // =========================
+    // ONLINE → API
+    // =========================
+
+    const { data } = await api.get(
+      `/users/${username}`
+    );
+
+    setProfile(data.user);
+    setRelationship(data.relationship);
+
+    localStorage.setItem(
+      cacheKey,
+      JSON.stringify({
+        profile: data.user,
+        relationship: data.relationship,
+        cachedAt: Date.now(),
+      })
+    );
+  } catch (error) {
+    console.error(
+      "Get profile error:",
+      error
+    );
+
+    // =========================
+    // NETWORK ERROR → CACHE
+    // =========================
+
+    const cachedData =
+      localStorage.getItem(cacheKey);
+
+    if (cachedData) {
+      try {
+        const parsedData =
+          JSON.parse(cachedData);
+
+        setProfile(parsedData.profile || null);
+        setRelationship(
+          parsedData.relationship || null
+        );
+
+        return;
+      } catch (cacheError) {
+        console.error(
+          "Profile cache parse error:",
+          cacheError
+        );
+      }
+    }
+
+    if (navigator.onLine) {
+      toast.error(
+        error.response?.data?.message ||
+          "Failed to load profile"
+      );
+    }
+  } finally {
+    setLoading(false);
+  }
+};
 
   // =========================
   // LIKED POSTS
   // =========================
   const loadLikedPosts = async () => {
-    try {
-      const { data } = await api.get("/posts/liked");
-      setLikedPosts(data.posts);
-    } catch (error) {
+  try {
+    // OFFLINE → CACHE
+    if (!navigator.onLine) {
+      const cachedData =
+        localStorage.getItem(
+          LIKED_POSTS_CACHE_KEY
+        );
+
+      if (cachedData) {
+        try {
+          const parsedData =
+            JSON.parse(cachedData);
+
+          setLikedPosts(
+            parsedData.posts || []
+          );
+        } catch (error) {
+          console.error(
+            "Liked posts cache parse error:",
+            error
+          );
+
+          setLikedPosts([]);
+        }
+      } else {
+        setLikedPosts([]);
+      }
+
+      return;
+    }
+
+    // ONLINE → API
+    const { data } = await api.get(
+      "/posts/liked"
+    );
+
+    const posts = data.posts || [];
+
+    setLikedPosts(posts);
+
+    localStorage.setItem(
+      LIKED_POSTS_CACHE_KEY,
+      JSON.stringify({
+        posts,
+        cachedAt: Date.now(),
+      })
+    );
+  } catch (error) {
+    console.error(
+      "Load liked posts error:",
+      error
+    );
+
+    const cachedData =
+      localStorage.getItem(
+        LIKED_POSTS_CACHE_KEY
+      );
+
+    if (cachedData) {
+      try {
+        const parsedData =
+          JSON.parse(cachedData);
+
+        setLikedPosts(
+          parsedData.posts || []
+        );
+
+        return;
+      } catch (cacheError) {
+        console.error(
+          "Liked posts cache parse error:",
+          cacheError
+        );
+      }
+    }
+
+    if (navigator.onLine) {
       toast.error(
         error.response?.data?.message ||
           "Failed to load liked posts"
       );
     }
-  };
+  }
+};
 
   // =========================
   // SAVED POSTS
   // =========================
   const loadSavedPosts = async () => {
-    try {
-      const { data } = await api.get("/posts/saved");
-      setSavedPosts(data.posts);
-    } catch (error) {
+  try {
+    // OFFLINE → CACHE
+    if (!navigator.onLine) {
+      const cachedData =
+        localStorage.getItem(
+          SAVED_POSTS_CACHE_KEY
+        );
+
+      if (cachedData) {
+        try {
+          const parsedData =
+            JSON.parse(cachedData);
+
+          setSavedPosts(
+            parsedData.posts || []
+          );
+        } catch (error) {
+          console.error(
+            "Saved posts cache parse error:",
+            error
+          );
+
+          setSavedPosts([]);
+        }
+      } else {
+        setSavedPosts([]);
+      }
+
+      return;
+    }
+
+    // ONLINE → API
+    const { data } = await api.get(
+      "/posts/saved"
+    );
+
+    const posts = data.posts || [];
+
+    setSavedPosts(posts);
+
+    localStorage.setItem(
+      SAVED_POSTS_CACHE_KEY,
+      JSON.stringify({
+        posts,
+        cachedAt: Date.now(),
+      })
+    );
+  } catch (error) {
+    console.error(
+      "Load saved posts error:",
+      error
+    );
+
+    const cachedData =
+      localStorage.getItem(
+        SAVED_POSTS_CACHE_KEY
+      );
+
+    if (cachedData) {
+      try {
+        const parsedData =
+          JSON.parse(cachedData);
+
+        setSavedPosts(
+          parsedData.posts || []
+        );
+
+        return;
+      } catch (cacheError) {
+        console.error(
+          "Saved posts cache parse error:",
+          cacheError
+        );
+      }
+    }
+
+    if (navigator.onLine) {
       toast.error(
         error.response?.data?.message ||
           "Failed to load saved posts"
       );
     }
-  };
+  }
+};
 
   // =========================
   // EFFECT
@@ -91,7 +331,14 @@ function Profile() {
   // =========================
   // FOLLOW
   // =========================
+  
   const handleFollow = async () => {
+    if (!navigator.onLine) {
+  toast.error(
+    "You're offline. Connect to the internet to follow this user."
+  );
+  return;
+}
     try {
       const { data } = await api.post(
         `/users/follow/${profile._id}`
@@ -112,6 +359,12 @@ function Profile() {
   // UNFOLLOW
   // =========================
   const handleUnfollow = async () => {
+    if (!navigator.onLine) {
+    toast.error(
+      "You're offline. Connect to the internet to unfollow this user."
+    );
+    return;
+  }
     try {
       const { data } = await api.post(
         `/users/unfollow/${profile._id}`
@@ -132,6 +385,12 @@ function Profile() {
   // MESSAGE
   // =========================
   const handleMessage = async () => {
+    if (!navigator.onLine) {
+    toast.error(
+      "You're offline. Connect to the internet to start this chat."
+    );
+    return;
+  }
     try {
       const { data } = await api.post(
         `/chat/${profile._id}`
@@ -160,6 +419,12 @@ function Profile() {
   // CANCEL REQUEST
   // =========================
   const handleCancelRequest = async () => {
+    if (!navigator.onLine) {
+    toast.error(
+      "You're offline. Connect to the internet to cancel this request."
+    );
+    return;
+  }
     try {
       const { data } = await api.delete(
         `/users/cancel-request/${profile._id}`
@@ -576,18 +841,23 @@ function Profile() {
     </p>
   ) : (
     currentPosts?.map((post) => (
-      <Link
-        key={post._id}
-        to={`/post/${post._id}`}
-        className="
-          block
-          w-full
-          aspect-[3/4]
-          overflow-hidden
-          bg-gray-200
-          dark:bg-gray-800
-        "
-      >
+<Link
+  key={post._id}
+  to={`/post/${post._id}`}
+  state={{
+    source: "profile",
+    sourceType: activeTab,
+    posts: currentPosts,
+  }}
+  className="
+    block
+    w-full
+    aspect-[3/4]
+    overflow-hidden
+    bg-gray-200
+    dark:bg-gray-800
+  "
+>
         <img
           src={
             post.images?.[0] ||
