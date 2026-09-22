@@ -4,7 +4,15 @@ import api from "../../services/api";
 import { toast } from "react-hot-toast";
 import { useState } from "react";
 import { useTheme } from "../../context/ThemeContext";
-import { FaHeart, FaRegComment, FaUserPlus, FaEnvelope, FaCheck, FaPhone, FaPhoneSlash, FaTrash } from "react-icons/fa";
+import { FaHeart,
+  FaRegComment,
+  FaUserPlus,
+  FaEnvelope,
+  FaCheck,
+  FaPhone,
+  FaPhoneSlash,
+FaTrash
+ } from "react-icons/fa";
 
 function NotificationCard({
   notification,
@@ -341,9 +349,10 @@ case "missed_call":
       }}
 
       className={`
-        relative
-        cursor-pointer
-        rounded-xl
+  relative
+  group
+  cursor-pointer
+  rounded-xl
         shadow
         p-4
         border
@@ -489,18 +498,25 @@ isFollowing && (
     e.stopPropagation();
     handleDeleteNotification();
   }}
-  className="
-    hidden md:flex
-    items-center justify-center
-    text-red-500
-    hover:text-red-700
-    p-2
-    rounded-full
-    hover:bg-red-100
-    dark:hover:bg-red-900/30
-    transition
-    flex-shrink-0
-  "
+ className="
+  hidden
+  md:flex
+  items-center
+  justify-center
+  text-red-500
+  hover:text-red-700
+  p-2
+  rounded-full
+  hover:bg-red-100
+  dark:hover:bg-red-900/30
+  opacity-0
+  pointer-events-none
+  group-hover:opacity-100
+  group-hover:pointer-events-auto
+  transition-all
+  duration-200
+  flex-shrink-0
+"
   title="Delete notification"
 >
   <FaTrash />
