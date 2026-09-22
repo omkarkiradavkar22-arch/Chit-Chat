@@ -320,7 +320,7 @@ if (loading) {
   Messages
 </h2>
 
-<div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+<div className="px-4 py-3 border-gray-200 dark:border-gray-700">
   <input
     type="text"
     value={search}
