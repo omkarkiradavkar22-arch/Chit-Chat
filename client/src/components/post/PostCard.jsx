@@ -21,10 +21,22 @@ import { optimizeImage } from "../../utils/optimizeImage";
 
 function PostCard({ post, priority = false }) {
   const navigate = useNavigate();
-  const [liked, setLiked] = useState(post.isLiked);
-  const [saved, setSaved] = useState(post.isSaved);
-  const [likes, setLikes] = useState(post.likesCount);
-  const [currentImage, setCurrentImage] = useState(0);
+  const [liked, setLiked] = useState(Boolean(post.isLiked));
+
+const [saved, setSaved] = useState(Boolean(post.isSaved));
+
+const [likes, setLikes] = useState(() => {
+  if (typeof post.likesCount === "number") {
+    return post.likesCount;
+  }
+
+  if (Array.isArray(post.likes)) {
+    return post.likes.length;
+  }
+
+  return 0;
+});
+const [currentImage, setCurrentImage] = useState(0);
   const [openComments, setOpenComments] = useState(false);
   const [commentsCount, setCommentsCount] = useState(post.commentsCount);
   const [showShareModal, setShowShareModal] = useState(false);
@@ -60,11 +72,15 @@ const menuRef = useRef(null);
     try {
       await api.post(`/posts/${post._id}/toggle-like`);
 
-      if (liked) {
-        setLikes((prev) => prev - 1);
-      } else {
-        setLikes((prev) => prev + 1);
-      }
+     if (liked) {
+  setLikes((prev) =>
+    Math.max(0, Number(prev) - 1)
+  );
+} else {
+  setLikes((prev) =>
+    Number(prev) + 1
+  );
+}
 
       setLiked(!liked);
 
@@ -86,8 +102,8 @@ const menuRef = useRef(null);
       try {
         await api.post(`/posts/${post._id}/toggle-like`);
 
-        setLiked(true);
-        setLikes((prev) => prev + 1);
+setLiked(true);
+setLikes((prev) => Number(prev) + 1);
       } catch (error) {
         toast.error(
           error.response?.data?.message || "Failed to like post"
