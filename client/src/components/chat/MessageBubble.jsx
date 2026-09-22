@@ -4,6 +4,7 @@ import {
   FaCheckDouble,
   FaReply,
   FaEllipsisV,
+  FaChevronDown,
   FaEdit,
   FaCopy,
   FaSmile,
@@ -19,6 +20,15 @@ import {
   FaPen,
   FaBan,
   FaShare,
+  FaVideo,
+  FaDownload,
+  FaMicrophone,
+  FaFilePdf,
+  FaFileWord,
+  FaFileAlt,
+  FaFileArchive,
+  FaFile,
+  FaTimes,
 
   
 } from "react-icons/fa";
@@ -28,6 +38,1111 @@ import { toast } from "react-hot-toast";
 import ForwardModal from "./ForwardModal";
 import { FaPlay, FaPause } from "react-icons/fa";
 import { useSocket } from "../../context/SocketContext";
+
+function CachedChatImage({ file,isMine, onOpen }) {
+  const [imageSrc, setImageSrc] = useState(null);
+  const [isCached, setIsCached] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const formatFileSize = (bytes) => {
+    if (!bytes) return "Photo";
+
+    if (bytes < 1024) {
+      return `${bytes} B`;
+    }
+
+    if (bytes < 1024 * 1024) {
+      return `${Math.round(bytes / 1024)} kB`;
+    }
+
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  useEffect(() => {
+    let active = true;
+
+    const checkImage = async () => {
+      try {
+        // ONLINE → normal image load
+        if (navigator.onLine) {
+          if (active) {
+            setImageSrc(file.url);
+            setIsCached(true);
+          }
+          return;
+        }
+
+        // OFFLINE → only check existing browser/SW cache
+        if ("caches" in window) {
+          const cachedResponse = await caches.match(file.url);
+
+          if (cachedResponse) {
+            const blob = await cachedResponse.blob();
+            const objectUrl = URL.createObjectURL(blob);
+
+            if (active) {
+              setImageSrc(objectUrl);
+              setIsCached(true);
+            }
+
+            return;
+          }
+        }
+
+        if (active) {
+          setImageSrc(null);
+          setIsCached(false);
+        }
+      } catch (error) {
+        console.error("Image cache check failed:", error);
+
+        if (active) {
+          setImageSrc(null);
+          setIsCached(false);
+        }
+      }
+    };
+
+    checkImage();
+
+    return () => {
+      active = false;
+    };
+  }, [file.url]);
+
+  const downloadImage = async (e) => {
+    e.stopPropagation();
+
+    if (!navigator.onLine) {
+      toast.error("Connect to internet to download this photo");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const response = await fetch(file.url);
+
+      if (!response.ok) {
+        throw new Error("Image download failed");
+      }
+
+      const cache = await caches.open("chitchat-images");
+
+      await cache.put(
+        file.url,
+        response.clone()
+      );
+
+      const blob = await response.blob();
+      const objectUrl = URL.createObjectURL(blob);
+
+      setImageSrc(objectUrl);
+      setIsCached(true);
+
+      toast.success("Photo downloaded");
+    } catch (error) {
+      console.error("Photo download error:", error);
+      toast.error("Failed to download photo");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (isCached && imageSrc) {
+    return (
+      <img
+        src={imageSrc}
+        alt={file.originalName || "Image"}
+        onClick={onOpen}
+        className="
+          rounded-xl
+          max-h-72
+          max-w-full
+          object-cover
+          cursor-pointer
+          hover:opacity-90
+          transition
+        "
+      />
+    );
+  }
+
+  return (
+    <div
+      className="
+        relative
+        w-[280px]
+        max-w-full
+        h-[180px]
+        rounded-xl
+        overflow-hidden
+        bg-gray-300
+        dark:bg-gray-700
+        flex
+        items-center
+        justify-center
+      "
+    >
+      {/* blurred placeholder */}
+      <div
+        className="
+          absolute inset-0
+          bg-gray-400/40
+          dark:bg-gray-600/50
+          blur-xl
+        "
+      />
+
+      <button
+        type="button"
+        onClick={downloadImage}
+        disabled={loading}
+        className="
+          relative z-10
+          flex items-center
+          gap-2
+          rounded-full
+          bg-black/40
+          hover:bg-black/50
+          text-white
+          px-4 py-3
+          text-sm
+          font-semibold
+          transition
+          disabled:opacity-60
+        "
+      >
+        <span className="text-lg">
+  {downloading ? (
+    <span className="animate-spin">◌</span>
+  ) : (
+    <FaDownload size={17} />
+  )}
+</span>
+
+        <span>
+          {loading
+            ? "Downloading..."
+            : formatFileSize(file.size)}
+        </span>
+      </button>
+    </div>
+  );
+}
+
+function VideoViewer({
+  videoUrl,
+  file,
+  onClose,
+  onDownload,
+}) {
+  const formatFileSize = (bytes) => {
+    if (!bytes) return "";
+
+    if (bytes < 1024) {
+      return `${bytes} B`;
+    }
+
+    if (bytes < 1024 * 1024) {
+      return `${Math.round(bytes / 1024)} kB`;
+    }
+
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+
+    document.addEventListener("keydown", handleEscape);
+
+    // Background scrolling बंद
+    const oldOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+      document.body.style.overflow = oldOverflow;
+    };
+  }, [onClose]);
+
+  return (
+    <div
+      className="
+        fixed inset-0
+        z-[9999]
+        bg-black
+        flex flex-col
+      "
+      onClick={(e) => e.stopPropagation()}
+    >
+      {/* =========================
+          TOP HEADER
+      ========================= */}
+      <div
+        className="
+          flex items-center justify-between
+          px-4 sm:px-8
+          py-4
+          shrink-0
+        "
+      >
+        <div className="flex items-center gap-3 min-w-0">
+          <div
+            className="
+              w-11 h-11
+              rounded-full
+              bg-white/10
+              flex items-center justify-center
+              text-xl
+              shrink-0
+            "
+          >
+            <FaVideo size={20} />
+          </div>
+
+          <div className="min-w-0">
+            <p
+              className="
+                text-white
+                font-semibold
+                text-sm sm:text-base
+                truncate
+                max-w-[220px] sm:max-w-[500px]
+              "
+            >
+              {file.originalName || "Video"}
+            </p>
+
+            {file.size && (
+              <p className="text-gray-400 text-xs mt-1">
+                {formatFileSize(file.size)}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* CLOSE */}
+        <button
+          type="button"
+          onClick={onClose}
+          className="
+            w-10 h-10
+            sm:w-11 sm:h-11
+            rounded-full
+            bg-white/10
+            hover:bg-white/20
+            text-white
+            text-2xl
+            flex items-center justify-center
+            transition
+            shrink-0
+          "
+          aria-label="Close video"
+        >
+          <FaTimes size={18} />
+        </button>
+      </div>
+
+      {/* =========================
+          VIDEO AREA
+      ========================= */}
+      <div
+        className="
+          flex-1
+          min-h-0
+          flex items-center justify-center
+          px-3 sm:px-8
+          py-3
+        "
+      >
+        <video
+          src={videoUrl}
+          controls
+          autoPlay
+          playsInline
+          className="
+            w-auto
+            h-auto
+            max-w-full
+            max-h-full
+            rounded-xl
+            bg-black
+            object-contain
+          "
+        >
+          Your browser does not support video playback.
+        </video>
+      </div>
+
+      {/* =========================
+          BOTTOM ACTION BAR
+      ========================= */}
+      <div
+        className="
+          shrink-0
+          border-t border-white/10
+          px-4 sm:px-8
+          py-4
+          flex justify-end
+        "
+      >
+        <button
+          type="button"
+          onClick={onDownload}
+          className="
+            flex items-center gap-2
+            px-5 py-3
+            rounded-xl
+            border border-white/30
+            bg-white/5
+            hover:bg-white/10
+            text-white
+            font-semibold
+            text-sm
+            transition
+          "
+        >
+          <FaDownload size={16} />
+          <span>Download</span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function CachedAttachment({ file, isMine }) {
+  const [cachedUrl, setCachedUrl] = useState(null);
+  const [isCached, setIsCached] = useState(false);
+  const [checking, setChecking] = useState(true);
+  const [downloading, setDownloading] = useState(false);
+  const objectUrlRef = useRef(null);
+  const [showVideoViewer, setShowVideoViewer] = useState(false);
+  const formatFileSize = (bytes) => {
+    if (!bytes) return "";
+
+    if (bytes < 1024) {
+      return `${bytes} B`;
+    }
+
+    if (bytes < 1024 * 1024) {
+      return `${Math.round(bytes / 1024)} kB`;
+    }
+
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  const getFileLabel = () => {
+    const name = file.originalName || "";
+
+    if (file.type === "video") return "Video";
+    if (file.type === "audio") return "Voice message";
+
+    const extension =
+      name.split(".").pop()?.toUpperCase() || "FILE";
+
+    return extension;
+  };
+
+  const getFileIcon = () => {
+  const name = (file.originalName || "").toLowerCase();
+
+  if (file.type === "video") {
+    return <FaVideo size={20} />;
+  }
+
+  if (file.type === "audio") {
+    return <FaMicrophone size={20} />;
+  }
+
+  if (name.endsWith(".pdf")) {
+    return <FaFilePdf size={21} />;
+  }
+
+  if (
+    name.endsWith(".doc") ||
+    name.endsWith(".docx")
+  ) {
+    return <FaFileWord size={21} />;
+  }
+
+  if (name.endsWith(".txt")) {
+    return <FaFileAlt size={21} />;
+  }
+
+  if (
+    name.endsWith(".zip") ||
+    name.endsWith(".rar") ||
+    name.endsWith(".7z")
+  ) {
+    return <FaFileArchive size={21} />;
+  }
+
+  return <FaFile size={21} />;
+};
+
+  const loadFromCache = async () => {
+    try {
+      setChecking(true);
+
+      if (!("caches" in window)) {
+        setIsCached(false);
+        return;
+      }
+
+      const response = await caches.match(file.url);
+
+      if (!response) {
+        setIsCached(false);
+        setCachedUrl(null);
+        return;
+      }
+
+      const blob = await response.blob();
+      const objectUrl = URL.createObjectURL(blob);
+
+      if (objectUrlRef.current) {
+        URL.revokeObjectURL(objectUrlRef.current);
+      }
+
+      objectUrlRef.current = objectUrl;
+
+      setCachedUrl(objectUrl);
+      setIsCached(true);
+    } catch (error) {
+      console.error("Attachment cache check error:", error);
+      setIsCached(false);
+      setCachedUrl(null);
+    } finally {
+      setChecking(false);
+    }
+  };
+
+  useEffect(() => {
+    loadFromCache();
+
+    return () => {
+      if (objectUrlRef.current) {
+        URL.revokeObjectURL(objectUrlRef.current);
+      }
+    };
+  }, [file.url]);
+
+  const downloadAttachment = async (e) => {
+    e?.stopPropagation();
+
+    if (!navigator.onLine) {
+      toast.error(
+        `Connect to internet to download this ${
+          file.type === "audio"
+            ? "voice message"
+            : file.type
+        }`
+      );
+      return;
+    }
+
+    try {
+      setDownloading(true);
+
+      const response = await fetch(file.url);
+
+      if (!response.ok) {
+        throw new Error("Download failed");
+      }
+
+      const cache = await caches.open(
+        "chitchat-attachments"
+      );
+
+      await cache.put(
+        file.url,
+        response.clone()
+      );
+
+      const blob = await response.blob();
+      const objectUrl = URL.createObjectURL(blob);
+
+      if (objectUrlRef.current) {
+        URL.revokeObjectURL(objectUrlRef.current);
+      }
+
+      objectUrlRef.current = objectUrl;
+
+      setCachedUrl(objectUrl);
+      setIsCached(true);
+
+      toast.success("Downloaded for offline use");
+    } catch (error) {
+      console.error(
+        "Attachment download error:",
+        error
+      );
+
+      toast.error("Failed to download");
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  const downloadToDevice = async (e) => {
+  e.stopPropagation();
+
+  if (!navigator.onLine) {
+    toast.error("Connect to internet to download this file");
+    return;
+  }
+
+  try {
+    const response = await fetch(file.url);
+
+    if (!response.ok) {
+      throw new Error("Download failed");
+    }
+
+    const blob = await response.blob();
+    const blobUrl = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+
+    link.href = blobUrl;
+    link.download = file.originalName || "attachment";
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    URL.revokeObjectURL(blobUrl);
+
+    toast.success("File downloaded");
+  } catch (error) {
+    console.error("File download error:", error);
+    toast.error("Failed to download file");
+  }
+};
+
+const openFile = async (e) => {
+  e.stopPropagation();
+
+  try {
+    let response = null;
+
+    // First try browser cache
+    if ("caches" in window) {
+      response = await caches.match(file.url);
+    }
+
+    // Not cached? Fetch online
+    if (!response) {
+      if (!navigator.onLine) {
+        toast.error("Connect to internet to open this file");
+        return;
+      }
+
+      response = await fetch(file.url);
+
+      if (!response.ok) {
+        throw new Error("Failed to open file");
+      }
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+
+    // PDF ला explicitly application/pdf MIME type देतो
+    const isPdf =
+      file.originalName
+        ?.toLowerCase()
+        .endsWith(".pdf");
+
+    const blob = new Blob(
+      [arrayBuffer],
+      {
+        type: isPdf
+          ? "application/pdf"
+          : response.headers.get("content-type") ||
+            "application/octet-stream",
+      }
+    );
+
+    const blobUrl = URL.createObjectURL(blob);
+
+    window.open(
+      blobUrl,
+      "_blank",
+      "noopener,noreferrer"
+    );
+
+    // लगेच revoke करू नको,
+    // browser ला file load करण्यासाठी वेळ दे
+    setTimeout(() => {
+      URL.revokeObjectURL(blobUrl);
+    }, 60000);
+
+  } catch (error) {
+    console.error("File open error:", error);
+    toast.error("Failed to open file");
+  }
+};
+  // =========================
+// MY SENT ATTACHMENT
+// =========================
+
+if (isMine) {
+  if (file.type === "video") {
+  return (
+    <>
+      {/* CHAT VIDEO PREVIEW */}
+      <div
+        onClick={() => setShowVideoViewer(true)}
+        className="
+          relative
+          rounded-xl
+          overflow-hidden
+          cursor-pointer
+          bg-black
+          max-w-[300px]
+          group
+        "
+      >
+        <video
+          src={file.url}
+          preload="metadata"
+          muted
+          playsInline
+          className="
+            rounded-xl
+            max-h-72
+            w-full
+            object-cover
+          "
+        />
+
+        {/* PLAY BUTTON */}
+        <div
+          className="
+            absolute inset-0
+            flex items-center justify-center
+            bg-black/10
+            group-hover:bg-black/20
+            transition
+          "
+        >
+          <div
+            className="
+              w-14 h-14
+              rounded-full
+              bg-black/55
+              text-white
+              flex items-center justify-center
+              text-2xl
+              backdrop-blur-sm
+            "
+          >
+            <FaPlay size={18} className="ml-0.5" />
+          </div>
+        </div>
+      </div>
+
+      {/* FULL SCREEN VIEWER */}
+      {showVideoViewer && (
+        <VideoViewer
+          videoUrl={file.url}
+          file={file}
+          onClose={() => setShowVideoViewer(false)}
+          onDownload={downloadToDevice}
+        />
+      )}
+    </>
+  );
+}
+
+  if (file.type === "audio") {
+    return (
+      <VoiceMessagePlayer
+        url={file.url}
+        isMine={true}
+        duration={file.duration}
+      />
+    );
+  }
+
+  if (file.type === "file") {
+    return (
+      <a
+        href={file.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={(e) => e.stopPropagation()}
+        className="
+          flex items-center gap-3
+          rounded-xl
+          px-3 py-3
+          min-w-0
+          w-full
+          max-w-full
+          sm:min-w-[240px]
+          sm:max-w-[320px]
+          bg-blue-500
+          hover:bg-blue-400
+          text-white
+          transition
+        "
+      >
+        <div
+          className="
+            w-11 h-11
+            rounded-lg
+            flex items-center justify-center
+            shrink-0
+            text-2xl
+            bg-white/20
+          "
+        >
+          {getFileIcon()}
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold truncate">
+            {file.originalName || "File"}
+          </p>
+
+          <p className="text-xs text-blue-100 mt-1">
+            {getFileLabel()}
+            {file.size
+              ? ` • ${formatFileSize(file.size)}`
+              : ""}
+            {" • Open"}
+          </p>
+        </div>
+
+        <FaExternalLinkAlt size={13} />
+      </a>
+    );
+  }
+}
+  // =========================
+  // CACHED VIDEO
+  // =========================
+
+  if (
+  !checking &&
+  isCached &&
+  cachedUrl &&
+  file.type === "video"
+) {
+  return (
+    <>
+      {/* CHAT VIDEO PREVIEW */}
+      <div
+        onClick={() => setShowVideoViewer(true)}
+        className="
+          relative
+          rounded-xl
+          overflow-hidden
+          cursor-pointer
+          bg-black
+          max-w-[300px]
+          group
+        "
+      >
+        <video
+          src={cachedUrl}
+          preload="metadata"
+          muted
+          playsInline
+          className="
+            rounded-xl
+            max-h-72
+            w-full
+            object-cover
+          "
+        />
+
+        {/* PLAY BUTTON */}
+        <div
+          className="
+            absolute inset-0
+            flex items-center justify-center
+            bg-black/10
+            group-hover:bg-black/20
+            transition
+          "
+        >
+          <div
+            className="
+              w-14 h-14
+              rounded-full
+              bg-black/55
+              text-white
+              flex items-center justify-center
+              text-2xl
+              backdrop-blur-sm
+            "
+          >
+            ▶
+          </div>
+        </div>
+      </div>
+
+      {/* FULL SCREEN VIEWER */}
+      {showVideoViewer && (
+        <VideoViewer
+          videoUrl={cachedUrl}
+          file={file}
+          onClose={() => setShowVideoViewer(false)}
+          onDownload={downloadToDevice}
+        />
+      )}
+    </>
+  );
+}
+
+  // =========================
+  // CACHED VOICE MESSAGE
+  // =========================
+
+  if (
+    !checking &&
+    isCached &&
+    cachedUrl &&
+    file.type === "audio"
+  ) {
+    return (
+      <VoiceMessagePlayer
+        url={cachedUrl}
+        isMine={isMine}
+        duration={file.duration}
+      />
+    );
+  }
+
+   // =========================
+  // CACHED FILE
+  // =========================
+
+  if (
+    !checking &&
+    isCached &&
+    cachedUrl &&
+    file.type === "file"
+  ) {
+    return (
+      <div
+        className={`flex items-center gap-3 rounded-xl px-3 py-3 min-w-0 w-full max-w-full sm:min-w-[240px] sm:max-w-[340px] transition ${
+          isMine
+            ? "bg-blue-500 text-white"
+            : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white"
+        }`}
+      >
+        {/* FILE ICON */}
+        <div
+          className={`w-11 h-11 rounded-lg flex items-center justify-center shrink-0 text-2xl ${
+            isMine
+              ? "bg-white/20"
+              : "bg-white dark:bg-gray-600"
+          }`}
+        >
+          {getFileIcon()}
+        </div>
+
+        {/* FILE INFO */}
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold truncate">
+            {file.originalName || "File"}
+          </p>
+
+          <p
+            className={`text-xs mt-1 ${
+              isMine
+                ? "text-blue-100"
+                : "text-gray-500 dark:text-gray-300"
+            }`}
+          >
+            {getFileLabel()}
+
+            {file.size
+              ? ` • ${formatFileSize(file.size)}`
+              : ""}
+          </p>
+
+          {/* ACTIONS */}
+          <div className="flex items-center gap-3 mt-2">
+
+            {/* OPEN CACHED FILE */}
+        {(
+  file.originalName?.toLowerCase().endsWith(".pdf") ||
+  file.originalName?.toLowerCase().endsWith(".txt")
+) && (
+  <button
+    type="button"
+    onClick={openFile}
+    className="text-xs font-semibold hover:underline"
+  >
+    Open
+  </button>
+)}
+
+            {/* DOWNLOAD TO DEVICE */}
+            <button
+              type="button"
+              onClick={downloadToDevice}
+              className="text-xs font-semibold hover:underline"
+            >
+              Download
+            </button>
+
+          </div>
+        </div>
+
+        <FaExternalLinkAlt size={13} />
+      </div>
+    );
+  }
+
+  // =========================
+  // NOT CACHED
+  // =========================
+
+  return (
+    <div
+      className={`
+        relative
+        overflow-hidden
+        rounded-xl
+        ${
+          file.type === "video"
+            ? "w-[280px] max-w-full h-[180px]"
+            : "w-full min-w-0 sm:min-w-[240px] sm:max-w-[320px]"
+        }
+        ${
+          isMine
+            ? "bg-blue-500"
+            : "bg-gray-100 dark:bg-gray-700"
+        }
+      `}
+    >
+      {file.type === "video" ? (
+        <div className="relative w-full h-full flex items-center justify-center">
+          <div
+            className="
+              absolute inset-0
+              bg-gray-500/50
+              backdrop-blur-xl
+            "
+          />
+
+          <button
+            type="button"
+            onClick={downloadAttachment}
+            disabled={downloading || checking}
+            className="
+              relative z-10
+              flex items-center gap-2
+              px-4 py-3
+              rounded-full
+              bg-black/45
+              hover:bg-black/60
+              text-white
+              text-sm
+              font-semibold
+              transition
+              disabled:opacity-60
+            "
+          >
+            <span className="text-lg">
+             {downloading ? (
+  <span className="animate-spin">◌</span>
+) : (
+  <FaDownload size={16} />
+)}
+            </span>
+
+            <span>
+              {downloading
+                ? "Downloading..."
+                : formatFileSize(file.size) ||
+                  "Video"}
+            </span>
+          </button>
+        </div>
+      ) : (
+        <div className="flex items-center gap-3 px-3 py-3">
+          <div
+            className={`
+              w-11 h-11
+              rounded-lg
+              flex items-center justify-center
+              shrink-0
+              text-2xl
+              ${
+                isMine
+                  ? "bg-white/20"
+                  : "bg-white dark:bg-gray-600"
+              }
+            `}
+          >
+            {getFileIcon()}
+          </div>
+
+          <div className="min-w-0 flex-1">
+            <p
+              className={`text-sm font-semibold truncate ${
+                isMine
+                  ? "text-white"
+                  : "text-gray-800 dark:text-white"
+              }`}
+            >
+              {file.type === "audio"
+                ? "Voice message"
+                : file.originalName || "File"}
+            </p>
+
+            <p
+              className={`text-xs mt-1 ${
+                isMine
+                  ? "text-blue-100"
+                  : "text-gray-500 dark:text-gray-300"
+              }`}
+            >
+              {getFileLabel()}
+
+              {file.size
+                ? ` • ${formatFileSize(file.size)}`
+                : ""}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={downloadAttachment}
+            disabled={downloading || checking}
+            className={`
+              w-10 h-10
+              rounded-full
+              flex items-center justify-center
+              shrink-0
+              text-lg
+              transition
+              ${
+                isMine
+                  ? "bg-white/20 text-white hover:bg-white/30"
+                  : "bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-500"
+              }
+              disabled:opacity-60
+            `}
+            title="Download"
+          >
+            {downloading ? "⏳" : "⇩"}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function VoiceMessagePlayer({ url, isMine, duration: knownDuration }) {
   const audioRef = useRef(null);
@@ -143,6 +1258,7 @@ function MessageBubble({
   onEdit,
   onReaction,
   onSelect,
+  onUnsendPending,
   refreshChatInfo,
   searchQuery,
   isSearchMatch,
@@ -172,6 +1288,23 @@ const imageAttachments =
   message.attachments?.filter(
     (file) => file.type === "image"
   ) || [];
+
+  
+
+  const hasLink =
+  message.text &&
+  /(https?:\/\/[^\s]+|www\.[^\s]+|(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,})/i.test(
+    message.text
+  );
+
+const hasForwardableContent =
+  hasLink ||
+  message.attachments?.length > 0 ||
+  (
+    message.location?.latitude != null &&
+    message.location?.longitude != null
+  ) ||
+  Boolean(message.sharedPost);
 
 const handleDeleteForMe = async () => {
   try {
@@ -411,15 +1544,16 @@ const handleTouchStart = (e) => {
   longPressTriggeredRef.current = false;
 
   longPressTimerRef.current = setTimeout(() => {
-    longPressTriggeredRef.current = true;
+  longPressTriggeredRef.current = true;
 
-    setShowMenu(true);
+  // Open quick reactions on mobile long press
+  setShowEmoji(true);
+  setShowMenu(false);
 
-    // Mobile vibration supported असेल तर
-    if (navigator.vibrate) {
-      navigator.vibrate(40);
-    }
-  }, 500);
+  if (navigator.vibrate) {
+    navigator.vibrate(40);
+  }
+}, 500);
 };
 
 const handleTouchMove = (e) => {
@@ -479,12 +1613,16 @@ const handleTouchEnd = () => {
 
   return (
     <div
-      className={`flex ${
-        isMine
-          ? "justify-end"
-          : "justify-start"
-      } mb-3`}
-    >
+  className={`flex ${
+    isMine
+      ? "justify-end"
+      : "justify-start"
+  } ${
+    message.reactions?.length > 0
+      ? "mb-7"
+      : "mb-3"
+  }`}
+>
 
       {fullImage && (
   <div
@@ -513,8 +1651,14 @@ const handleTouchEnd = () => {
       onTouchStart={handleTouchStart}
   onTouchMove={handleTouchMove}
   onTouchEnd={handleTouchEnd}
-  id={`message-${message._id}`}
- className={`relative group min-w-0 max-w-[85%] sm:max-w-[70%] rounded-2xl px-4 py-3 shadow transition-all ${
+  onContextMenu={(e) => {
+  e.preventDefault();
+  e.stopPropagation();
+
+  setShowMenu(true);
+  setShowEmoji(false);
+}}
+  id={`message-${message._id}`}className={`relative min-w-0 max-w-[85%] sm:max-w-[70%] rounded-2xl px-4 py-3 shadow transition-all ${
      isSearchMatch
       ? "ring-4 ring-yellow-400 ring-offset-2"
       : ""
@@ -525,24 +1669,207 @@ const handleTouchEnd = () => {
   }`}
 >
         
-        {/* Reply Button */}
-<button
-  onClick={() => onReply(message)}
-  className="absolute -bottom-2 -right-2 hidden group-hover:flex bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 p-2 rounded-full shadow"
->
-  <FaReply size={12} />
-</button>
 
-{/* Three Dot Menu Button */}
+{/* Quick Reaction Button - Desktop */}
 {!message.deletedForEveryone && !message.pending && (
   <button
-  ref={menuButtonRef}
-  onClick={() => setShowMenu((prev) => !prev)}
-  className="hidden md:block absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition"
->
-  <FaEllipsisV size={14} />
-</button>
+    type="button"
+    onClick={(e) => {
+      e.stopPropagation();
+      setShowEmoji((prev) => !prev);
+      setShowMenu(false);
+    }}
+    className={`
+  absolute
+  top-1/2 -translate-y-1/2
+
+  ${
+  hasForwardableContent
+    ? isMine
+      ? "-left-20"
+      : "-right-20"
+    : isMine
+    ? "-left-10"
+    : "-right-10"
+}
+
+  hidden md:flex
+  w-8 h-8
+  items-center justify-center
+
+  rounded-full
+  bg-gray-700/90
+  text-white
+  shadow-md
+
+  opacity-0
+  group-hover:opacity-100
+  pointer-events-none
+  group-hover:pointer-events-auto
+
+  hover:bg-gray-600
+  hover:scale-110
+
+  transition-all
+  duration-150
+  z-50
+`}
+    title="React"
+  >
+    <FaSmile size={16} />
+  </button>
 )}
+
+{/* WhatsApp Style Quick Reaction Bar */}
+{showEmoji && (
+  <div
+    onClick={(e) => e.stopPropagation()}
+    className={`
+      absolute
+      z-[100]
+
+      ${isMine ? "right-0" : "left-0"}
+      -top-14
+
+      flex items-center gap-1
+
+      px-2 py-1.5
+
+      bg-white
+      dark:bg-gray-800
+
+      border border-gray-200
+      dark:border-gray-700
+
+      rounded-full
+      shadow-xl
+
+      whitespace-nowrap
+    `}
+  >
+    {emojis.map((emoji) => (
+      <button
+        type="button"
+        key={emoji}
+        onClick={() => handleReaction(emoji)}
+        className="
+          w-9 h-9
+          flex items-center justify-center
+          text-xl
+          rounded-full
+
+          hover:bg-gray-100
+          dark:hover:bg-gray-700
+
+          hover:scale-125
+          transition-all
+        "
+      >
+        {emoji}
+      </button>
+    ))}
+
+    <button
+      type="button"
+      onClick={() => {
+        setShowEmoji(false);
+        setShowMenu(true);
+      }}
+      className="
+        w-9 h-9
+        flex items-center justify-center
+
+        rounded-full
+
+        text-xl
+        text-gray-600
+        dark:text-gray-200
+
+        hover:bg-gray-100
+        dark:hover:bg-gray-700
+
+        transition
+      "
+      title="More reactions"
+    >
+      +
+    </button>
+  </div>
+)}
+
+{/* Forward Button - Link / Media / Location / Shared Post */}
+{hasForwardableContent &&
+  !message.deletedForEveryone &&
+  !message.pending && (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation();
+
+        setShowForward(true);
+        setShowMenu(false);
+        setShowEmoji(false);
+      }}
+      className={`
+        flex
+        absolute
+        top-1/2 -translate-y-1/2
+
+        ${isMine ? "-left-10" : "-right-10"}
+
+        w-8 h-8
+        items-center justify-center
+
+        rounded-full
+        bg-gray-700/90
+        text-white
+        shadow-md
+
+        hover:bg-gray-600
+        hover:scale-110
+
+        transition-all
+        z-40
+      `}
+      title="Forward"
+    >
+      <FaShare size={14} />
+    </button>
+)}
+
+{/* Message Menu Arrow */}
+
+  <button
+    ref={menuButtonRef}
+    type="button"
+    onClick={(e) => {
+      e.stopPropagation();
+      setShowMenu((prev) => !prev);
+      setShowEmoji(false);
+    }}
+    className={`
+      absolute top-2 right-2
+      w-7 h-7
+      items-center justify-center
+      rounded-full
+
+      bg-white/90 dark:bg-gray-700/90
+      text-gray-700 dark:text-gray-200
+      shadow-sm
+
+      hidden md:flex
+      opacity-0
+      group-hover:opacity-100
+
+      hover:bg-white
+      dark:hover:bg-gray-600
+      transition-all
+      z-40
+    `}
+    title="Message options"
+  >
+    <FaChevronDown size={13} />
+  </button>
 
 {/* =========================
     NORMAL LOCATION
@@ -732,10 +2059,10 @@ const handleTouchEnd = () => {
 
           {/* Image */}
  {file.type === "image" && (
-  <img
-    src={file.url}
-    alt={file.originalName || "Image"}
-    onClick={() => {
+  <CachedChatImage
+    file={file}
+    isMine={isMine}
+    onOpen={() => {
       const index = imageAttachments.findIndex(
         (img) => img.url === file.url
       );
@@ -743,95 +2070,32 @@ const handleTouchEnd = () => {
       setFullImageIndex(index >= 0 ? index : 0);
       setFullImage(file.url);
     }}
-    className="rounded-xl max-h-72 max-w-full object-cover cursor-pointer hover:opacity-90 transition"
   />
 )}
 
           {/* Video */}
-          {file.type === "video" && (
-            <video 
-              controls
-              className="rounded-xl max-h-72 max-w-full"
-            >
-              <source src={file.url} />
-              Your browser does not support video playback.
-            </video>
-          )}
-
-          {/* Voice Message */}
-          {file.type === "audio" && (
-            <VoiceMessagePlayer
-              url={file.url}
-              isMine={isMine}
-              duration={file.duration}
-            />
-          )}
-
-          {/* File / PDF / DOC / TXT / ZIP */}
-          {file.type === "file" && (
-  <a
-    href={file.url}
-    target="_blank"
-    rel="noopener noreferrer"
- className={`flex items-center gap-3 rounded-xl px-3 py-3 min-w-0 w-full max-w-full sm:min-w-[240px] sm:max-w-[320px] transition ${
-        isMine
-        ? "bg-blue-500 hover:bg-blue-400 text-white"
-        : "bg-gray-100 hover:bg-gray-200 text-gray-800"
-    }`}
-  >
-    {/* PDF / File Icon */}
-    <div
-      className={`w-11 h-11 rounded-lg flex items-center justify-center shrink-0 ${
-        isMine
-          ? "bg-white/20"
-          : "bg-white"
-      }`}
-    >
-      <span className="text-2xl"><FaRegFileImage/></span>
-    </div>
-
-    {/* File Details */}
-    <div className="min-w-0 flex-1">
-      <p
-        className={`text-sm font-semibold truncate ${
-          isMine ? "text-white" : "text-gray-800"
-        }`}
-        title={file.originalName || "File"}
-      >
-        {file.originalName || "File"}
-      </p>
-
-      <div className="flex items-center gap-2 mt-1">
-        {file.size && (
-          <span
-            className={`text-xs ${
-              isMine ? "text-blue-100" : "text-gray-500"
-            }`}
-          >
-            {(file.size / 1024 / 1024).toFixed(2)} MB
-          </span>
-        )}
-
-        <span
-          className={`text-xs ${
-            isMine ? "text-blue-100" : "text-gray-500"
-          }`}
-        >
-          • Open
-        </span>
-      </div>
-    </div>
-
-    {/* Open icon */}
-    <FaExternalLinkAlt
-      size={13}
-      className={`shrink-0 ${
-        isMine ? "text-white" : "text-gray-500"
-      }`}
-    />
-  </a>
+        {file.type === "video" && (
+  <CachedAttachment
+    file={file}
+    isMine={isMine}
+  />
 )}
 
+          {/* Voice Message */}
+         {file.type === "audio" && (
+  <CachedAttachment
+    file={file}
+    isMine={isMine}
+  />
+)}
+
+          {/* File / PDF / DOC / TXT / ZIP */}
+{file.type === "file" && (
+  <CachedAttachment
+    file={file}
+    isMine={isMine}
+  />
+)}
         </div>
       ))}
     </div>
@@ -840,11 +2104,11 @@ const handleTouchEnd = () => {
 {showMenu && (
   <div
     ref={menuRef}
+    onClick={(e) => e.stopPropagation()}
     className="
       fixed
       left-1/2 top-1/2
       -translate-x-1/2 -translate-y-1/2
-
       w-56
       bg-white dark:bg-gray-800
       text-gray-900 dark:text-white
@@ -853,143 +2117,307 @@ const handleTouchEnd = () => {
       border border-gray-200 dark:border-gray-700
       z-[9999]
       overflow-hidden
+      py-1
     "
   >
 
-
-    <button
-      onClick={handleDeleteForMe}
-      className="w-full text-left px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-    >
-      <span className="inline-flex items-center gap-1">
-      <FaTrash/> Delete for Me
-      </span>
-    </button>
-
-    <button
-onClick={()=>{
-handleCopy();
-setShowMenu(false);
-}}
-className="w-full text-left px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
->
-  <span className="inline-flex items-center gap-1">
-
-<FaCopy/> Copy
-  </span>
-</button>
-
-<button
-  onClick={async () => {
-    try {
-      const { data } = await api.post(
-        `/messages/${message._id}/star`
-      );
-      onEdit({
-        ...message,
-        starredBy: data.starred
-          ? [...(message.starredBy || []), user._id]
-          : (message.starredBy || []).filter(
-              (id) => id !== user._id
-            ),
-      });
-      setShowMenu(false);
-      toast.success(data.starred ? "Message starred" : "Message unstarred");
-    } catch (err) {
-      toast.error("Failed to star message");
-    }
-  }}
-  className="w-full text-left px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
->
-  {message.starredBy?.includes(user._id) ? "⭐ Unstar" : "☆ Star Message"}
-</button>
-
-<button
-  onClick={() => {
-    setShowForward(true);
-    setShowMenu(false);
-  }}
-  className="w-full text-left px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
->
-  <span className="inline-flex items-center gap-1">
-
-  <FaArrowRight/> Forward
-  </span>
-</button>
-
-<button
-  onClick={async () => {
-    try {
-      await api.post(
-        `/chat/${message.chat}/pin/${message._id}`
-      );
-
-      await refreshChatInfo();
-
-      setShowMenu(false);
-
-      toast.success("Message pinned");
-    } catch (err) {
-      toast.error("Failed to pin");
-    }
-  }}
-  className="w-full text-left px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
->
-  📌 Pin Message
-</button>
-
-<button
-  onClick={handleCreateTask}
-  className="w-full text-left px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-800"
->
-  <span className="inline-flex items-center gap-1">
-
-  <FaCheck/> Create Task
-  </span>
-</button>
-
-    {isMine && (
+    {message.pending ? (
+  <>
+    {/* COPY */}
+    {message.text && (
       <button
-        onClick={handleDeleteForEveryone}
-        className="w-full text-left px-4 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30"
+        type="button"
+        onClick={() => {
+          handleCopy();
+          setShowMenu(false);
+        }}
+        className="
+          w-full flex items-center gap-3
+          px-4 py-2.5
+          text-left text-sm
+          hover:bg-gray-100
+          dark:hover:bg-gray-700
+        "
       >
-        <span className="inline-flex items-center gap-1">
-
-        <FaTrash/>
-         Delete for Everyone
-        </span>
+        <FaCopy />
+        Copy
       </button>
     )}
 
-    {isMine && (
-<button
-onClick={()=>{
-setEditing(true);
-setShowMenu(false);
-}}
-className="w-full text-left px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
->
-  <span className="inline-flex items-center gap-1">
+    {/* UNSEND PENDING MESSAGE */}
+    <div className="border-t border-gray-200 dark:border-gray-700 mt-1">
+      <button
+        type="button"
+        onClick={() => {
+          setShowMenu(false);
+          onUnsendPending?.(message);
+        }}
+        className="
+          w-full flex items-center gap-3
+          px-4 py-2.5
+          text-left text-sm
+          text-red-500
+          hover:bg-red-50
+          dark:hover:bg-red-950/30
+        "
+      >
+        <FaTrash />
+        Unsend
+      </button>
+    </div>
+  </>
+) : message.deletedForEveryone ? (
 
-<FaPen/> Edit Message
-  </span>
-</button>
-)}
+      /* DELETED MESSAGE → ONLY DELETE */
+      <button
+        type="button"
+        onClick={() => {
+          setShowMenu(false);
+          onSelect(message._id);
+        }}
+        className="
+          w-full
+          flex items-center gap-3
+          px-4 py-3
+          text-left text-sm
+          hover:bg-gray-100
+          dark:hover:bg-gray-700
+        "
+      >
+        <FaTrash />
+        Delete
+      </button>
 
-<button
+    ) : (
+      <>
+        {/* इथे तुझे EXISTING menu buttons ठेव */}
+
+        {/* REPLY */}
+    <button
+      type="button"
+      onClick={() => {
+        onReply(message);
+        setShowMenu(false);
+      }}
+      className="
+        w-full flex items-center gap-3
+        px-4 py-2.5
+        text-left text-sm
+        hover:bg-gray-100
+        dark:hover:bg-gray-700
+      "
+    >
+      <FaReply />
+      Reply
+    </button>
+
+    {/* COPY */}
+    {message.text && (
+      <button
+        type="button"
+        onClick={() => {
+          handleCopy();
+          setShowMenu(false);
+        }}
+        className="
+          w-full flex items-center gap-3
+          px-4 py-2.5
+          text-left text-sm
+          hover:bg-gray-100
+          dark:hover:bg-gray-700
+        "
+      >
+        <FaCopy />
+        Copy
+      </button>
+    )}
+
+    {/* REACT */}
+    <button
+      type="button"
+      onClick={() => {
+        setShowMenu(false);
+        setShowEmoji(true);
+      }}
+      className="
+        w-full flex items-center gap-3
+        px-4 py-2.5
+        text-left text-sm
+        hover:bg-gray-100
+        dark:hover:bg-gray-700
+      "
+    >
+      <FaSmile />
+      React
+    </button>
+
+    {/* FORWARD */}
+    <button
+      type="button"
+      onClick={() => {
+        setShowForward(true);
+        setShowMenu(false);
+      }}
+      className="
+        w-full flex items-center gap-3
+        px-4 py-2.5
+        text-left text-sm
+        hover:bg-gray-100
+        dark:hover:bg-gray-700
+      "
+    >
+      <FaArrowRight />
+      Forward
+    </button>
+
+    {/* PIN */}
+    <button
+      type="button"
+      onClick={async () => {
+        try {
+          await api.post(
+            `/chat/${message.chat}/pin/${message._id}`
+          );
+
+          await refreshChatInfo();
+
+          setShowMenu(false);
+          toast.success("Message pinned");
+        } catch (err) {
+          toast.error("Failed to pin");
+        }
+      }}
+      className="
+        w-full flex items-center gap-3
+        px-4 py-2.5
+        text-left text-sm
+        hover:bg-gray-100
+        dark:hover:bg-gray-700
+      "
+    >
+      📌
+      <span>Pin Message</span>
+    </button>
+
+    {/* CREATE TASK */}
+    <button
+      type="button"
+      onClick={() => {
+        handleCreateTask();
+        setShowMenu(false);
+      }}
+      className="
+        w-full flex items-center gap-3
+        px-4 py-2.5
+        text-left text-sm
+        hover:bg-gray-100
+        dark:hover:bg-gray-700
+      "
+    >
+      <FaCheck />
+      Create Task
+    </button>
+
+    {/* STAR */}
+    <button
+      type="button"
+      onClick={async () => {
+        try {
+          const { data } = await api.post(
+            `/messages/${message._id}/star`
+          );
+
+          onEdit({
+            ...message,
+            starredBy: data.starred
+              ? [...(message.starredBy || []), user._id]
+              : (message.starredBy || []).filter(
+                  (id) => id !== user._id
+                ),
+          });
+
+          setShowMenu(false);
+
+          toast.success(
+            data.starred
+              ? "Message starred"
+              : "Message unstarred"
+          );
+        } catch (err) {
+          toast.error("Failed to star message");
+        }
+      }}
+      className="
+        w-full flex items-center gap-3
+        px-4 py-2.5
+        text-left text-sm
+        hover:bg-gray-100
+        dark:hover:bg-gray-700
+      "
+    >
+      <span>
+        {message.starredBy?.includes(user._id)
+          ? "⭐"
+          : "☆"}
+      </span>
+
+      {message.starredBy?.includes(user._id)
+        ? "Unstar Message"
+        : "Star Message"}
+    </button>
+
+    {/* EDIT - ONLY MY MESSAGE */}
+    {isMine && message.text && (
+      <button
+        type="button"
+        onClick={() => {
+          setEditing(true);
+          setShowMenu(false);
+        }}
+        className="
+          w-full flex items-center gap-3
+          px-4 py-2.5
+          text-left text-sm
+          hover:bg-gray-100
+          dark:hover:bg-gray-700
+        "
+      >
+        <FaPen />
+        Edit Message
+      </button>
+    )}
+
+    {/* DELETE */}
+    <div className="border-t border-gray-200 dark:border-gray-700 mt-1">
+
+    <button
+  type="button"
   onClick={() => {
-  setShowEmoji(!showEmoji);
-  setShowMenu(false);
-}}
-  className="w-full text-left px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+    setShowMenu(false);
+    onSelect(message._id);
+  }}
+  className="
+    w-full flex items-center gap-3
+    px-4 py-2.5
+    text-left text-sm
+    text-red-500
+    hover:bg-red-50
+    dark:hover:bg-red-950/30
+  "
 >
-  ❤️ React
+  <FaTrash />
+  Delete
 </button>
+
+    </div>
+
+   </>
+    )}
 
   </div>
 )}
 
-{showEmoji && (
+{/* {showEmoji && (
   <div className="absolute top-10 left-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg rounded-lg flex p-2 gap-2 z-50">
     {emojis.map((emoji) => (
       <button
@@ -1001,7 +2429,7 @@ className="w-full text-left px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-
       </button>
     ))}
   </div>
-)}
+)} */}
 
 
         {/* Reply Preview */}
@@ -1145,11 +2573,25 @@ className="w-full text-left px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-
 )}
 
 {message.reactions?.length > 0 && (
-  <div className="flex gap-1 mt-2 flex-wrap">
+  <div
+    className={`
+      absolute
+      -bottom-4
+      ${isMine ? "right-2" : "left-2"}
+      z-30
+
+      flex items-center
+      bg-gray-700 dark:bg-gray-700
+      border border-gray-600
+      rounded-full
+      shadow-md
+      px-1.5 py-0.5
+    `}
+  >
     {message.reactions.map((reaction, index) => (
       <span
         key={index}
-        className="bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-2 rounded-full text-sm shadow"
+        className="text-sm leading-none"
       >
         {reaction.emoji}
       </span>
