@@ -10,6 +10,7 @@ import Notification from "../models/Notification.js";
 import User from "../models/User.js";
 import { sendPushToUser } from "../services/webPush.js";
 import { getActiveChat } from "../socket/socket.js";
+import { getIO } from "../socket/socket.js";
 // import OpenAI from "openai";
 
 // const openai = new OpenAI({
@@ -475,7 +476,9 @@ export const editMessage = async (req, res) => {
   try {
     const { text } = req.body;
 
-    const message = await Message.findById(req.params.messageId);
+    const message = await Message.findById(
+      req.params.messageId
+    );
 
     if (!message) {
       return res.status(404).json({
@@ -484,17 +487,65 @@ export const editMessage = async (req, res) => {
       });
     }
 
-    if (message.sender.toString() !== req.user._id.toString()) {
+    // Only sender can edit
+    if (
+      message.sender.toString() !==
+      req.user._id.toString()
+    ) {
       return res.status(403).json({
         success: false,
         message: "Unauthorized",
       });
     }
 
+    // =========================
+    // UPDATE MESSAGE
+    // =========================
+
     message.text = text;
     message.isEdited = true;
 
     await message.save();
+
+    // =========================
+    // POPULATE SENDER
+    // =========================
+
+    await message.populate(
+      "sender",
+      "name username profilePic"
+    );
+
+    // =========================
+    // GET CHAT PARTICIPANTS
+    // =========================
+
+    const chat = await Chat.findById(
+      message.chat
+    ).select("participants");
+
+    // =========================
+    // REAL-TIME EDIT
+    // =========================
+
+    if (chat) {
+      const io = getIO();
+
+      chat.participants.forEach(
+        (participantId) => {
+          io.to(
+            participantId.toString()
+          ).emit(
+            "messageEdited",
+            message
+          );
+        }
+      );
+    }
+
+    // =========================
+    // RESPONSE
+    // =========================
 
     res.status(200).json({
       success: true,
@@ -502,6 +553,11 @@ export const editMessage = async (req, res) => {
     });
 
   } catch (error) {
+    console.error(
+      "EDIT MESSAGE ERROR:",
+      error
+    );
+
     res.status(500).json({
       success: false,
       message: error.message,
@@ -732,17 +788,32 @@ export const reactToMessage = async (req, res) => {
 
     await message.save();
 
-    const updatedMessage = await Message.findById(
-      message._id
-    ).populate(
-      "sender",
-      "name username profilePic"
-    );
+const updatedMessage = await Message.findById(
+  message._id
+).populate(
+  "sender",
+  "name username profilePic"
+);
 
-    return res.status(200).json({
-      success: true,
-      message: updatedMessage,
-    });
+// =========================
+// REAL-TIME REACTION UPDATE
+// =========================
+
+const chat = await Chat.findById(message.chat);
+
+if (chat) {
+  chat.participants.forEach((participantId) => {
+    io.to(participantId.toString()).emit(
+      "messageReactionUpdated",
+      updatedMessage
+    );
+  });
+}
+
+return res.status(200).json({
+  success: true,
+  message: updatedMessage,
+});
 
   } catch (error) {
     return res.status(500).json({
