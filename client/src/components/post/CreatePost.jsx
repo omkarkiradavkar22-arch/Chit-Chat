@@ -4,7 +4,7 @@ import api from "../../services/api";
 import { toast } from "react-hot-toast";
 import { useTheme } from "../../context/ThemeContext";
 
-function CreatePost() {
+function CreatePost({ onPostCreated }) {
   const fileInput = useRef(null);
 
   const { theme } = useTheme();
@@ -43,11 +43,15 @@ function CreatePost() {
         formData.append("images", image);
       });
 
-      await api.post("/posts", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+const { data } = await api.post("/posts", formData, {
+  headers: {
+    "Content-Type": "multipart/form-data",
+  },
+});
+
+if (data.post && onPostCreated) {
+  onPostCreated(data.post);
+}
 
       toast.success("Post created successfully");
 
