@@ -91,13 +91,21 @@ if (req.files && req.files.length > 0) {
     // MUST upload as resource_type "video", not "auto", otherwise
     // Cloudinary can misclassify the webm/opus file and serve it with
     // the wrong Content-Type, which silently breaks <audio> playback.
-    const resourceType = type === "audio" ? "video" : "auto";
+   let resourceType = "auto";
 
-    const result = await uploadToCloudinary(
-      file.buffer,
-      "messages",
-      resourceType
-    );
+if (type === "audio") {
+  // Voice/audio files
+  resourceType = "video";
+} else if (type === "file") {
+  // PDF / DOC / DOCX / TXT / ZIP
+  resourceType = "raw";
+}
+
+const result = await uploadToCloudinary(
+  file.buffer,
+  "messages",
+  resourceType
+);
 
     attachments.push({
       public_id: result.public_id,
@@ -685,7 +693,9 @@ export const reactToMessage = async (req, res) => {
   try {
     const { emoji } = req.body;
 
-    const message = await Message.findById(req.params.messageId);
+    const message = await Message.findById(
+      req.params.messageId
+    );
 
     if (!message) {
       return res.status(404).json({
@@ -694,30 +704,48 @@ export const reactToMessage = async (req, res) => {
       });
     }
 
-    // Remove old reaction from same user
-    message.reactions = message.reactions.filter(
+    const userId = req.user._id.toString();
+
+    // Find current user's existing reaction
+    const existingReaction = message.reactions.find(
       (reaction) =>
-        reaction.user.toString() !== req.user._id.toString()
+        reaction.user.toString() === userId
     );
 
-    // Add new reaction
-    message.reactions.push({
-      user: req.user._id,
-      emoji,
-    });
+    // Remove current user's old reaction
+    message.reactions = message.reactions.filter(
+      (reaction) =>
+        reaction.user.toString() !== userId
+    );
+
+    // If same emoji was clicked again:
+    // don't add it back = reaction removed
+    if (
+      !existingReaction ||
+      existingReaction.emoji !== emoji
+    ) {
+      message.reactions.push({
+        user: req.user._id,
+        emoji,
+      });
+    }
 
     await message.save();
 
-    const updatedMessage = await Message.findById(message._id)
-      .populate("sender", "name username profilePic");
+    const updatedMessage = await Message.findById(
+      message._id
+    ).populate(
+      "sender",
+      "name username profilePic"
+    );
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: updatedMessage,
     });
 
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
