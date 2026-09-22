@@ -12,6 +12,8 @@ import UserCard from "../components/search/UserCard";
 import api from "../services/api";
 import { toast } from "react-hot-toast";
 
+const EXPLORE_CACHE_KEY = "chitchat_explore_feed_cache";
+
 function Explore() {
   // =========================
   // EXPLORE POSTS
@@ -36,62 +38,144 @@ function Explore() {
   const [searchLoading, setSearchLoading] =
     useState(false);
 
-  // =========================
-  // GET EXPLORE POSTS
-  // =========================
+ // =========================
+// GET EXPLORE POSTS
+// =========================
 
-  const getExplorePosts = useCallback(
-    async (pageNumber) => {
-      if (fetchingRef.current) return;
+const getExplorePosts = useCallback(
+  async (pageNumber) => {
+    if (fetchingRef.current) return;
 
-      try {
-        fetchingRef.current = true;
+    try {
+      fetchingRef.current = true;
 
+      if (pageNumber === 1) {
+        setLoading(true);
+      } else {
+        setLoadingMore(true);
+      }
+
+      // =========================
+      // OFFLINE → LOAD CACHE
+      // =========================
+
+      if (!navigator.onLine) {
         if (pageNumber === 1) {
-          setLoading(true);
-        } else {
-          setLoadingMore(true);
+          const cachedData = localStorage.getItem(
+            EXPLORE_CACHE_KEY
+          );
+
+          if (cachedData) {
+            try {
+              const parsedData = JSON.parse(cachedData);
+
+              setPosts(parsedData.posts || []);
+              setHasMore(false);
+            } catch (error) {
+              console.error(
+                "Explore cache parse error:",
+                error
+              );
+
+              setPosts([]);
+              setHasMore(false);
+            }
+          } else {
+            setPosts([]);
+            setHasMore(false);
+          }
         }
 
-        const { data } = await api.get(
-          `/posts/explore?page=${pageNumber}&limit=12`
+        return;
+      }
+
+      // =========================
+      // ONLINE → API
+      // =========================
+
+      const { data } = await api.get(
+        `/posts/explore?page=${pageNumber}&limit=12`
+      );
+
+      if (pageNumber === 1) {
+        const firstPagePosts = data.posts || [];
+
+        setPosts(firstPagePosts);
+
+        // Save first page for offline use
+        localStorage.setItem(
+          EXPLORE_CACHE_KEY,
+          JSON.stringify({
+            posts: firstPagePosts,
+            cachedAt: Date.now(),
+          })
+        );
+      } else {
+        setPosts((prevPosts) => {
+          // Prevent duplicate posts
+          const existingIds = new Set(
+            prevPosts.map((post) => post._id)
+          );
+
+          const newPosts = (data.posts || []).filter(
+            (post) => !existingIds.has(post._id)
+          );
+
+          return [
+            ...prevPosts,
+            ...newPosts,
+          ];
+        });
+      }
+
+      setHasMore(Boolean(data.hasMore));
+    } catch (error) {
+      console.error(
+        "Explore posts error:",
+        error
+      );
+
+      // =========================
+      // NETWORK ERROR → CACHE FALLBACK
+      // =========================
+
+      if (pageNumber === 1) {
+        const cachedData = localStorage.getItem(
+          EXPLORE_CACHE_KEY
         );
 
-        if (pageNumber === 1) {
-          setPosts(data.posts);
-        } else {
-          setPosts((prevPosts) => {
-            // Prevent duplicate posts
-            const existingIds = new Set(
-              prevPosts.map((post) => post._id)
-            );
+        if (cachedData) {
+          try {
+            const parsedData = JSON.parse(cachedData);
 
-            const newPosts = data.posts.filter(
-              (post) =>
-                !existingIds.has(post._id)
-            );
+            setPosts(parsedData.posts || []);
+            setHasMore(false);
 
-            return [
-              ...prevPosts,
-              ...newPosts,
-            ];
-          });
+            return;
+          } catch (cacheError) {
+            console.error(
+              "Explore cache parse error:",
+              cacheError
+            );
+          }
         }
+      }
 
-        setHasMore(data.hasMore);
-      } catch (error) {
+      // Don't show unnecessary error toast while offline
+      if (navigator.onLine) {
         toast.error(
           error.response?.data?.message ||
             "Failed to load explore posts"
         );
-      } finally {
-        fetchingRef.current = false;
-        setLoading(false);
-        setLoadingMore(false);
       }
-    },
-    []
-  );
+    } finally {
+      fetchingRef.current = false;
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  },
+  []
+);
 
   // =========================
   // LOAD FIRST PAGE
@@ -109,15 +193,16 @@ function Explore() {
     const target = observerRef.current;
 
     // Don't load posts while searching users
-    if (
-      !target ||
-      loading ||
-      loadingMore ||
-      !hasMore ||
-      keyword.trim()
-    ) {
-      return;
-    }
+   if (
+  !target ||
+  loading ||
+  loadingMore ||
+  !hasMore ||
+  keyword.trim() ||
+  !navigator.onLine
+) {
+  return;
+}
 
     const observer = new IntersectionObserver(
       (entries) => {
