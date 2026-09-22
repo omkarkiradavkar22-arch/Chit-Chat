@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import {
+  useLocation,
+  useParams,
+} from "react-router-dom";
+
 import Layout from "../components/layouts/Layout";
 import PostCard from "../components/post/PostCard";
 import api from "../services/api";
@@ -7,10 +11,24 @@ import { toast } from "react-hot-toast";
 
 function Post() {
   const { id } = useParams();
+  const location = useLocation();
 
   const [post, setPost] = useState(null);
-  const [explorePosts, setExplorePosts] = useState([]);
+  const [morePosts, setMorePosts] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // =========================
+  // PROFILE SOURCE
+  // =========================
+
+  const profileSource =
+    location.state?.source === "profile";
+
+  const sourceType =
+    location.state?.sourceType || null;
+
+  const sourcePosts =
+    location.state?.posts || [];
 
   // =========================
   // GET SELECTED POST
@@ -18,7 +36,28 @@ function Post() {
 
   const getPost = async () => {
     try {
-      const { data } = await api.get(`/posts/${id}`);
+      // =================================
+      // PROFILE → USE ALREADY LOADED POST
+      // =================================
+
+      if (profileSource && sourcePosts.length > 0) {
+        const selectedPost = sourcePosts.find(
+          (item) => String(item._id) === String(id)
+        );
+
+        if (selectedPost) {
+          setPost(selectedPost);
+          return;
+        }
+      }
+
+      // =================================
+      // NORMAL / DIRECT LINK → API
+      // =================================
+
+      const { data } = await api.get(
+        `/posts/${id}`
+      );
 
       setPost(data.post);
     } catch (error) {
@@ -30,26 +69,61 @@ function Post() {
   };
 
   // =========================
-  // GET OTHER EXPLORE POSTS
+  // GET MORE POSTS
   // =========================
 
-  const getExplorePosts = async () => {
+  const getMorePosts = async () => {
+    // =================================
+    // PROFILE POSTS / LIKED / SAVED
+    // =================================
+
+    if (profileSource && sourcePosts.length > 0) {
+      const selectedIndex =
+        sourcePosts.findIndex(
+          (item) =>
+            String(item._id) === String(id)
+        );
+
+      if (selectedIndex !== -1) {
+        // Only posts AFTER selected post
+        const remainingPosts =
+          sourcePosts.slice(selectedIndex + 1);
+
+        setMorePosts(remainingPosts);
+      } else {
+        setMorePosts([]);
+      }
+
+      return;
+    }
+
+    // =================================
+    // DIRECT POST LINK → EXPLORE POSTS
+    // =================================
+
     try {
-      const { data } = await api.get("/posts/explore");
-
-      // Remove selected post
-      const filteredPosts = data.posts.filter(
-        (item) => item._id !== id
+      const { data } = await api.get(
+        "/posts/explore"
       );
 
-      // Randomize posts
-      const shuffledPosts = [...filteredPosts].sort(
-        () => Math.random() - 0.5
-      );
+      const filteredPosts =
+        (data.posts || []).filter(
+          (item) =>
+            String(item._id) !== String(id)
+        );
 
-      setExplorePosts(shuffledPosts);
+      const shuffledPosts = [
+        ...filteredPosts,
+      ].sort(() => Math.random() - 0.5);
+
+      setMorePosts(shuffledPosts);
     } catch (error) {
-      console.log("Explore posts error:", error);
+      console.log(
+        "Explore posts error:",
+        error
+      );
+
+      setMorePosts([]);
     }
   };
 
@@ -64,7 +138,7 @@ function Post() {
 
         await Promise.all([
           getPost(),
-          getExplorePosts()
+          getMorePosts(),
         ]);
       } finally {
         setLoading(false);
@@ -73,6 +147,26 @@ function Post() {
 
     loadPosts();
   }, [id]);
+
+  // =========================
+  // SECTION TITLE
+  // =========================
+
+  const getSectionTitle = () => {
+    if (!profileSource) {
+      return "More posts";
+    }
+
+    if (sourceType === "liked") {
+      return "More liked posts";
+    }
+
+    if (sourceType === "saved") {
+      return "More saved posts";
+    }
+
+    return "More posts from this profile";
+  };
 
   return (
     <Layout>
@@ -92,27 +186,32 @@ function Post() {
                 SELECTED POST
             ========================= */}
 
-            <PostCard post={post} />
+            <PostCard
+              post={post}
+              priority={true}
+            />
 
             {/* =========================
                 MORE POSTS
             ========================= */}
 
-            {explorePosts.length > 0 && (
+            {morePosts.length > 0 && (
               <div className="mt-8">
 
                 <div className="flex items-center gap-3 mb-5">
+
                   <div className="h-px flex-1 bg-gray-300 dark:bg-gray-700" />
 
                   <p className="text-sm font-semibold text-gray-500 dark:text-gray-400">
-                    More posts
+                    {getSectionTitle()}
                   </p>
 
                   <div className="h-px flex-1 bg-gray-300 dark:bg-gray-700" />
+
                 </div>
 
                 <div>
-                  {explorePosts.map((item) => (
+                  {morePosts.map((item) => (
                     <PostCard
                       key={item._id}
                       post={item}
