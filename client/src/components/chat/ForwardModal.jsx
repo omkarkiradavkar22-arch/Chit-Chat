@@ -7,6 +7,7 @@ function ForwardModal({
   open,
   onClose,
   messageId,
+  messageIds = [],
 }) {
   const [chats, setChats] = useState([]);
   const [selectedChats, setSelectedChats] = useState([]);
@@ -21,9 +22,16 @@ function ForwardModal({
         const { data } = await api.get("/chat");
 
         setChats(data.chats);
-      } catch (err) {
-        toast.error("Failed to load chats");
-      }
+     } catch (err) {
+  console.error("FORWARD ERROR:", err);
+  console.error("FORWARD RESPONSE:", err.response?.data);
+  console.error("FORWARD STATUS:", err.response?.status);
+
+  toast.error(
+    err.response?.data?.message ||
+    "Failed to forward"
+  );
+}
     };
 
     loadChats();
@@ -40,34 +48,54 @@ function ForwardModal({
     });
   };
 
-  const handleForward = async () => {
-    if (selectedChats.length === 0) {
-      return toast.error("Select at least one chat");
-    }
+ const handleForward = async () => {
+  if (selectedChats.length === 0) {
+    return toast.error("Select at least one chat");
+  }
 
-    try {
-      const { data } = await api.post(
-        `/messages/${messageId}/forward`,
+  const idsToForward =
+    messageIds.length > 0
+      ? messageIds
+      : messageId
+      ? [messageId]
+      : [];
+
+  if (idsToForward.length === 0) {
+    return toast.error("No message selected");
+  }
+
+  try {
+    for (const id of idsToForward) {
+      await api.post(
+        `/messages/${id}/forward`,
         {
           chatIds: selectedChats,
         }
       );
-
-      toast.success(
-        `Message forwarded to ${selectedChats.length} chat${
-          selectedChats.length > 1 ? "s" : ""
-        }`
-      );
-
-      setSelectedChats([]);
-      onClose();
-    } catch (err) {
-      toast.error(
-        err.response?.data?.message ||
-          "Failed to forward"
-      );
     }
-  };
+
+    toast.success(
+      idsToForward.length > 1
+        ? `${idsToForward.length} messages forwarded`
+        : `Message forwarded to ${selectedChats.length} chat${
+            selectedChats.length > 1 ? "s" : ""
+          }`
+    );
+
+    setSelectedChats([]);
+    onClose();
+  } catch (err) {
+    console.error(
+      "Forward selected messages error:",
+      err
+    );
+
+    toast.error(
+      err.response?.data?.message ||
+        "Failed to forward"
+    );
+  }
+};
 
   const handleClose = () => {
     setSelectedChats([]);
