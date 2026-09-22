@@ -51,6 +51,9 @@ function ChatWindow({
   const [selectedMessages, setSelectedMessages] = useState([]);
 const [isSelectionMode, setIsSelectionMode] = useState(false);
 
+const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+
 const longPressTimerRef = useRef(null);
 
 const handleTouchStart = (messageId, isPending) => {
@@ -91,43 +94,49 @@ const cancelMessageSelection = () => {
   setSelectedMessages([]);
 };
 
-
-const deleteSelectedMessages = async () => {
+const deleteSelectedForMe = async () => {
   if (selectedMessages.length === 0) return;
 
   try {
-    await api.delete(
-      `/messages/${chatId}/multiple/me`,
-      {
-        data: {
-          messageIds: selectedMessages,
-        },
-      }
-    );
+    if (selectedMessages.length === 1) {
+      await api.delete(
+        `/messages/${selectedMessages[0]}/me`
+      );
+    } else {
+      await api.delete(
+        `/messages/${chatId}/multiple/me`,
+        {
+          data: {
+            messageIds: selectedMessages,
+          },
+        }
+      );
+    }
 
     setMessages((prev) => {
       const updated = prev.filter(
         (msg) => !selectedMessages.includes(msg._id)
       );
 
-      // Offline cache मधूनही delete
       saveCachedMessages(chatId, updated);
 
       return updated;
     });
 
     toast.success(
-      `${selectedMessages.length} message${
-        selectedMessages.length > 1 ? "s" : ""
-      } deleted`
+      selectedMessages.length === 1
+        ? "Message deleted for you"
+        : `${selectedMessages.length} messages deleted for you`
     );
 
+    setShowDeleteConfirm(false);
     setSelectedMessages([]);
     setIsSelectionMode(false);
 
     onChatUpdate?.();
+
   } catch (error) {
-    console.error("MULTIPLE DELETE ERROR:", error);
+    console.error("DELETE FOR ME ERROR:", error);
 
     toast.error(
       error.response?.data?.message ||
@@ -136,11 +145,75 @@ const deleteSelectedMessages = async () => {
   }
 };
 
+
+const deleteSelectedForEveryone = async () => {
+  if (selectedMessages.length !== 1) return;
+
+  const messageId = selectedMessages[0];
+
+  try {
+    const { data } = await api.delete(
+      `/messages/${messageId}/everyone`
+    );
+
+    setMessages((prev) => {
+      const updated = prev.map((msg) =>
+        msg._id === messageId
+          ? data.message
+          : msg
+      );
+
+      saveCachedMessages(chatId, updated);
+
+      return updated;
+    });
+
+    toast.success("Message deleted for everyone");
+
+    setShowDeleteConfirm(false);
+    setSelectedMessages([]);
+    setIsSelectionMode(false);
+
+    onChatUpdate?.();
+
+  } catch (error) {
+    console.error(
+      "DELETE FOR EVERYONE ERROR:",
+      error
+    );
+
+    toast.error(
+      error.response?.data?.message ||
+        "Failed to delete message"
+    );
+  }
+};
+
+
   const bottomRef = useRef(null);
   const { socket } = useSocket();
   const [replyMessage, setReplyMessage] =
   useState(null);
   const { user } = useAuth();
+
+  const selectedSingleMessage =
+  selectedMessages.length === 1
+    ? messages.find(
+        (msg) => msg._id === selectedMessages[0]
+      )
+    : null;
+
+const canDeleteForEveryone =
+  selectedMessages.length === 1 &&
+  selectedSingleMessage &&
+  (
+    selectedSingleMessage.sender?._id?.toString() ===
+      user?._id?.toString() ||
+    selectedSingleMessage.sender?.toString() ===
+      user?._id?.toString()
+  ) &&
+  !selectedSingleMessage.deletedForEveryone;
+
   const receiverId = otherUser?._id;
 
   useEffect(() => {
@@ -635,6 +708,55 @@ const handleAISearch = async (e) => {
   }
 };
 
+const handleUnsendPending = (pendingMessage) => {
+  try {
+    const queue = JSON.parse(
+      localStorage.getItem("chitchat_offline_messages") || "[]"
+    );
+
+    const updatedQueue = queue.filter((item) => {
+      if (
+        pendingMessage.clientId &&
+        item.clientId === pendingMessage.clientId
+      ) {
+        return false;
+      }
+
+      if (
+        pendingMessage._id &&
+        item._id === pendingMessage._id
+      ) {
+        return false;
+      }
+
+      return true;
+    });
+
+    localStorage.setItem(
+      "chitchat_offline_messages",
+      JSON.stringify(updatedQueue)
+    );
+
+    setMessages((prev) =>
+      prev.filter((msg) => {
+        if (
+          pendingMessage.clientId &&
+          msg.clientId === pendingMessage.clientId
+        ) {
+          return false;
+        }
+
+        return msg._id !== pendingMessage._id;
+      })
+    );
+
+    toast.success("Message unsent");
+  } catch (error) {
+    console.error("Unsend pending message error:", error);
+    toast.error("Failed to unsend message");
+  }
+};
+
   const refreshChatInfo = async () => {
   const chatRes = await api.get("/chat");
 
@@ -686,21 +808,156 @@ const visibleMessages = messages.filter((message) => {
 
 return (
 
-    
-<div className="
-  flex flex-col flex-1 min-w-0 w-full min-h-0 overflow-hidden
-  h-[calc(100dvh-144px)]
-  lg:h-full
-  bg-gray-100 dark:bg-gray-950
-  transition-colors
-">
-         {isSelectionMode ? (
-  <div
+  <div className="
+    flex flex-col flex-1 min-w-0 w-full min-h-0 overflow-hidden
+    h-[calc(100dvh-144px)]
+    lg:h-full
+    bg-gray-100 dark:bg-gray-950
+    transition-colors
+  ">
+
+    {/* =========================
+        DELETE CONFIRMATION MODAL
+    ========================= */}
+    {showDeleteConfirm && (
+      <div
+        className="
+          fixed inset-0
+          z-[9999]
+          bg-black/50
+          flex items-center justify-center
+          p-4
+        "
+        onClick={() => setShowDeleteConfirm(false)}
+      >
+        <div
+          onClick={(e) => e.stopPropagation()}
+          className="
+            w-full max-w-[400px]
+            bg-white dark:bg-[#202124]
+            text-gray-900 dark:text-white
+            rounded-3xl
+            shadow-2xl
+            p-6
+          "
+        >
+          <h2 className="text-xl font-semibold mb-6">
+            {selectedMessages.length === 1
+              ? "Delete message?"
+              : "Delete messages?"}
+          </h2>
+
+          {selectedMessages.length === 1 ? (
+            <div className="space-y-3">
+
+             {canDeleteForEveryone && (
+  <button
+    type="button"
+    onClick={deleteSelectedForEveryone}
     className="
-      h-16
-      px-4
-      flex items-center justify-between
-      bg-white dark:bg-gray-900
+      w-full
+      py-3 px-4
+      rounded-full
+      border border-gray-300 dark:border-gray-600
+      text-red-500
+      font-semibold
+      hover:bg-gray-100
+      dark:hover:bg-gray-700
+      transition
+    "
+  >
+    Delete for everyone
+  </button>
+)}
+
+              <button
+                type="button"
+                onClick={deleteSelectedForMe}
+                className="
+                  w-full
+                  py-3 px-4
+                  rounded-full
+                  border border-gray-300 dark:border-gray-600
+                  text-blue-500
+                  font-semibold
+                  hover:bg-gray-100
+                  dark:hover:bg-gray-700
+                  transition
+                "
+              >
+                Delete for me
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(false)}
+                className="
+                  w-full
+                  py-3
+                  text-green-500
+                  font-semibold
+                  hover:bg-gray-100
+                  dark:hover:bg-gray-700
+                  rounded-full
+                  transition
+                "
+              >
+                Cancel
+              </button>
+
+            </div>
+          ) : (
+            <div>
+
+              <div className="flex justify-end gap-3 mt-8">
+
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="
+                    px-6 py-3
+                    rounded-full
+                    border border-gray-300 dark:border-gray-600
+                    font-semibold
+                    hover:bg-gray-100
+                    dark:hover:bg-gray-700
+                  "
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="button"
+                  onClick={deleteSelectedForMe}
+                  className="
+                    px-6 py-3
+                    rounded-full
+                    bg-blue-500
+                    hover:bg-blue-600
+                    text-black
+                    font-semibold
+                    transition
+                  "
+                >
+                  Delete for me
+                </button>
+
+              </div>
+
+            </div>
+          )}
+        </div>
+      </div>
+    )}
+
+    {/* EXISTING SELECTION HEADER */}
+    {isSelectionMode ? (
+      <div
+        className="
+          h-16
+          px-4
+          flex items-center justify-between
+          bg-white dark:bg-gray-900
       border-b border-gray-200 dark:border-gray-700
       shrink-0
     "
@@ -728,7 +985,7 @@ return (
 
     <button
       type="button"
-      onClick={deleteSelectedMessages}
+      onClick={() => setShowDeleteConfirm(true)}
       disabled={selectedMessages.length === 0}
       className="
         p-2
@@ -1075,14 +1332,6 @@ onTouchMove={cancelLongPress}
 
 onTouchCancel={cancelLongPress}
 
-  onContextMenu={(e) => {
-    e.preventDefault();
-
-    if (!message.pending) {
-      startMessageSelection(message._id);
-    }
-  }}
-
   onClick={() => {
     if (isSelectionMode && !message.pending) {
       toggleMessageSelection(message._id);
@@ -1090,42 +1339,60 @@ onTouchCancel={cancelLongPress}
   }}
 
   className={`
-    relative rounded-lg transition
-    ${
-      selectedMessages.includes(message._id)
-        ? "bg-blue-100/70 dark:bg-blue-900/30"
-        : ""
-    }
-  `}
+  relative
+  group
+  transition-colors
+  -mx-5 px-5
+  ${
+    selectedMessages.includes(message._id)
+      ? "bg-blue-100/70 dark:bg-white/10"
+      : ""
+  }
+`}
 >
 
   {isSelectionMode && !message.pending && (
   <div
     className={`
-      absolute left-2 top-1/2 -translate-y-1/2
+      absolute
+      left-5 top-1/2 -translate-y-1/2
       z-20
-      w-6 h-6
+
+      w-5 h-5
       rounded-full
       border-2
+
       flex items-center justify-center
+      text-xs font-bold
+
       transition-all
+
       ${
-        selectedMessages.includes(message._id)
+       selectedMessages.includes(message._id)
           ? "bg-blue-600 border-blue-600 text-white"
           : "bg-white dark:bg-gray-800 border-gray-400 text-transparent"
-      }
+       }
     `}
   >
     ✓
   </div>
 )}
-        <MessageBubble
-          refreshChatInfo={refreshChatInfo}
+
+
+        <div
+  className={
+    isSelectionMode
+      ? "pl-9 transition-all"
+      : "transition-all"
+  }
+>
+  <MessageBubble
+    refreshChatInfo={refreshChatInfo}
           message={message}
           chatId={chatId}
           liveLocation={liveLocation}
           searchQuery={searchQuery}
-
+          onUnsendPending={handleUnsendPending}
           isSearchMatch={
             matchIndex !== -1 &&
             searchMatches[searchIndex]?._id ===
@@ -1170,6 +1437,7 @@ onTouchCancel={cancelLongPress}
             )
           }
         />
+        </div>
       </div>
     </div>
   );
