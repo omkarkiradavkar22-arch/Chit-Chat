@@ -1,9 +1,24 @@
 import { useEffect, useRef, useState } from "react";
-import { FaSearch, FaTimes, FaChevronUp, FaChevronDown,
-  FaBan,FaTrash,
- } from "react-icons/fa";
+import {
+  FaSearch,
+  FaTimes,
+  FaChevronUp,
+  FaChevronDown,
+  FaBan,
+  FaTrash,
+  FaLocationArrow,
+  FaMapMarkedAlt,
+  FaExternalLinkAlt,
+  FaStar,
+FaCopy,
+FaShare,
+FaEllipsisV,
+FaTasks,
+} from "react-icons/fa";
 import MessageBubble from "./MessageBubble";
 import MessageInput from "./MessageInput";
+import ForwardModal from "./ForwardModal";
+import LiveLocationViewer from "./LiveLocationViewer";
 import api from "../../services/api";
 import { toast } from "react-hot-toast";
 import { useSocket } from "../../context/SocketContext";
@@ -47,12 +62,22 @@ function ChatWindow({
   const [now, setNow] = useState(Date.now());
   const [loading, setLoading] = useState(true);
   const [liveLocation, setLiveLocation] = useState(null);
-
+  const [myLiveLocation, setMyLiveLocation] = useState(null);
+  const [showLiveLocationViewer, setShowLiveLocationViewer] =
+  useState(false);
   const [selectedMessages, setSelectedMessages] = useState([]);
 const [isSelectionMode, setIsSelectionMode] = useState(false);
 
 const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
+const [showSelectionMenu, setShowSelectionMenu] =
+  useState(false);
+
+  const [showSelectionForward, setShowSelectionForward] =
+  useState(false);
+
+const [selectionForwardMessageId, setSelectionForwardMessageId] =
+  useState(null);
 
 const longPressTimerRef = useRef(null);
 
@@ -92,6 +117,7 @@ const toggleMessageSelection = (messageId) => {
 const cancelMessageSelection = () => {
   setIsSelectionMode(false);
   setSelectedMessages([]);
+  setShowSelectionMenu(false);
 };
 
 const deleteSelectedForMe = async () => {
@@ -202,6 +228,250 @@ const deleteSelectedForEveryone = async () => {
         (msg) => msg._id === selectedMessages[0]
       )
     : null;
+
+  const selectedMessageObjects = messages.filter((msg) =>
+  selectedMessages.includes(msg._id)
+);
+
+const isPureTextMessage = (msg) => {
+  if (!msg) return false;
+
+  const hasText = Boolean(msg.text?.trim());
+  const hasAttachments = (msg.attachments?.length || 0) > 0;
+  const hasLocation =
+    msg.location?.latitude != null &&
+    msg.location?.longitude != null;
+  const hasSharedPost = Boolean(msg.sharedPost);
+
+  return (
+    hasText &&
+    !hasAttachments &&
+    !hasLocation &&
+    !hasSharedPost
+  );
+};
+
+const selectedTextMessages =
+  selectedMessageObjects.filter(isPureTextMessage);
+
+const selectedNonTextMessages =
+  selectedMessageObjects.filter(
+    (msg) => !isPureTextMessage(msg)
+  );
+
+const isSingleTextSelection =
+  selectedMessages.length === 1 &&
+  selectedTextMessages.length === 1;
+
+const isSingleNonTextSelection =
+  selectedMessages.length === 1 &&
+  selectedNonTextMessages.length === 1;
+
+const isPhotoMessage = (msg) => {
+  if (!msg) return false;
+
+  const attachments = msg.attachments || [];
+
+  const hasOnlyImages =
+    attachments.length > 0 &&
+    attachments.every(
+      (file) => file.type === "image"
+    );
+
+  const hasLocation =
+    msg.location?.latitude != null &&
+    msg.location?.longitude != null;
+
+  const hasSharedPost = Boolean(msg.sharedPost);
+
+  return (
+    hasOnlyImages &&
+    !hasLocation &&
+    !hasSharedPost
+  );
+};
+
+
+const isTextOrPhotoMessage = (msg) => {
+  return (
+    isPureTextMessage(msg) ||
+    isPhotoMessage(msg)
+  );
+};
+
+
+const isMultipleTextPhotoSelection =
+  selectedMessages.length > 1 &&
+  selectedMessageObjects.length > 0 &&
+  selectedMessageObjects.every(
+    isTextOrPhotoMessage
+  );
+
+
+const isMultipleRestrictedSelection =
+  selectedMessages.length > 1 &&
+  selectedMessageObjects.some(
+    (msg) => !isTextOrPhotoMessage(msg)
+  );
+// ========================================
+// MOBILE SELECTION ACTIONS
+// ========================================
+
+const handleSelectedCopy = async () => {
+  try {
+    const textToCopy = selectedMessageObjects
+      .filter((msg) => msg.text?.trim())
+      .map((msg) => msg.text.trim())
+      .join("\n");
+
+    if (!textToCopy) {
+      toast.error("No text to copy");
+      return;
+    }
+
+    await navigator.clipboard.writeText(textToCopy);
+
+    toast.success("Copied");
+  } catch (error) {
+    console.error("Copy selected messages error:", error);
+    toast.error("Failed to copy");
+  }
+};
+
+
+const handleSelectedAddTask = async () => {
+  if (!isSingleTextSelection || !selectedSingleMessage) {
+    return;
+  }
+
+  try {
+    await api.post("/tasks", {
+      chat: chatId,
+      message: selectedSingleMessage._id,
+      title: selectedSingleMessage.text,
+      deadline: null,
+    });
+
+    toast.success("✅ Task created successfully");
+
+    setSelectedMessages([]);
+  } catch (error) {
+    console.error("Create task error:", error);
+
+    toast.error(
+      error.response?.data?.message ||
+        "Failed to create task"
+    );
+  }
+};
+
+const handleSelectedStar = async () => {
+  if (selectedMessageObjects.length === 0) {
+    return;
+  }
+
+  try {
+    const updatedMessages = [...messages];
+
+    for (const selectedMessage of selectedMessageObjects) {
+      const { data } = await api.post(
+        `/messages/${selectedMessage._id}/star`
+      );
+
+      const messageIndex = updatedMessages.findIndex(
+        (msg) => msg._id === selectedMessage._id
+      );
+
+      if (messageIndex !== -1) {
+        const currentMessage =
+          updatedMessages[messageIndex];
+
+        updatedMessages[messageIndex] = {
+          ...currentMessage,
+
+          starredBy: data.starred
+            ? [
+                ...(currentMessage.starredBy || []).filter(
+                  (id) =>
+                    id?.toString() !==
+                    user?._id?.toString()
+                ),
+                user._id,
+              ]
+            : (currentMessage.starredBy || []).filter(
+                (id) =>
+                  id?.toString() !==
+                  user?._id?.toString()
+              ),
+        };
+      }
+    }
+
+    setMessages(updatedMessages);
+
+    toast.success(
+      selectedMessageObjects.length === 1
+        ? "Message star updated"
+        : "Messages star updated"
+    );
+
+    cancelMessageSelection();
+  } catch (error) {
+    console.error(
+      "Star selected messages error:",
+      error
+    );
+
+    toast.error("Failed to star message");
+  }
+};
+
+const handleSelectedPin = async () => {
+  if (
+    !isSingleTextSelection ||
+    !selectedSingleMessage
+  ) {
+    return;
+  }
+
+  try {
+    await api.post(
+      `/chat/${chatId}/pin/${selectedSingleMessage._id}`
+    );
+
+    await refreshChatInfo();
+
+    toast.success("Message pinned");
+
+    cancelMessageSelection();
+  } catch (error) {
+    console.error(
+      "Pin selected message error:",
+      error
+    );
+
+    toast.error("Failed to pin");
+  }
+};
+
+const handleSelectedShare = () => {
+  if (selectedMessageObjects.length === 0) {
+    return;
+  }
+
+  // Single message
+  if (selectedMessageObjects.length === 1) {
+    setSelectionForwardMessageId(
+      selectedMessageObjects[0]._id
+    );
+  } else {
+    // Multiple messages use messageIds in ForwardModal
+    setSelectionForwardMessageId(null);
+  }
+
+  setShowSelectionForward(true);
+  setShowSelectionMenu(false);
+};
 
 const canDeleteForEveryone =
   selectedMessages.length === 1 &&
@@ -438,6 +708,68 @@ useEffect(() => {
   };
 }, [socket, user]);
 
+// =========================
+// REAL-TIME MESSAGE EDIT
+// =========================
+
+useEffect(() => {
+  if (!socket) return;
+
+  const handleMessageEdited = (updatedMessage) => {
+    if (!updatedMessage?._id) return;
+
+    const messageChatId =
+      typeof updatedMessage.chat === "object"
+        ? updatedMessage.chat?._id
+        : updatedMessage.chat;
+
+    // Ignore edits from another chat
+    if (
+      String(messageChatId) !==
+      String(chatId)
+    ) {
+      return;
+    }
+
+    setMessages((prev) => {
+      const updated = prev.map((msg) =>
+        String(msg._id) ===
+        String(updatedMessage._id)
+          ? {
+              ...msg,
+              ...updatedMessage,
+
+              // Preserve sender if backend response
+              // ever does not contain it
+              sender:
+                updatedMessage.sender ||
+                msg.sender,
+            }
+          : msg
+      );
+
+      saveCachedMessages(
+        chatId,
+        updated
+      );
+
+      return updated;
+    });
+  };
+
+  socket.on(
+    "messageEdited",
+    handleMessageEdited
+  );
+
+  return () => {
+    socket.off(
+      "messageEdited",
+      handleMessageEdited
+    );
+  };
+}, [socket, chatId]);
+
 useEffect(() => {
   if (!socket) return;
 
@@ -458,6 +790,45 @@ useEffect(() => {
   };
 }, [socket]);
 
+// =========================
+// REAL-TIME MESSAGE REACTION
+// =========================
+
+useEffect(() => {
+  if (!socket) return;
+
+  const handleReactionUpdated = (updatedMessage) => {
+    if (!updatedMessage?._id) return;
+
+    setMessages((prev) => {
+      const updated = prev.map((msg) =>
+        String(msg._id) === String(updatedMessage._id)
+          ? {
+              ...msg,
+              reactions: updatedMessage.reactions || [],
+            }
+          : msg
+      );
+
+      // Offline cache सुद्धा update
+      saveCachedMessages(chatId, updated);
+
+      return updated;
+    });
+  };
+
+  socket.on(
+    "messageReactionUpdated",
+    handleReactionUpdated
+  );
+
+  return () => {
+    socket.off(
+      "messageReactionUpdated",
+      handleReactionUpdated
+    );
+  };
+}, [socket, chatId]);
 
 // =========================
 // LIVE LOCATION SOCKET EVENTS
@@ -466,50 +837,77 @@ useEffect(() => {
   if (!socket) return;
 
   const handleLiveLocationStarted = ({
-    chatId: liveChatId,
-    latitude,
-    longitude,
-  }) => {
-    if (liveChatId !== chatId) return;
+  chatId: liveChatId,
+  senderId,
+  latitude,
+  longitude,
+}) => {
+  if (String(liveChatId) !== String(chatId)) return;
 
-    console.log("📍 Live location started:", latitude, longitude);
-
+  if (String(senderId) === String(user?._id)) {
+    setMyLiveLocation({
+      active: true,
+      latitude: latitude ?? null,
+      longitude: longitude ?? null,
+    });
+  } else {
     setLiveLocation({
       active: true,
       latitude: latitude ?? null,
       longitude: longitude ?? null,
     });
-  };
+  }
+};
 
   const handleLiveLocationUpdate = ({
-    chatId: liveChatId,
-    latitude,
-    longitude,
-  }) => {
-    if (liveChatId !== chatId) return;
+  chatId: liveChatId,
+  senderId,
+  latitude,
+  longitude,
+}) => {
+  if (String(liveChatId) !== String(chatId)) return;
 
-    console.log(
-      "📍 Live location update:",
+  if (String(senderId) === String(user?._id)) {
+    setMyLiveLocation({
+      active: true,
       latitude,
-      longitude
-    );
-
+      longitude,
+    });
+  } else {
     setLiveLocation({
       active: true,
       latitude,
       longitude,
     });
-  };
+  }
+};
 
-  const handleLiveLocationStopped = ({
-    chatId: liveChatId,
-  }) => {
-    if (liveChatId !== chatId) return;
+ const handleLiveLocationStopped = ({
+  chatId: liveChatId,
+  senderId,
+}) => {
+  if (String(liveChatId) !== String(chatId)) return;
 
-    console.log("📍 Live location stopped");
+  // My live location stopped
+  if (String(senderId) === String(user?._id)) {
+    setMyLiveLocation(null);
 
-    setLiveLocation(null);
-  };
+    // Other user is also not sharing
+    if (!liveLocation?.active) {
+      setShowLiveLocationViewer(false);
+    }
+
+    return;
+  }
+
+  // Other user's live location stopped
+  setLiveLocation(null);
+
+  // I am also not sharing
+  if (!myLiveLocation?.active) {
+    setShowLiveLocationViewer(false);
+  }
+};
 
   socket.on(
     "liveLocationStarted",
@@ -806,6 +1204,13 @@ const visibleMessages = messages.filter((message) => {
   return new Date(message.expiresAt).getTime() > now;
 });
 
+const displayedLiveLocation =
+  liveLocation?.active
+    ? liveLocation
+    : myLiveLocation?.active
+    ? myLiveLocation
+    : null;
+
 return (
 
   <div className="
@@ -815,6 +1220,27 @@ return (
     bg-gray-100 dark:bg-gray-950
     transition-colors
   ">
+
+    {/* =========================
+    LIVE LOCATION VIEWER
+========================= */}
+
+{showLiveLocationViewer &&
+  (myLiveLocation?.active ||
+    liveLocation?.active) && (
+
+    <LiveLocationViewer
+      myLiveLocation={myLiveLocation}
+      otherLiveLocation={liveLocation}
+
+      currentUser={user}
+      otherUser={otherUser}
+
+      onClose={() =>
+        setShowLiveLocationViewer(false)
+      }
+    />
+)}
 
     {/* =========================
         DELETE CONFIRMATION MODAL
@@ -951,54 +1377,325 @@ return (
     )}
 
     {/* EXISTING SELECTION HEADER */}
-    {isSelectionMode ? (
-      <div
-        className="
-          h-16
-          px-4
-          flex items-center justify-between
-          bg-white dark:bg-gray-900
+{/* MOBILE MESSAGE SELECTION HEADER */}
+{isSelectionMode ? (
+  <div
+    className="
+      h-16
+      px-3
+      flex items-center
+      bg-white dark:bg-gray-900
       border-b border-gray-200 dark:border-gray-700
       shrink-0
+      relative
     "
   >
-    <div className="flex items-center gap-4">
-
+    {/* CANCEL + COUNT */}
+    <div className="flex items-center gap-3 min-w-0">
       <button
         type="button"
         onClick={cancelMessageSelection}
         className="
-          text-xl
+          p-2
           text-gray-700 dark:text-gray-200
-          hover:text-red-500
+          hover:bg-gray-100 dark:hover:bg-gray-800
+          rounded-full
         "
         title="Cancel selection"
       >
-        ✕
+        <FaTimes size={19} />
       </button>
 
-      <span className="font-semibold text-gray-900 dark:text-white">
-        {selectedMessages.length} selected
+      <span
+        className="
+          font-semibold
+          text-gray-900 dark:text-white
+          min-w-[22px]
+        "
+      >
+        {selectedMessages.length}
       </span>
-
     </div>
 
-    <button
-      type="button"
-      onClick={() => setShowDeleteConfirm(true)}
-      disabled={selectedMessages.length === 0}
-      className="
-        p-2
-        text-red-500
-        hover:bg-red-50
-        dark:hover:bg-red-950/40
-        rounded-full
-        disabled:opacity-40
-      "
-      title="Delete selected messages"
-    >
-      <FaTrash size={18} />
-    </button>
+
+    {/* ACTIONS */}
+    <div className="ml-auto flex items-center gap-1">
+
+      {/* ================================= */}
+      {/* SINGLE TEXT MESSAGE */}
+      {/* Star | Add Task | Delete | Share | Menu */}
+      {/* ================================= */}
+
+      {isSingleTextSelection && (
+        <>
+          <button
+            type="button"
+            onClick={handleSelectedStar}
+            className="
+              p-2.5
+              rounded-full
+              text-gray-700 dark:text-gray-200
+              hover:bg-gray-100 dark:hover:bg-gray-800
+            "
+            title="Star"
+          >
+            <FaStar size={18} />
+          </button>
+
+          <button
+            type="button"
+            onClick={handleSelectedAddTask}
+            className="
+              p-2.5
+              rounded-full
+              text-gray-700 dark:text-gray-200
+              hover:bg-gray-100 dark:hover:bg-gray-800
+            "
+            title="Add Task"
+          >
+            <FaTasks size={18} />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setShowDeleteConfirm(true)}
+            className="
+              p-2.5
+              rounded-full
+              text-red-500
+              hover:bg-red-50
+              dark:hover:bg-red-950/40
+            "
+            title="Delete"
+          >
+            <FaTrash size={18} />
+          </button>
+
+          <button
+            type="button"
+            onClick={handleSelectedShare}
+            className="
+              p-2.5
+              rounded-full
+              text-gray-700 dark:text-gray-200
+              hover:bg-gray-100 dark:hover:bg-gray-800
+            "
+            title="Share"
+          >
+            <FaShare size={18} />
+          </button>
+
+
+          {/* THREE DOT MENU */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() =>
+                setShowSelectionMenu((prev) => !prev)
+              }
+              className="
+                p-2.5
+                rounded-full
+                text-gray-700 dark:text-gray-200
+                hover:bg-gray-100 dark:hover:bg-gray-800
+              "
+              title="More"
+            >
+              <FaEllipsisV size={18} />
+            </button>
+
+
+            {showSelectionMenu && (
+              <div
+                className="
+                  absolute
+                  right-0
+                  top-11
+                  z-[200]
+                  w-40
+                  py-1
+                  bg-white dark:bg-gray-800
+                  border border-gray-200 dark:border-gray-700
+                  rounded-xl
+                  shadow-xl
+                  overflow-hidden
+                "
+              >
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleSelectedCopy();
+                    setShowSelectionMenu(false);
+                  }}
+                  className="
+                    w-full
+                    flex items-center gap-3
+                    px-4 py-3
+                    text-sm
+                    text-left
+                    text-gray-800 dark:text-gray-100
+                    hover:bg-gray-100 dark:hover:bg-gray-700
+                  "
+                >
+                  <FaCopy size={16} />
+                  Copy
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowSelectionMenu(false);
+                    handleSelectedPin();
+                  }}
+                  className="
+                    w-full
+                    flex items-center gap-3
+                    px-4 py-3
+                    text-sm
+                    text-left
+                    text-gray-800 dark:text-gray-100
+                    hover:bg-gray-100 dark:hover:bg-gray-700
+                  "
+                >
+                  <span className="text-base">📌</span>
+                  Pin
+                </button>
+              </div>
+            )}
+          </div>
+        </>
+      )}
+
+
+      {/* ================================= */}
+      {/* SINGLE PHOTO / FILE / LOCATION ETC */}
+      {/* Delete | Share */}
+      {/* ================================= */}
+
+      {isSingleNonTextSelection && (
+        <>
+          <button
+            type="button"
+            onClick={() => setShowDeleteConfirm(true)}
+            className="
+              p-2.5
+              rounded-full
+              text-red-500
+              hover:bg-red-50
+              dark:hover:bg-red-950/40
+            "
+            title="Delete"
+          >
+            <FaTrash size={18} />
+          </button>
+
+          <button
+            type="button"
+            onClick={handleSelectedShare}
+            className="
+              p-2.5
+              rounded-full
+              text-gray-700 dark:text-gray-200
+              hover:bg-gray-100 dark:hover:bg-gray-800
+            "
+            title="Share"
+          >
+            <FaShare size={18} />
+          </button>
+        </>
+      )}
+
+
+      {/* ================================= */}
+      {/* MULTIPLE TEXT / PHOTO */}
+      {/* Star | Delete | Copy | Share */}
+      {/* ================================= */}
+
+      {isMultipleTextPhotoSelection && (
+        <>
+          <button
+            type="button"
+            onClick={handleSelectedStar}
+            className="
+              p-2.5
+              rounded-full
+              text-gray-700 dark:text-gray-200
+              hover:bg-gray-100 dark:hover:bg-gray-800
+            "
+            title="Star"
+          >
+            <FaStar size={18} />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setShowDeleteConfirm(true)}
+            className="
+              p-2.5
+              rounded-full
+              text-red-500
+              hover:bg-red-50
+              dark:hover:bg-red-950/40
+            "
+            title="Delete"
+          >
+            <FaTrash size={18} />
+          </button>
+
+          <button
+            type="button"
+            onClick={handleSelectedCopy}
+            className="
+              p-2.5
+              rounded-full
+              text-gray-700 dark:text-gray-200
+              hover:bg-gray-100 dark:hover:bg-gray-800
+            "
+            title="Copy"
+          >
+            <FaCopy size={18} />
+          </button>
+
+          <button
+            type="button"
+            onClick={handleSelectedShare}
+            className="
+              p-2.5
+              rounded-full
+              text-gray-700 dark:text-gray-200
+              hover:bg-gray-100 dark:hover:bg-gray-800
+            "
+            title="Share"
+          >
+            <FaShare size={18} />
+          </button>
+        </>
+      )}
+
+
+      {/* ================================= */}
+      {/* MULTIPLE WITH FILE / LOCATION ETC */}
+      {/* DELETE ONLY */}
+      {/* ================================= */}
+
+      {isMultipleRestrictedSelection && (
+        <button
+          type="button"
+          onClick={() => setShowDeleteConfirm(true)}
+          className="
+            p-2.5
+            rounded-full
+            text-red-500
+            hover:bg-red-50
+            dark:hover:bg-red-950/40
+          "
+          title="Delete"
+        >
+          <FaTrash size={18} />
+        </button>
+      )}
+
+    </div>
   </div>
 ) : (
   <ChatHeader
@@ -1444,6 +2141,165 @@ onTouchCancel={cancelLongPress}
 })
         )}
 
+      {/* =========================
+    LIVE LOCATION CARD
+========================= */}
+
+{displayedLiveLocation?.active &&
+  displayedLiveLocation?.latitude != null &&
+  displayedLiveLocation?.longitude != null && (
+    <div className="flex justify-start mb-4">
+      <div
+        className="
+          w-[290px]
+          max-w-full
+          overflow-hidden
+          rounded-2xl
+          border
+          border-gray-200 dark:border-gray-700
+          bg-white dark:bg-gray-800
+          shadow-sm
+        "
+      >
+        {/* HEADER */}
+        <div className="p-4">
+          <div className="flex items-center gap-3">
+
+            {/* LOCATION ICON */}
+            <div
+              className="
+                w-11 h-11
+                rounded-full
+                bg-green-100 dark:bg-green-500/15
+                flex items-center justify-center
+                shrink-0
+              "
+            >
+              <FaLocationArrow
+                size={19}
+                className="text-green-500"
+              />
+            </div>
+
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+
+                <p
+                  className="
+                    text-sm
+                    font-semibold
+                    text-gray-900 dark:text-white
+                  "
+                >
+                  Live Location
+                </p>
+
+                <span
+                  className="
+                    bg-green-500
+                    text-white
+                    text-[10px]
+                    font-bold
+                    px-2 py-0.5
+                    rounded-full
+                  "
+                >
+                  LIVE
+                </span>
+
+              </div>
+
+              <div className="flex items-center gap-1.5 mt-1">
+                <span
+                  className="
+                    w-2 h-2
+                    rounded-full
+                    bg-green-500
+                    animate-pulse
+                  "
+                />
+
+                <span
+                  className="
+                    text-xs
+                    text-gray-500 dark:text-gray-300
+                  "
+                >
+                  Sharing live location
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* COORDINATES */}
+          <div
+            className="
+              mt-3
+              px-3 py-2.5
+              rounded-xl
+              bg-gray-100 dark:bg-gray-700
+              border
+              border-gray-200 dark:border-gray-600
+            "
+          >
+            <div className="flex items-center gap-2">
+
+              <FaMapMarkedAlt
+                size={14}
+                className="text-green-500 shrink-0"
+              />
+
+              <p
+                className="
+                  text-xs
+                  text-gray-700 dark:text-gray-200
+                "
+              >
+                {Number(displayedLiveLocation.latitude).toFixed(5)}
+                {", "}
+                {Number(displayedLiveLocation.longitude).toFixed(5)}
+              </p>
+
+            </div>
+          </div>
+        </div>
+
+        {/* VIEW LIVE LOCATION */}
+        <button
+          type="button"
+          onClick={() => {
+  setShowLiveLocationViewer(true);
+}}
+          className="
+            w-full
+            flex items-center
+            justify-center
+            gap-2
+            px-4 py-3
+
+            border-t
+            border-gray-200 dark:border-gray-700
+
+            text-green-600 dark:text-green-400
+            text-sm
+            font-semibold
+
+            hover:bg-gray-50
+            dark:hover:bg-gray-700/60
+
+            transition
+          "
+        >
+          <FaMapMarkedAlt size={15} />
+
+          <span>View Live Location</span>
+
+          <FaExternalLinkAlt size={10} />
+        </button>
+      </div>
+    </div>
+)}
+
         <div ref={bottomRef} />
 
       </div>
@@ -1455,14 +2311,47 @@ onTouchCancel={cancelLongPress}
 
       {!chatInfo?.isBlocked ? (
 <MessageInput
-    chatId={chatId}
-    receiverId={receiverId}
-    senderId={user._id}
-    replyMessage={replyMessage}
-    setReplyMessage={setReplyMessage}
-    onMessageSent={handleMessageSent}
+  chatId={chatId}
+  receiverId={receiverId}
+  senderId={user._id}
+  replyMessage={replyMessage}
+  setReplyMessage={setReplyMessage}
+  onMessageSent={handleMessageSent}
+
+  onLiveLocationStart={(location) => {
+    setMyLiveLocation(location);
+  }}
+
+  onLiveLocationUpdate={(location) => {
+    setMyLiveLocation(location);
+  }}
+
+  onLiveLocationStop={() => {
+    setMyLiveLocation(null);
+
+    // Other user पण share करत नसेल
+    // तर viewer close करा.
+    if (!liveLocation?.active) {
+      setShowLiveLocationViewer(false);
+    }
+  }}
 />
 ) : null}
+
+<ForwardModal
+  open={showSelectionForward}
+  onClose={() => {
+    setShowSelectionForward(false);
+    setSelectionForwardMessageId(null);
+    cancelMessageSelection();
+  }}
+  messageId={selectionForwardMessageId}
+  messageIds={
+    selectedMessages.length > 1
+      ? selectedMessages
+      : []
+  }
+/>
 
     </div>
   );
