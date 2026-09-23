@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../services/api";
 import { useTheme } from "../../context/ThemeContext";
@@ -10,7 +10,10 @@ import {
   FaImages,
   FaVideo,
   FaRegFileVideo,
-  FaLink
+FaLink,
+FaChevronLeft,
+FaChevronRight,
+FaPlay,
 
 } from "react-icons/fa";
 
@@ -36,6 +39,40 @@ function formatBytes(bytes) {
   return `${size.toFixed(i === 0 ? 0 : 1)} ${units[i]}`;
 }
 
+async function downloadFileToDevice(item) {
+  if (!navigator.onLine) {
+    alert("Connect to internet to download this file");
+    return;
+  }
+
+  try {
+    const response = await fetch(item.url);
+
+    if (!response.ok) {
+      throw new Error("Download failed");
+    }
+
+    const blob = await response.blob();
+    const blobUrl = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+
+    link.href = blobUrl;
+    link.download = item.originalName || "attachment";
+
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    setTimeout(() => {
+      URL.revokeObjectURL(blobUrl);
+    }, 1000);
+  } catch (error) {
+    console.error("Media gallery download error:", error);
+    alert("Failed to download file");
+  }
+}
+
 function MediaGallery({ chatId, isOpen, onClose }) {
   const { theme } = useTheme();
 const darkMode = theme === "dark";
@@ -50,7 +87,12 @@ const darkMode = theme === "dark";
   });
 
   const [loading, setLoading] = useState(false);
-  const [lightboxUrl, setLightboxUrl] = useState(null);
+  const [viewerOpen, setViewerOpen] = useState(false);
+const [viewerType, setViewerType] = useState(null);
+const [viewerIndex, setViewerIndex] = useState(0);
+
+const touchStartXRef = useRef(null);
+const touchEndXRef = useRef(null);
 
   // =========================
   // FETCH MEDIA
@@ -84,12 +126,114 @@ const darkMode = theme === "dark";
     fetchGallery();
   }, [isOpen, chatId]);
 
+  const openMediaViewer = (type, index) => {
+  setViewerType(type);
+  setViewerIndex(index);
+  setViewerOpen(true);
+};
+
+const closeMediaViewer = () => {
+  setViewerOpen(false);
+  setViewerType(null);
+  setViewerIndex(0);
+
+  touchStartXRef.current = null;
+  touchEndXRef.current = null;
+};
+
+const getViewerItems = () => {
+  if (viewerType === "photo") {
+    return gallery.photos || [];
+  }
+
+  if (viewerType === "video") {
+    return gallery.videos || [];
+  }
+
+  return [];
+};
+
+const showNextMedia = () => {
+  const viewerItems = getViewerItems();
+
+  if (viewerItems.length <= 1) return;
+
+  setViewerIndex((prev) =>
+    prev === viewerItems.length - 1
+      ? 0
+      : prev + 1
+  );
+};
+
+const showPreviousMedia = () => {
+  const viewerItems = getViewerItems();
+
+  if (viewerItems.length <= 1) return;
+
+  setViewerIndex((prev) =>
+    prev === 0
+      ? viewerItems.length - 1
+      : prev - 1
+  );
+};
+
+
+// =========================
+// MOBILE SWIPE
+// =========================
+
+const handleViewerTouchStart = (e) => {
+  touchStartXRef.current =
+    e.touches[0].clientX;
+
+  touchEndXRef.current = null;
+};
+
+const handleViewerTouchMove = (e) => {
+  touchEndXRef.current =
+    e.touches[0].clientX;
+};
+
+const handleViewerTouchEnd = () => {
+  if (
+    touchStartXRef.current === null ||
+    touchEndXRef.current === null
+  ) {
+    return;
+  }
+
+  const diff =
+    touchStartXRef.current -
+    touchEndXRef.current;
+
+  // Small accidental movements ignore
+  if (Math.abs(diff) < 50) {
+    touchStartXRef.current = null;
+    touchEndXRef.current = null;
+    return;
+  }
+
+  // Swipe LEFT → Next
+  if (diff > 0) {
+    showNextMedia();
+  }
+
+  // Swipe RIGHT → Previous
+  if (diff < 0) {
+    showPreviousMedia();
+  }
+
+  touchStartXRef.current = null;
+  touchEndXRef.current = null;
+};
 
   // =========================
 // CLOSE LIGHTBOX WHEN TAB CHANGES
 // =========================
 useEffect(() => {
-  setLightboxUrl(null);
+  setViewerOpen(false);
+  setViewerType(null);
+  setViewerIndex(0);
 }, [activeTab]);
 
 // =========================
@@ -109,7 +253,7 @@ console.log("ITEMS:", items);
       {/* =====================================================
           MAIN MODAL
       ===================================================== */}
-      <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="fixed inset-0 z-[9999] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
 
         <div
           className={`w-full max-w-xl max-h-[85vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden border ${
@@ -289,7 +433,9 @@ console.log("ITEMS:", items);
 
                   <div
                     key={`${item.messageId}-${item.url}-${i}`}
-                    onClick={() => setLightboxUrl(item.url)}
+                    onClick={() =>
+  openMediaViewer("photo", i)
+}
                     className={`relative aspect-square rounded-xl overflow-hidden cursor-pointer group ${
                       darkMode ? "bg-gray-800" : "bg-gray-200"
                     }`}
@@ -319,21 +465,45 @@ console.log("ITEMS:", items);
                 {items.map((item, i) => (
 
                   <div
-                    key={`${item.messageId}-${item.url}-${i}`}
-                    className={`relative rounded-xl overflow-hidden border ${
-                      darkMode
-                        ? "bg-black border-gray-700"
-                        : "bg-gray-100 border-gray-200"
-                    }`}
-                  >
+  key={`${item.messageId}-${item.url}-${i}`}
+  onClick={() =>
+    openMediaViewer("video", i)
+  }
+  className={`relative rounded-xl overflow-hidden border cursor-pointer group ${
+    darkMode
+      ? "bg-black border-gray-700"
+      : "bg-gray-100 border-gray-200"
+  }`}
+>
+  <video
+    src={item.url}
+    muted
+    preload="metadata"
+    className="w-full aspect-video object-cover"
+  />
 
-                    <video
-                      src={item.url}
-                      controls
-                      className="w-full aspect-video object-cover"
-                    />
-
-                  </div>
+  <div
+    className="
+      absolute inset-0
+      flex items-center justify-center
+      bg-black/20
+      group-hover:bg-black/30
+      transition
+    "
+  >
+   <div
+  className="
+    w-12 h-12
+    rounded-full
+    bg-black/60
+    text-white
+    flex items-center justify-center
+  "
+>
+  <FaPlay size={17} className="ml-0.5" />
+</div>
+  </div>
+</div>
 
                 ))}
 
@@ -348,18 +518,14 @@ console.log("ITEMS:", items);
 
                 {items.map((item, i) => (
 
-                  <a
-                    key={`${item.messageId}-${item.url}-${i}`}
-                    href={item.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    download={item.originalName}
-                    className={`group flex items-center gap-3 p-3 rounded-xl border transition ${
-                      darkMode
-                        ? "bg-[#172235] border-gray-700 hover:border-blue-500/60 hover:bg-[#1c2a40]"
-                        : "bg-white border-gray-200 hover:border-blue-400 hover:bg-blue-50"
-                    }`}
-                  >
+                 <div
+  key={`${item.messageId}-${item.url}-${i}`}
+  className={`group flex items-center gap-3 p-3 rounded-xl border transition ${
+    darkMode
+      ? "bg-[#172235] border-gray-700 hover:border-blue-500/60 hover:bg-[#1c2a40]"
+      : "bg-white border-gray-200 hover:border-blue-400 hover:bg-blue-50"
+  }`}
+>
 
                     <div className="w-11 h-11 rounded-xl bg-blue-500/15 text-blue-400 flex items-center justify-center shrink-0">
                       <FaFileAlt size={18} />
@@ -387,12 +553,27 @@ console.log("ITEMS:", items);
 
                     </div>
 
-                    <FaDownload
-                      size={14}
-                      className="text-gray-500 group-hover:text-blue-400 transition shrink-0"
-                    />
+                    <button
+  type="button"
+  onClick={() => downloadFileToDevice(item)}
+  className={`
+    w-9 h-9
+    rounded-full
+    flex items-center justify-center
+    shrink-0
+    transition
+    ${
+      darkMode
+        ? "text-gray-400 hover:text-blue-400 hover:bg-gray-700"
+        : "text-gray-500 hover:text-blue-600 hover:bg-blue-100"
+    }
+  `}
+  title="Download"
+>
+  <FaDownload size={14} />
+</button>
 
-                  </a>
+                  </div>
 
                 ))}
 
@@ -473,34 +654,291 @@ console.log("ITEMS:", items);
       </div>
 
       {/* =====================================================
-          PHOTO LIGHTBOX
-      ===================================================== */}
-      {lightboxUrl && (
+    PHOTO / VIDEO MEDIA VIEWER
+===================================================== */}
 
-        <div
-          className="fixed inset-0 z-[60] bg-black/90 backdrop-blur-sm flex items-center justify-center p-5"
-          onClick={() => setLightboxUrl(null)}
-        >
+{viewerOpen && (() => {
+  const viewerItems = getViewerItems();
+  const currentItem = viewerItems[viewerIndex];
 
-          {/* CLOSE BUTTON */}
-          <button
-            onClick={() => setLightboxUrl(null)}
-            className="absolute top-5 right-5 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition"
-          >
-            <FaTimes />
-          </button>
+  if (!currentItem) return null;
 
-          {/* FULL PHOTO */}
-          <img
-            src={lightboxUrl}
-            className="max-w-full max-h-[90vh] rounded-xl shadow-2xl object-contain"
-            alt=""
-            onClick={(e) => e.stopPropagation()}
-          />
+  return (
+    <div
+      className="
+        fixed inset-0
+        z-[10000]
+        bg-black/95
+        backdrop-blur-sm
+        flex flex-col
+      "
+      onClick={closeMediaViewer}
+    >
 
+      {/* =========================
+          TOP BAR
+      ========================= */}
+      <div
+        className="
+          h-16
+          px-4 sm:px-6
+          flex items-center justify-between
+          text-white
+          shrink-0
+        "
+        onClick={(e) => e.stopPropagation()}
+      >
+
+        <div>
+          <p className="font-semibold">
+            {viewerType === "photo"
+              ? "Photos"
+              : "Videos"}
+          </p>
+
+          <p className="text-xs text-gray-400 mt-0.5">
+            {viewerIndex + 1} of {viewerItems.length}
+          </p>
         </div>
 
+
+        <div className="flex items-center gap-2">
+
+          {/* DOWNLOAD */}
+          <button
+            type="button"
+            onClick={() =>
+              downloadFileToDevice(currentItem)
+            }
+            className="
+              w-10 h-10
+              rounded-full
+              flex items-center justify-center
+              hover:bg-white/10
+              transition
+            "
+            title="Download"
+          >
+            <FaDownload size={18} />
+          </button>
+
+
+          {/* CLOSE */}
+          <button
+            type="button"
+            onClick={closeMediaViewer}
+            className="
+              w-10 h-10
+              rounded-full
+              flex items-center justify-center
+              hover:bg-white/10
+              transition
+            "
+            title="Close"
+          >
+            <FaTimes size={20} />
+          </button>
+
+        </div>
+      </div>
+
+
+      {/* =========================
+          MAIN VIEWER
+      ========================= */}
+      <div
+        className="
+          relative
+          flex-1
+          min-h-0
+          flex items-center justify-center
+          px-2 sm:px-20
+          overflow-hidden
+        "
+        onClick={(e) => e.stopPropagation()}
+        onTouchStart={handleViewerTouchStart}
+        onTouchMove={handleViewerTouchMove}
+        onTouchEnd={handleViewerTouchEnd}
+      >
+
+        {/* PREVIOUS */}
+        {viewerItems.length > 1 && (
+          <button
+            type="button"
+            onClick={showPreviousMedia}
+            className="
+              absolute
+              left-2 sm:left-6
+              z-20
+              w-11 h-11
+              sm:w-14 sm:h-14
+              rounded-full
+              bg-black/50
+              hover:bg-black/70
+              text-white
+              flex items-center justify-center
+              transition
+            "
+            title="Previous"
+          >
+            <FaChevronLeft size={24} />
+          </button>
+        )}
+
+
+        {/* PHOTO */}
+        {viewerType === "photo" && (
+          <img
+            key={currentItem.url}
+            src={currentItem.url}
+            alt=""
+            draggable="false"
+            className="
+              max-w-full
+              max-h-full
+              object-contain
+              rounded-lg
+              select-none
+            "
+          />
+        )}
+
+
+        {/* VIDEO */}
+        {viewerType === "video" && (
+          <video
+            key={currentItem.url}
+            src={currentItem.url}
+            controls
+            autoPlay
+            playsInline
+            className="
+              max-w-full
+              max-h-full
+              object-contain
+              rounded-lg
+              bg-black
+            "
+          />
+        )}
+
+
+        {/* NEXT */}
+        {viewerItems.length > 1 && (
+          <button
+            type="button"
+            onClick={showNextMedia}
+            className="
+              absolute
+              right-2 sm:right-6
+              z-20
+              w-11 h-11
+              sm:w-14 sm:h-14
+              rounded-full
+              bg-black/50
+              hover:bg-black/70
+              text-white
+              flex items-center justify-center
+              transition
+            "
+            title="Next"
+          >
+            <FaChevronRight size={24} />
+          </button>
+        )}
+
+      </div>
+
+
+      {/* =========================
+          THUMBNAILS
+      ========================= */}
+
+      {viewerItems.length > 1 && (
+        <div
+          className="
+            h-24
+            sm:h-28
+            shrink-0
+            flex items-center justify-center
+            px-4
+          "
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div
+            className="
+              flex items-center gap-2
+              max-w-full
+              overflow-x-auto
+              px-2 py-2
+            "
+          >
+            {viewerItems.map((item, index) => (
+              <button
+                key={`${item.messageId}-${item.url}-${index}`}
+                type="button"
+                onClick={() =>
+                  setViewerIndex(index)
+                }
+                className={`relative
+                  w-14 h-14
+                  sm:w-16 sm:h-16
+                  shrink-0
+                  rounded-lg
+                  overflow-hidden
+                  border-2
+                  transition
+                  ${
+                    index === viewerIndex
+                      ? "border-blue-500"
+                      : "border-transparent opacity-60 hover:opacity-100"
+                  }
+                `}
+              >
+
+                {viewerType === "photo" ? (
+                  <img
+                    src={item.url}
+                    alt=""
+                    className="
+                      w-full h-full
+                      object-cover
+                    "
+                  />
+                ) : (
+                  <>
+                    <video
+                      src={item.url}
+                      muted
+                      preload="metadata"
+                      className="
+                        w-full h-full
+                        object-cover
+                      "
+                    />
+
+                    <div
+                      className="
+                        absolute inset-0
+                        flex items-center justify-center
+                        text-white
+                        bg-black/20
+                      "
+                    >
+                      ▶
+                    </div>
+                  </>
+                )}
+
+              </button>
+            ))}
+          </div>
+        </div>
       )}
+
+    </div>
+  );
+})()}
 
     </>
   );
