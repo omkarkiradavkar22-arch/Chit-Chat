@@ -46,6 +46,9 @@ function MessageInput({
   replyMessage,
   setReplyMessage,
   onMessageSent,
+  onLiveLocationStart,
+onLiveLocationUpdate,
+onLiveLocationStop,
 }) {
   const fileInputRef = useRef(null);
   const mediaRecorderRef = useRef(null);
@@ -366,10 +369,19 @@ const startLiveLocation = () => {
         );
 
         // Tell receiver live location started
-        socket.emit("startLiveLocation", {
-          chatId,
-          receiverId,
-        });
+      socket.emit("startLiveLocation", {
+  chatId,
+  receiverId,
+  senderId,
+  latitude,
+  longitude,
+});
+
+onLiveLocationStart?.({
+  active: true,
+  latitude,
+  longitude,
+});
 
         // Start watching movement
         const watchId = navigator.geolocation.watchPosition(
@@ -377,11 +389,18 @@ const startLiveLocation = () => {
             const { latitude, longitude } = position.coords;
 
             socket.emit("liveLocationUpdate", {
-              chatId,
-              receiverId,
-              latitude,
-              longitude,
-            });
+  chatId,
+  receiverId,
+  senderId,
+  latitude,
+  longitude,
+});
+
+onLiveLocationUpdate?.({
+  active: true,
+  latitude,
+  longitude,
+});
           },
           (error) => {
             console.error("LIVE LOCATION ERROR:", error);
@@ -745,10 +764,12 @@ useEffect(() => {
     clearTimeout(typingTimeout.current);
 
     typingTimeout.current = setTimeout(() => {
-      socket.emit("stopTyping", {
-        receiverId,
-        senderId,
-      });
+      socket.emit("stopLiveLocation", {
+  chatId,
+  receiverId,
+  senderId,
+});
+onLiveLocationStop?.();
     }, 1000);
   };
 
@@ -1214,25 +1235,38 @@ useEffect(() => {
         <span>Location</span>
       </button>
 
-      {/* LIVE LOCATION */}
-      <button
-        type="button"
-        onClick={() => {
-          setShowAttachMenu(false);
-          startLiveLocation();
-        }}
-        className="
-          w-full
-          flex items-center gap-3
-          px-4 py-3
-          text-left
-          hover:bg-gray-100
-          dark:hover:bg-gray-700
-        "
-      >
-        <FaLocationArrow className="text-green-500" />
-        <span>Live Location</span>
-      </button>
+    {/* LIVE LOCATION */}
+<button
+  type="button"
+  onClick={() => {
+    setShowAttachMenu(false);
+
+    if (isLiveLocation) {
+      stopLiveLocation();
+    } else {
+      startLiveLocation();
+    }
+  }}
+  className="
+    w-full
+    flex items-center gap-3
+    px-4 py-3
+    text-left
+    hover:bg-gray-100
+    dark:hover:bg-gray-700
+    transition
+  "
+>
+  <FaLocationArrow
+    className={
+      isLiveLocation
+        ? "text-red-500"
+        : "text-green-500"
+    }
+  />
+
+  <span>Live Location</span>
+</button>
 
     </div>
   )}
