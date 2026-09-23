@@ -1267,7 +1267,14 @@ function MessageBubble({
     const { user } = useAuth();
     const { socket } = useSocket();
 
-  const isMine = message.sender?._id === user?._id;
+ const senderId =
+  typeof message.sender === "object"
+    ? message.sender?._id
+    : message.sender;
+
+const isMine =
+  String(senderId) ===
+  String(user?._id);
 const [showMenu, setShowMenu] = useState(false);
 const touchStartXRef = useRef(null);
 const touchCurrentXRef = useRef(null);
@@ -1871,80 +1878,131 @@ const handleTouchEnd = () => {
     <FaChevronDown size={13} />
   </button>
 
-{/* =========================
+  
+  {/* =========================
     NORMAL LOCATION
 ========================= */}
 
 {!message.deletedForEveryone &&
   message.location?.latitude != null &&
-  message.location?.longitude != null &&
-  !liveLocation?.active && (
+  message.location?.longitude != null && (
     <div
-      className={`mb-2 rounded-xl overflow-hidden border ${
-        isMine
-          ? "bg-blue-500 border-blue-400"
-          : "bg-gray-100 dark:bg-gray-700 border-gray-200 dark:border-gray-600"
-      }`}
+      className={`
+        mb-2
+        w-[280px]
+        max-w-full
+        overflow-hidden
+        rounded-xl
+        border
+
+        ${
+          isMine
+            ? "bg-blue-500 border-blue-400"
+            : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+        }
+      `}
     >
-      <div className="p-3">
-        <div className="flex items-center gap-2">
-          <FaMapMarkerAlt
-            className={
-              isMine
-                ? "text-white"
-                : "text-red-500"
-            }
-          />
+      {/* TOP */}
+      <div className="px-3 py-3">
+        <div className="flex items-center gap-3">
 
-          <p
-            className={`font-semibold text-sm ${
-              isMine
-                ? "text-white"
-                : "text-gray-900 dark:text-white"
-            }`}
+          {/* ICON */}
+          <div
+            className={`
+              w-10 h-10
+              rounded-full
+              flex items-center justify-center
+              shrink-0
+
+              ${
+                isMine
+                  ? "bg-white/15"
+                  : "bg-blue-500/10"
+              }
+            `}
           >
-            Location
-          </p>
+            <FaMapMarkerAlt
+              size={17}
+              className={
+                isMine
+                  ? "text-white"
+                  : "text-blue-500"
+              }
+            />
+          </div>
+
+          {/* INFO */}
+          <div className="min-w-0 flex-1">
+
+            <p
+              className={`text-sm font-semibold ${
+                isMine
+                  ? "text-white"
+                  : "text-gray-900 dark:text-white"
+              }`}
+            >
+              Location
+            </p>
+
+            <p
+              className={`text-[11px] mt-1 ${
+                isMine
+                  ? "text-blue-100"
+                  : "text-gray-500 dark:text-gray-300"
+              }`}
+            >
+              {Number(
+                message.location.latitude
+              ).toFixed(5)}
+              ,{" "}
+              {Number(
+                message.location.longitude
+              ).toFixed(5)}
+            </p>
+
+          </div>
         </div>
-
-        <p
-          className={`text-xs mt-2 ${
-            isMine
-              ? "text-blue-100"
-              : "text-gray-600 dark:text-gray-300"
-          }`}
-        >
-          {Number(message.location.latitude).toFixed(5)},{" "}
-          {Number(message.location.longitude).toFixed(5)}
-        </p>
-
-        <a
-          href={`https://www.google.com/maps?q=${message.location.latitude},${message.location.longitude}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={(e) => e.stopPropagation()}
-          className="
-            mt-3
-            flex
-            items-center
-            justify-center
-            gap-2
-            rounded-lg
-            px-3
-            py-2
-            text-sm
-            font-medium
-            bg-white
-            text-blue-600
-            hover:bg-gray-100
-          "
-        >
-          <FaMapMarkedAlt />
-          Open Location
-        </a>
       </div>
+
+      {/* GOOGLE MAPS */}
+      <a
+        href={`https://www.google.com/maps?q=${message.location.latitude},${message.location.longitude}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={(e) => e.stopPropagation()}
+        className={`
+          w-full
+          flex
+          items-center
+          justify-center
+          gap-2
+
+          px-3
+          py-2.5
+
+          border-t
+
+          text-xs
+          font-semibold
+
+          transition
+
+          ${
+            isMine
+              ? "border-blue-400 text-white hover:bg-white/10"
+              : "border-gray-200 dark:border-gray-700 text-blue-500 hover:bg-gray-100 dark:hover:bg-gray-700"
+          }
+        `}
+      >
+        <FaMapMarkedAlt size={14} />
+
+        Open in Google Maps
+
+        <FaExternalLinkAlt size={10} />
+      </a>
     </div>
 )}
+
 
 
 
