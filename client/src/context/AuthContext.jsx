@@ -4,8 +4,25 @@ import api from "../services/api";
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+ 
+  const getCachedUser = () => {
+  try {
+    const cachedUser = localStorage.getItem("chitchat_user");
+
+    return cachedUser
+      ? JSON.parse(cachedUser)
+      : null;
+  } catch {
+    return null;
+  }
+};
+
+const cachedUser = getCachedUser();
+
+const [user, setUser] = useState(cachedUser);
+
+// Cache असेल तर app लगेच render होऊ दे
+const [loading, setLoading] = useState(!cachedUser);
 
   const [darkMode, setDarkMode] = useState(
     localStorage.getItem("darkMode") === "true"
@@ -19,39 +36,41 @@ export const AuthProvider = ({ children }) => {
     });
   };
 
-  const loadUser = async () => {
+ const loadUser = async () => {
   try {
     const { data } = await api.get("/auth/me");
 
     setUser(data.user);
 
-    // Save logged-in user for offline startup
+    // Fresh user cache update
     localStorage.setItem(
       "chitchat_user",
       JSON.stringify(data.user)
     );
-  } catch (error) {
-    // Internet OFF / network unavailable
-    if (!navigator.onLine || !error.response) {
-      try {
-        const cachedUser =
-          localStorage.getItem("chitchat_user");
 
-        if (cachedUser) {
-          setUser(JSON.parse(cachedUser));
-          console.log("📦 Using cached user offline");
-        } else {
-          setUser(null);
-        }
-      } catch {
+  } catch (error) {
+
+    // Network / offline error
+    if (!navigator.onLine || !error.response) {
+
+      // Cached user already initial state मधून loaded आहे.
+      // त्यामुळे इथे user null करू नको.
+      const cachedUser =
+        localStorage.getItem("chitchat_user");
+
+      if (!cachedUser) {
         setUser(null);
       }
+
     } else {
-      // Server actually rejected authentication
-      // e.g. 401 expired/invalid session
+
+      // Real authentication failure (401 etc.)
       localStorage.removeItem("chitchat_user");
+      localStorage.removeItem("token");
+
       setUser(null);
     }
+
   } finally {
     setLoading(false);
   }
