@@ -61,7 +61,7 @@ export const initSocket = (server) => {
       console.log(`${userId} joined`);
     });
 
-    // Client tells us which chat screen it currently has open, so we
+    
     // can skip sending a push notification for messages in that chat
     // (the user already sees them live via socket).
     socket.on("joinChat", ({ userId, chatId }) => {
