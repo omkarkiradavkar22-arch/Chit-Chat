@@ -16,7 +16,7 @@ const notificationSchema = new mongoose.Schema(
 
     type: {
       type: String,
-      enum: [
+     enum: [
   "follow",
   "follow_request",
   "follow_accept",
@@ -25,6 +25,7 @@ const notificationSchema = new mongoose.Schema(
   "message",
   "incoming_call",
   "missed_call",
+  "live_location",
   "task",
   "post",
 ],
