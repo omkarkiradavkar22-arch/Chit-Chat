@@ -11,6 +11,7 @@ import { FaHeart,
   FaCheck,
   FaPhone,
   FaPhoneSlash,
+FaMapMarkerAlt,
 FaTrash
  } from "react-icons/fa";
 
@@ -136,9 +137,16 @@ const handleTouchEnd = () => {
     return;
   }
 
-  if (notification.type === "message" && notification.chat) {
-    navigate(`/chat/${notification.chat}`);
-  }
+  if (
+  (
+    notification.type === "message" ||
+    notification.type === "live_location"
+  ) &&
+  notification.chat
+) {
+  navigate(`/chat/${notification.chat}`);
+  return;
+}
 };
 
 
@@ -289,7 +297,15 @@ case "missed_call":
     </span>
   );
 
-    case "message": {
+    case "live_location":
+  return (
+    <span className="inline-flex items-center gap-1">
+      shared live location with you
+      <FaMapMarkerAlt className="text-green-500" />
+    </span>
+  );
+
+case "message": {
       const preview = currentNotification.text
         ? `"${
             currentNotification.text.length > 60
