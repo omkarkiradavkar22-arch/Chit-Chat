@@ -12,7 +12,6 @@ import { sendPushToUser } from "../services/webPush.js";
 import { getActiveChat } from "../socket/socket.js";
 import { getIO } from "../socket/socket.js";
 // import OpenAI from "openai";
-
 // const openai = new OpenAI({
 //   apiKey: process.env.OPENAI_API_KEY,
 // });
