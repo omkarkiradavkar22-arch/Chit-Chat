@@ -14,6 +14,14 @@ const activeChats = new Map();
 
 export const getActiveChat = (userId) => activeChats.get(userId?.toString());
 
+export const getIO = () => {
+  if (!io) {
+    throw new Error("Socket.IO not initialized");
+  }
+
+  return io;
+};
+
 export const initSocket = (server) => {
   io = new Server(server, {
     cors: {
@@ -573,32 +581,166 @@ await sendPushToUser(to, {
       console.log("🔴 User Disconnected:", socket.id);
     });
 
-    socket.on("startLiveLocation", ({ chatId, receiverId }) => {
+   socket.on(
+  "startLiveLocation",
+  async ({
+    chatId,
+    receiverId,
+    senderId,
+    latitude,
+    longitude,
+  }) => {
+    try {
+      // ========================================
+      // EXISTING LIVE LOCATION SOCKET EVENT
+      // ========================================
+
       socket.join(`liveLocation:${chatId}`);
 
-      socket.to(receiverId).emit("liveLocationStarted", {
-        chatId,
-      });
-    });
-
-    socket.on(
-      "liveLocationUpdate",
-      ({ chatId, receiverId, latitude, longitude }) => {
-        socket.to(receiverId).emit("liveLocationUpdate", {
+      socket.to(receiverId).emit(
+        "liveLocationStarted",
+        {
           chatId,
+          senderId,
           latitude,
           longitude,
-        });
+        }
+      );
+
+
+      // ========================================
+      // LIVE LOCATION PUSH NOTIFICATION
+      // ========================================
+
+      if (!receiverId || !senderId || !chatId) {
+        return;
+      }
+
+      // Receiver currently कोणता chat open करून बसला आहे?
+      const receiverOpenChat =
+        getActiveChat(receiverId.toString());
+
+      const receiverIsViewingThisChat =
+        receiverOpenChat === chatId.toString();
+
+
+      // Same chat currently open असेल तर push नको.
+      if (!receiverIsViewingThisChat) {
+
+        const sender = await User.findById(
+  senderId
+).select("name profilePic");
+
+
+// ========================================
+// SAVE IN-APP NOTIFICATION
+// ========================================
+
+await Notification.create({
+  sender: senderId,
+  receiver: receiverId,
+  type: "live_location",
+  priority: "normal",
+  status: "pending",
+  chat: chatId,
+  text: "Shared live location",
+});
+
+
+// ========================================
+// SEND SYSTEM PUSH NOTIFICATION
+// ========================================
+
+await sendPushToUser(
+          receiverId.toString(),
+          {
+            type: "live_location",
+
+            senderId: senderId.toString(),
+
+            senderName:
+              sender?.name || "Someone",
+
+            senderPic:
+              sender?.profilePic || "",
+
+            chatId: chatId.toString(),
+
+            title: `${
+              sender?.name || "Someone"
+            } is sharing live location`,
+
+            body:
+              "Tap to view live location",
+
+            url: `/chat/${chatId}`,
+
+            tag: `live-location-${chatId}`,
+          }
+        );
+
+        console.log(
+          "📍 Live location push sent:",
+          {
+            senderId,
+            receiverId,
+            chatId,
+          }
+        );
+      } else {
+        console.log(
+          "📍 Live location push skipped — receiver is viewing chat"
+        );
+      }
+
+    } catch (error) {
+      console.error(
+        "START LIVE LOCATION ERROR:",
+        error
+      );
+    }
+  }
+);
+
+   socket.on(
+  "liveLocationUpdate",
+  ({
+    chatId,
+    receiverId,
+    senderId,
+    latitude,
+    longitude,
+  }) => {
+    socket.to(receiverId).emit(
+      "liveLocationUpdate",
+      {
+        chatId,
+        senderId,
+        latitude,
+        longitude,
       }
     );
+  }
+);
 
-    socket.on("stopLiveLocation", ({ chatId, receiverId }) => {
-      socket.leave(`liveLocation:${chatId}`);
+   socket.on(
+  "stopLiveLocation",
+  ({
+    chatId,
+    receiverId,
+    senderId,
+  }) => {
+    socket.leave(`liveLocation:${chatId}`);
 
-      socket.to(receiverId).emit("liveLocationStopped", {
+    socket.to(receiverId).emit(
+      "liveLocationStopped",
+      {
         chatId,
-      });
-    });
+        senderId,
+      }
+    );
+  }
+);
 
 
   });
