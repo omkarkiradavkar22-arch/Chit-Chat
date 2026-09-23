@@ -90,7 +90,7 @@ if (req.files && req.files.length > 0) {
     // Cloudinary has no dedicated "audio" resource type — voice notes
     // MUST upload as resource_type "video", not "auto", otherwise
     // Cloudinary can misclassify the webm/opus file and serve it with
-    // the wrong Content-Type, which silently breaks <audio> playback.
+
    let resourceType = "auto";
 
 if (type === "audio") {
