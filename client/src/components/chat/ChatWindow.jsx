@@ -14,6 +14,7 @@ FaCopy,
 FaShare,
 FaEllipsisV,
 FaTasks,
+FaEdit,
 } from "react-icons/fa";
 import MessageBubble from "./MessageBubble";
 import MessageInput from "./MessageInput";
@@ -68,6 +69,9 @@ function ChatWindow({
   const [selectedMessages, setSelectedMessages] = useState([]);
 const [isSelectionMode, setIsSelectionMode] = useState(false);
 
+const [messageAttachmentCacheState, setMessageAttachmentCacheState] =
+  useState({});
+
 const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
 const [showSelectionMenu, setShowSelectionMenu] =
@@ -77,6 +81,9 @@ const [showSelectionMenu, setShowSelectionMenu] =
   useState(false);
 
 const [selectionForwardMessageId, setSelectionForwardMessageId] =
+  useState(null);
+
+const [editRequestedMessageId, setEditRequestedMessageId] =
   useState(null);
 
 const longPressTimerRef = useRef(null);
@@ -259,14 +266,92 @@ const selectedNonTextMessages =
     (msg) => !isPureTextMessage(msg)
   );
 
+// ========================================
+// MESSAGE SELECTION HELPERS
+// ========================================
+
+// 1. SINGLE TEXT SELECTION
 const isSingleTextSelection =
   selectedMessages.length === 1 &&
-  selectedTextMessages.length === 1;
+  selectedTextMessages.length === 1 &&
+  !selectedSingleMessage?.deletedForEveryone;
 
-const isSingleNonTextSelection =
+
+// 2. SELECTED MESSAGE SENDER
+const selectedSingleSenderId =
+  typeof selectedSingleMessage?.sender === "object"
+    ? selectedSingleMessage?.sender?._id
+    : selectedSingleMessage?.sender;
+
+
+// 3. CAN EDIT SELECTED MESSAGE
+const canEditSelectedMessage =
+  isSingleTextSelection &&
+  selectedSingleMessage &&
+  String(selectedSingleSenderId) === String(user?._id) &&
+  !selectedSingleMessage.deletedForEveryone;
+
+
+// ========================================
+// RESTRICTED MESSAGE HELPERS
+// ========================================
+
+// 4. DELETED MESSAGE
+const isDeletedMessage = (msg) => {
+  return Boolean(msg?.deletedForEveryone);
+};
+
+
+// 5. NOT DOWNLOADED / UNAVAILABLE ATTACHMENT
+const isNotDownloadedAttachment = (msg) => {
+  if (!msg?.attachments?.length) {
+    return false;
+  }
+
+  const senderId =
+    typeof msg.sender === "object"
+      ? msg.sender?._id
+      : msg.sender;
+
+  // Own sent attachments are already available to sender
+  if (String(senderId) === String(user?._id)) {
+    return false;
+  }
+
+  const cacheState =
+    messageAttachmentCacheState[msg._id] || {};
+
+  return msg.attachments.some(
+    (file) => cacheState[file.url] !== true
+  );
+};
+
+
+// 6. RESTRICTED MESSAGE
+const isRestrictedSelectionMessage = (msg) => {
+  if (!msg) return true;
+
+  return (
+    isDeletedMessage(msg) ||
+    isNotDownloadedAttachment(msg)
+  );
+};
+
+
+// 7. SINGLE RESTRICTED SELECTION
+const isSingleRestrictedSelection =
   selectedMessages.length === 1 &&
-  selectedNonTextMessages.length === 1;
+  selectedSingleMessage &&
+  isRestrictedSelectionMessage(
+    selectedSingleMessage
+  );
 
+
+// ========================================
+// PHOTO HELPERS
+// ========================================
+
+// 8. CHECK PHOTO MESSAGE
 const isPhotoMessage = (msg) => {
   if (!msg) return false;
 
@@ -282,7 +367,8 @@ const isPhotoMessage = (msg) => {
     msg.location?.latitude != null &&
     msg.location?.longitude != null;
 
-  const hasSharedPost = Boolean(msg.sharedPost);
+  const hasSharedPost =
+    Boolean(msg.sharedPost);
 
   return (
     hasOnlyImages &&
@@ -292,7 +378,12 @@ const isPhotoMessage = (msg) => {
 };
 
 
+// 9. TEXT OR PHOTO
 const isTextOrPhotoMessage = (msg) => {
+  if (isRestrictedSelectionMessage(msg)) {
+    return false;
+  }
+
   return (
     isPureTextMessage(msg) ||
     isPhotoMessage(msg)
@@ -300,22 +391,56 @@ const isTextOrPhotoMessage = (msg) => {
 };
 
 
+// ========================================
+// SINGLE NON-TEXT SELECTION
+// ========================================
+
+// 10. SINGLE PHOTO / VIDEO / FILE / LOCATION ETC.
+const isSingleNonTextSelection =
+  selectedMessages.length === 1 &&
+  selectedNonTextMessages.length === 1 &&
+  !isSingleRestrictedSelection;
+
+
+// ========================================
+// MULTIPLE SELECTION
+// ========================================
+
+// 11. MULTIPLE TEXT / PHOTO
 const isMultipleTextPhotoSelection =
   selectedMessages.length > 1 &&
   selectedMessageObjects.length > 0 &&
   selectedMessageObjects.every(
-    isTextOrPhotoMessage
+    (msg) =>
+      !isRestrictedSelectionMessage(msg) &&
+      isTextOrPhotoMessage(msg)
   );
 
 
+// 12. MULTIPLE RESTRICTED / UNSUPPORTED
 const isMultipleRestrictedSelection =
   selectedMessages.length > 1 &&
   selectedMessageObjects.some(
-    (msg) => !isTextOrPhotoMessage(msg)
+    (msg) =>
+      isRestrictedSelectionMessage(msg) ||
+      !isTextOrPhotoMessage(msg)
   );
+
 // ========================================
 // MOBILE SELECTION ACTIONS
 // ========================================
+
+const handleSelectedEdit = () => {
+  if (!canEditSelectedMessage || !selectedSingleMessage) {
+    return;
+  }
+
+  setEditRequestedMessageId(
+    selectedSingleMessage._id
+  );
+
+  cancelMessageSelection();
+};
 
 const handleSelectedCopy = async () => {
   try {
@@ -1456,6 +1581,22 @@ return (
             <FaTasks size={18} />
           </button>
 
+          {canEditSelectedMessage && (
+  <button
+    type="button"
+    onClick={handleSelectedEdit}
+    className="
+      p-2.5
+      rounded-full
+      text-gray-700 dark:text-gray-200
+      hover:bg-gray-100 dark:hover:bg-gray-800
+    "
+    title="Edit"
+  >
+    <FaEdit size={18} />
+  </button>
+)}
+
           <button
             type="button"
             onClick={() => setShowDeleteConfirm(true)}
@@ -1604,6 +1745,29 @@ return (
           </button>
         </>
       )}
+
+
+      {/* ================================= */}
+{/* SINGLE RESTRICTED MESSAGE */}
+{/* Deleted / unavailable → Delete only */}
+{/* ================================= */}
+
+{isSingleRestrictedSelection && (
+  <button
+    type="button"
+    onClick={() => setShowDeleteConfirm(true)}
+    className="
+      p-2.5
+      rounded-full
+      text-red-500
+      hover:bg-red-50
+      dark:hover:bg-red-950/40
+    "
+    title="Delete"
+  >
+    <FaTrash size={18} />
+  </button>
+)}
 
 
       {/* ================================= */}
@@ -2086,8 +2250,27 @@ onTouchCancel={cancelLongPress}
   <MessageBubble
     refreshChatInfo={refreshChatInfo}
           message={message}
+
+          onAttachmentCacheStateChange={(
+  messageId,
+  fileUrl,
+  isCached
+) => {
+  setMessageAttachmentCacheState((prev) => ({
+    ...prev,
+    [messageId]: {
+      ...(prev[messageId] || {}),
+      [fileUrl]: isCached,
+    },
+  }));
+}}
           chatId={chatId}
           liveLocation={liveLocation}
+           editRequestedMessageId={editRequestedMessageId}
+
+  onEditRequestHandled={() => {
+    setEditRequestedMessageId(null);
+  }}
           searchQuery={searchQuery}
           onUnsendPending={handleUnsendPending}
           isSearchMatch={
