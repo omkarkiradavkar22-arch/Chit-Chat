@@ -37,6 +37,12 @@ callType: {
   default: null,
 },
 
+callMediaType: {
+  type: String,
+  enum: ["audio", "video"],
+  default: "audio",
+},
+
 callDuration: {
   type: Number,
   default: 0,
