@@ -29,6 +29,9 @@ import {
   FaFileArchive,
   FaFile,
   FaTimes,
+  FaPhone,
+FaPhoneSlash,
+FaClock,
 
   
 } from "react-icons/fa";
@@ -39,9 +42,17 @@ import ForwardModal from "./ForwardModal";
 import { FaPlay, FaPause } from "react-icons/fa";
 import { useSocket } from "../../context/SocketContext";
 
-function CachedChatImage({ file,isMine, onOpen }) {
+function CachedChatImage({
+  file,
+  isMine,
+  onOpen,
+  onCacheStateChange,
+}) {
   const [imageSrc, setImageSrc] = useState(null);
   const [isCached, setIsCached] = useState(false);
+  useEffect(() => {
+  onCacheStateChange?.(file.url, isCached);
+}, [file.url, isCached, onCacheStateChange]);
   const [loading, setLoading] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const formatFileSize = (bytes) => {
@@ -415,9 +426,18 @@ function VideoViewer({
   );
 }
 
-function CachedAttachment({ file, isMine }) {
+function CachedAttachment({
+  file,
+  isMine,
+  onCacheStateChange,
+}) {
   const [cachedUrl, setCachedUrl] = useState(null);
   const [isCached, setIsCached] = useState(false);
+
+  useEffect(() => {
+  onCacheStateChange?.(file.url, isCached);
+}, [file.url, isCached, onCacheStateChange]);
+
   const [checking, setChecking] = useState(true);
   const [downloading, setDownloading] = useState(false);
   const objectUrlRef = useRef(null);
@@ -873,18 +893,18 @@ if (isMine) {
           "
         >
           <div
-            className="
-              w-14 h-14
-              rounded-full
-              bg-black/55
-              text-white
-              flex items-center justify-center
-              text-2xl
-              backdrop-blur-sm
-            "
-          >
-            ▶
-          </div>
+  className="
+    w-14 h-14
+    rounded-full
+    bg-black/55
+    text-white
+    flex items-center justify-center
+    text-2xl
+    backdrop-blur-sm
+  "
+>
+  <FaPlay size={18} className="ml-0.5" />
+</div>
         </div>
       </div>
 
@@ -1263,6 +1283,10 @@ function MessageBubble({
   searchQuery,
   isSearchMatch,
   liveLocation,
+  onAttachmentCacheStateChange,
+
+  editRequestedMessageId,
+  onEditRequestHandled,
 }) {
     const { user } = useAuth();
     const { socket } = useSocket();
@@ -1276,17 +1300,76 @@ const isMine =
   String(senderId) ===
   String(user?._id);
 const [showMenu, setShowMenu] = useState(false);
+
+const [attachmentCacheState, setAttachmentCacheState] = useState({});
+
+const handleAttachmentCacheState = (
+  fileUrl,
+  isCached
+) => {
+  setAttachmentCacheState((prev) => {
+    // Same value already stored → NOTHING change
+    if (prev[fileUrl] === isCached) {
+      return prev;
+    }
+
+    // Parent ला फक्त actual change असेल तेव्हाच inform कर
+    onAttachmentCacheStateChange?.(
+      message._id,
+      fileUrl,
+      isCached
+    );
+
+    return {
+      ...prev,
+      [fileUrl]: isCached,
+    };
+  });
+};
+
 const touchStartXRef = useRef(null);
 const touchCurrentXRef = useRef(null);
 const longPressTimerRef = useRef(null);
 const longPressTriggeredRef = useRef(false);
 const menuButtonRef = useRef(null);
 const menuRef = useRef(null);
+const reactionBarRef = useRef(null);
 
 const [editing, setEditing] = useState(false);
 const [editedText, setEditedText] = useState(message.text);
+
+// Mobile selection मधून Edit request आली तर
+// existing inline edit mode open कर
+useEffect(() => {
+  if (
+    !editRequestedMessageId ||
+    String(editRequestedMessageId) !== String(message._id)
+  ) {
+    return;
+  }
+
+  setEditedText(message.text || "");
+  setEditing(true);
+
+  // कोणताही desktop menu / reaction popup open असेल तर बंद
+  setShowMenu(false);
+
+  onEditRequestHandled?.();
+}, [editRequestedMessageId, message._id]);
+
 //const [liveLocation, setLiveLocation] = useState(null);
 const emojis = ["❤️", "😂", "👍", "🔥", "😮", "😢"];
+
+const moreEmojis = [
+  "😀", "😃", "😄", "😁", "😊", "😍",
+  "🥰", "😘", "😎", "🤩", "🥳", "😂",
+  "🤣", "🥹", "😭", "😢", "😡", "🤬",
+  "😱", "😮", "🤔", "🙄", "😴", "🤗",
+  "👍", "👎", "👏", "🙌", "🙏", "💪",
+  "👌", "✌️", "🤝", "❤️", "💙", "💚",
+  "💛", "💜", "🖤", "🤍", "💔", "💕",
+  "🔥", "✨", "🎉", "💯", "⭐", "🚀"
+];
   const isSeen =
     message.seenBy &&
     message.seenBy.length > 1;
@@ -1312,6 +1395,16 @@ const hasForwardableContent =
     message.location?.longitude != null
   ) ||
   Boolean(message.sharedPost);
+
+  const hasNotDownloadedAttachment =
+  !isMine &&
+  message.attachments?.length > 0 &&
+  message.attachments.some(
+    (file) => attachmentCacheState[file.url] !== true
+  );
+
+const canUseMessageActions =
+  !hasNotDownloadedAttachment;
 
 const handleDeleteForMe = async () => {
   try {
@@ -1393,9 +1486,40 @@ const handleCopy = async () => {
 };
 
 const [showEmoji, setShowEmoji] = useState(false);
+const [showMoreEmojis, setShowMoreEmojis] = useState(false);
+
 const [showForward, setShowForward] = useState(false);
 const [fullImage, setFullImage] = useState(null);
 const [fullImageIndex, setFullImageIndex] = useState(0);
+
+const imageSwipeStartXRef = useRef(null);
+const imageSwipeStartYRef = useRef(null);
+useEffect(() => {
+  if (!showEmoji) return;
+
+  const handleOutsideReactionTap = (event) => {
+   if (
+  reactionBarRef.current &&
+  !reactionBarRef.current.contains(event.target)
+) {
+  setShowEmoji(false);
+  setShowMoreEmojis(false);
+}
+  };
+
+  document.addEventListener(
+    "pointerdown",
+    handleOutsideReactionTap
+  );
+
+  return () => {
+    document.removeEventListener(
+      "pointerdown",
+      handleOutsideReactionTap
+    );
+  };
+}, [showEmoji]);
+
 const handleReaction = async (emoji) => {
   try {
     const { data } = await api.put(
@@ -1405,6 +1529,7 @@ const handleReaction = async (emoji) => {
 
 onReaction(data.message);
     setShowEmoji(false);
+    
 
     toast.success("Reaction added");
   } catch (err) {
@@ -1454,7 +1579,12 @@ const renderMessageText = (text) => {
                 ? "text-white hover:text-blue-100"
                 : "text-blue-600 hover:text-blue-800"
             }`}
-            onClick={(e) => e.stopPropagation()}
+onPointerDown={(e) => {
+  e.stopPropagation();
+}}
+onClick={(e) => {
+  e.stopPropagation();
+}}
           >
             {url}
           </a>
@@ -1635,6 +1765,52 @@ const handleTouchEnd = () => {
   <div
     className="fixed inset-0 z-[9999] bg-black/90 flex items-center justify-center p-4"
     onClick={() => setFullImage(null)}
+
+    onTouchStart={(e) => {
+      imageSwipeStartXRef.current = e.touches[0].clientX;
+      imageSwipeStartYRef.current = e.touches[0].clientY;
+    }}
+
+    onTouchEnd={(e) => {
+      const startX = imageSwipeStartXRef.current;
+      const startY = imageSwipeStartYRef.current;
+
+      if (startX === null || startY === null) return;
+
+      const endX = e.changedTouches[0].clientX;
+      const endY = e.changedTouches[0].clientY;
+
+      const diffX = endX - startX;
+      const diffY = endY - startY;
+
+      // Horizontal swipe only
+      if (
+        Math.abs(diffX) >= 50 &&
+        Math.abs(diffX) > Math.abs(diffY)
+      ) {
+        // LEFT SWIPE → NEXT IMAGE
+        if (diffX < 0) {
+          const nextIndex =
+            (fullImageIndex + 1) % imageAttachments.length;
+
+          setFullImageIndex(nextIndex);
+          setFullImage(imageAttachments[nextIndex].url);
+        }
+
+        // RIGHT SWIPE → PREVIOUS IMAGE
+        if (diffX > 0) {
+          const previousIndex =
+            (fullImageIndex - 1 + imageAttachments.length) %
+            imageAttachments.length;
+
+          setFullImageIndex(previousIndex);
+          setFullImage(imageAttachments[previousIndex].url);
+        }
+      }
+
+      imageSwipeStartXRef.current = null;
+      imageSwipeStartYRef.current = null;
+    }}
   >
     {/* Close Button */}
     <button
@@ -1662,8 +1838,10 @@ const handleTouchEnd = () => {
   e.preventDefault();
   e.stopPropagation();
 
-  setShowMenu(true);
-  setShowEmoji(false);
+  if (window.matchMedia("(min-width: 768px)").matches) {
+    setShowMenu(true);
+    setShowEmoji(false);
+  }
 }}
   id={`message-${message._id}`}className={`relative min-w-0 max-w-[85%] sm:max-w-[70%] rounded-2xl px-4 py-3 shadow transition-all ${
      isSearchMatch
@@ -1678,7 +1856,9 @@ const handleTouchEnd = () => {
         
 
 {/* Quick Reaction Button - Desktop */}
-{!message.deletedForEveryone && !message.pending && (
+{!message.deletedForEveryone &&
+  !message.pending &&
+  canUseMessageActions && (
   <button
     type="button"
     onClick={(e) => {
@@ -1730,6 +1910,7 @@ const handleTouchEnd = () => {
 {/* WhatsApp Style Quick Reaction Bar */}
 {showEmoji && (
   <div
+   ref={reactionBarRef}
     onClick={(e) => e.stopPropagation()}
     className={`
       absolute
@@ -1777,37 +1958,101 @@ const handleTouchEnd = () => {
     ))}
 
     <button
-      type="button"
-      onClick={() => {
-        setShowEmoji(false);
-        setShowMenu(true);
-      }}
-      className="
-        w-9 h-9
-        flex items-center justify-center
+  type="button"
+  onClick={(e) => {
+    e.stopPropagation();
 
-        rounded-full
+    setShowMoreEmojis((prev) => !prev);
+  }}
+  className="
+    w-8 h-8
+    flex items-center justify-center
+    rounded-full
+    text-lg font-semibold
+    hover:bg-gray-100
+    dark:hover:bg-gray-700
+    transition
+  "
+  title="More reactions"
+>
+  +
+</button>
+  </div>
+)}
 
-        text-xl
-        text-gray-600
-        dark:text-gray-200
+{showEmoji && showMoreEmojis && (
+  <div
+    className="
+      absolute
+      z-[300]
+      bottom-full
+      mb-14
+      left-1/2
+      -translate-x-1/2
 
-        hover:bg-gray-100
-        dark:hover:bg-gray-700
+      w-[280px]
+      max-h-[220px]
+      overflow-y-auto
 
-        transition
-      "
-      title="More reactions"
-    >
-      +
-    </button>
+      grid
+      grid-cols-6
+      gap-1
+
+      p-3
+
+      bg-white
+      dark:bg-gray-800
+
+      border
+      border-gray-200
+      dark:border-gray-700
+
+      rounded-2xl
+      shadow-2xl
+    "
+    onClick={(e) => e.stopPropagation()}
+  >
+    {moreEmojis.map((emoji, index) => (
+  <button
+    key={`${emoji}-${index}`}
+    type="button"
+
+    onPointerDown={(e) => {
+      e.stopPropagation();
+    }}
+
+    onClick={async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      await handleReaction(emoji);
+
+      setShowMoreEmojis(false);
+      setShowEmoji(false);
+    }}
+
+    className="
+      w-9 h-9
+      flex items-center justify-center
+      text-xl
+      rounded-lg
+      hover:bg-gray-100
+      dark:hover:bg-gray-700
+      active:scale-90
+      transition
+    "
+  >
+    {emoji}
+  </button>
+))}
   </div>
 )}
 
 {/* Forward Button - Link / Media / Location / Shared Post */}
 {hasForwardableContent &&
   !message.deletedForEveryone &&
-  !message.pending && (
+  !message.pending &&
+  canUseMessageActions && (
     <button
       type="button"
       onClick={(e) => {
@@ -1816,6 +2061,7 @@ const handleTouchEnd = () => {
         setShowForward(true);
         setShowMenu(false);
         setShowEmoji(false);
+        
       }}
       className={`
         flex
@@ -1853,6 +2099,7 @@ const handleTouchEnd = () => {
       e.stopPropagation();
       setShowMenu((prev) => !prev);
       setShowEmoji(false);
+      
     }}
     className={`
       absolute top-2 right-2
@@ -2118,41 +2365,45 @@ const handleTouchEnd = () => {
           {/* Image */}
  {file.type === "image" && (
   <CachedChatImage
-    file={file}
-    isMine={isMine}
-    onOpen={() => {
-      const index = imageAttachments.findIndex(
-        (img) => img.url === file.url
-      );
+  file={file}
+  isMine={isMine}
+  onCacheStateChange={handleAttachmentCacheState}
+  onOpen={() => {
+    const index = imageAttachments.findIndex(
+      (img) => img.url === file.url
+    );
 
-      setFullImageIndex(index >= 0 ? index : 0);
-      setFullImage(file.url);
-    }}
-  />
+    setFullImageIndex(index >= 0 ? index : 0);
+    setFullImage(file.url);
+  }}
+/>
 )}
 
           {/* Video */}
         {file.type === "video" && (
   <CachedAttachment
-    file={file}
-    isMine={isMine}
-  />
+  file={file}
+  isMine={isMine}
+  onCacheStateChange={handleAttachmentCacheState}
+/>
 )}
 
           {/* Voice Message */}
          {file.type === "audio" && (
   <CachedAttachment
-    file={file}
-    isMine={isMine}
-  />
+  file={file}
+  isMine={isMine}
+  onCacheStateChange={handleAttachmentCacheState}
+/>
 )}
 
           {/* File / PDF / DOC / TXT / ZIP */}
 {file.type === "file" && (
   <CachedAttachment
-    file={file}
-    isMine={isMine}
-  />
+  file={file}
+  isMine={isMine}
+  onCacheStateChange={handleAttachmentCacheState}
+/>
 )}
         </div>
       ))}
@@ -2475,21 +2726,6 @@ const handleTouchEnd = () => {
   </div>
 )}
 
-{/* {showEmoji && (
-  <div className="absolute top-10 left-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg rounded-lg flex p-2 gap-2 z-50">
-    {emojis.map((emoji) => (
-      <button
-        key={emoji}
-        onClick={() => handleReaction(emoji)}
-        className="text-xl hover:scale-125 transition"
-      >
-        {emoji}
-      </button>
-    ))}
-  </div>
-)} */}
-
-
         {/* Reply Preview */}
         {message.replyTo && (
   <div
@@ -2573,16 +2809,28 @@ const handleTouchEnd = () => {
           : "bg-blue-100 text-blue-600"
       }`}
     >
-      {message.callType === "missed" ? "📵" : "📞"}
+      {message.callMediaType === "video" ? (
+        <FaVideo size={17} />
+      ) : message.callType === "missed" ? (
+        <FaPhoneSlash size={17} />
+      ) : (
+        <FaPhone size={17} />
+      )}
     </div>
 
     <div>
       <p className="font-semibold text-sm">
         {message.callType === "missed"
-          ? "Missed call"
-          : message.callType === "outgoing"
-          ? "Outgoing call"
-          : "Incoming call"}
+          ? message.callMediaType === "video"
+            ? "Missed video call"
+            : "Missed voice call"
+          : isMine
+          ? message.callMediaType === "video"
+            ? "Outgoing video call"
+            : "Outgoing voice call"
+          : message.callMediaType === "video"
+          ? "Incoming video call"
+          : "Incoming voice call"}
       </p>
 
       {message.callType !== "missed" &&
@@ -2704,7 +2952,7 @@ const handleTouchEnd = () => {
       title="Pending"
       className="text-blue-100"
     >
-      🕒
+      <FaClock size={12} />
     </span>
   ) : isSeen ? (
     <FaCheckDouble className="text-blue-200" />
@@ -2743,7 +2991,7 @@ const handleTouchEnd = () => {
           setFullImageIndex(newIndex);
           setFullImage(imageAttachments[newIndex].url);
         }}
-        className="absolute left-5 top-1/2 -translate-y-1/2 z-[10000] w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition"
+        className="hidden md:flex absolute left-5 top-1/2 -translate-y-1/2 z-[10000] w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white items-center justify-center transition"
       >
         <FaChevronLeft size={22} />
       </button>
@@ -2772,7 +3020,7 @@ const handleTouchEnd = () => {
           setFullImageIndex(newIndex);
           setFullImage(imageAttachments[newIndex].url);
         }}
-        className="absolute right-5 top-1/2 -translate-y-1/2 z-[10000] w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition"
+        className="hidden md:flex absolute right-5 top-1/2 -translate-y-1/2 z-[10000] w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white items-center justify-center transition"
       >
         <FaChevronRight size={22} />
       </button>
