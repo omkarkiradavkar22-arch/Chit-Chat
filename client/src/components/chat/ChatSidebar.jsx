@@ -9,7 +9,6 @@ import {
   FaFileAlt,
   FaMapMarkerAlt,
   FaPhone,
-  FaVideoSlash,
   FaShareSquare,
   FaBan,
 FaTrash,
@@ -44,31 +43,27 @@ const getLastMessagePreview = (message) => {
   }
 
   if (message.messageType === "call") {
-    if (message.callType === "missed") {
-      return (
-        <span className="flex items-center gap-1">
-          <FaVideoSlash />
-          Missed call
-        </span>
-      );
-    }
+  const isVideoCall = message.callMediaType === "video";
+  const isMissedCall = message.callType === "missed";
 
-    if (message.callType === "video") {
-      return (
-        <span className="flex items-center gap-1">
-          <FaVideo />
-          Video call
-        </span>
-      );
-    }
+  return (
+    <span
+      className={`flex items-center gap-1 ${
+        isMissedCall ? "text-red-500" : ""
+      }`}
+    >
+      {isVideoCall ? <FaVideo /> : <FaPhone />}
 
-    return (
-      <span className="flex items-center gap-1">
-        <FaPhone />
-        Voice call
-      </span>
-    );
-  }
+      {isMissedCall
+        ? isVideoCall
+          ? "Missed video call"
+          : "Missed voice call"
+        : isVideoCall
+        ? "Video call"
+        : "Voice call"}
+    </span>
+  );
+}
 
   if (
     message.location?.latitude &&
@@ -134,7 +129,6 @@ const getLastMessagePreview = (message) => {
 
 function ChatSidebar({
   chats,
-  loading,
   onlineUsers,
   onChatsDeleted,
 }) {
@@ -260,14 +254,6 @@ useEffect(() => {
     username.includes(query)
   );
 });
-
-if (loading) {
-  return (
-      <div className="w-full h-full bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex items-center justify-center text-gray-900 dark:text-white">
-        Loading...
-      </div>
-    );
-  }
 
   return (
     <div className="w-full h-full bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 h-full overflow-y-auto transition-colors">
