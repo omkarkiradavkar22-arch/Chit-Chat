@@ -61,7 +61,7 @@ export const initSocket = (server) => {
       console.log(`${userId} joined`);
     });
 
-    
+    // Client tells us which chat screen it currently has open, so we
     // can skip sending a push notification for messages in that chat
     // (the user already sees them live via socket).
     socket.on("joinChat", ({ userId, chatId }) => {
@@ -374,28 +374,19 @@ if (!pendingCall) {
   );
   return;
 }
-            const callerMissedMessage = await Message.create({
-              chat: chatId,
-              sender: from,
-              text: "",
-              messageType: "call",
-              callType: "missed",
-              callDuration: 0,
-            });
+          const missedMessage = await Message.create({
+  chat: chatId,
+  sender: from,
+  text: "",
+  messageType: "call",
+  callType: "missed",
+  callMediaType: callType || "audio",
+  callDuration: 0,
+});
 
-            const receiverMissedMessage = await Message.create({
-              chat: chatId,
-              sender: to,
-              text: "",
-              messageType: "call",
-              callType: "missed",
-              callDuration: 0,
-            });
-
-            await Chat.findByIdAndUpdate(chatId, {
-              lastMessage: receiverMissedMessage._id,
-            });
-
+await Chat.findByIdAndUpdate(chatId, {
+  lastMessage: completedCallMessage._id,
+});
             await Notification.deleteMany({
               sender: from,
               receiver: to,
@@ -438,8 +429,8 @@ await sendPushToUser(to, {
   tag: `missed-call-${chatId}`,
 });
 
-            io.to(from).emit("newMessage", callerMissedMessage);
-            io.to(to).emit("newMessage", receiverMissedMessage);
+            io.to(from).emit("newMessage", missedMessage);
+io.to(to).emit("newMessage", missedMessage);
 
             console.log("📵 Receiver got missed call notification");
 
@@ -450,23 +441,15 @@ await sendPushToUser(to, {
           // COMPLETED CALL
           // =====================================================
 
-          const outgoingMessage = await Message.create({
-            chat: chatId,
-            sender: from,
-            text: "",
-            messageType: "call",
-            callType: "outgoing",
-            callDuration,
-          });
-
-          const incomingMessage = await Message.create({
-            chat: chatId,
-            sender: to,
-            text: "",
-            messageType: "call",
-            callType: "incoming",
-            callDuration,
-          });
+          const completedCallMessage = await Message.create({
+  chat: chatId,
+  sender: from,
+  text: "",
+  messageType: "call",
+  callType: "outgoing",
+  callMediaType: callType || "audio",
+  callDuration,
+});
 
           // ---------------------------------------------
           // Update last message
@@ -492,14 +475,14 @@ await sendPushToUser(to, {
           // ---------------------------------------------
 
           io.to(from).emit(
-            "newMessage",
-            outgoingMessage
-          );
+  "newMessage",
+  completedCallMessage
+);
 
-          io.to(to).emit(
-            "newMessage",
-            incomingMessage
-          );
+io.to(to).emit(
+  "newMessage",
+  completedCallMessage
+);
 
           console.log(
             "📞 COMPLETED CALL MESSAGES CREATED"
