@@ -346,6 +346,29 @@ await Notification.deleteMany({
 
           if (!chatId || !from || !to) return;
 
+          // Find the original caller and receiver.
+// "from" in call:end can be whoever pressed End,
+// so don't use it to decide call direction.
+const originalCall = await PendingCall.findOne({
+  chat: chatId,
+  $or: [
+    {
+      caller: from,
+      receiver: to,
+    },
+    {
+      caller: to,
+      receiver: from,
+    },
+  ],
+}).sort({ createdAt: -1 });
+
+const originalCallerId =
+  originalCall?.caller?.toString() || from.toString();
+
+const originalReceiverId =
+  originalCall?.receiver?.toString() || to.toString();
+
           // =====================================================
           // MISSED / UNANSWERED CALL
           // =====================================================
@@ -376,7 +399,10 @@ if (!pendingCall) {
 }
           const missedMessage = await Message.create({
   chat: chatId,
-  sender: from,
+
+  // Always original caller
+  sender: originalCallerId,
+
   text: "",
   messageType: "call",
   callType: "missed",
@@ -385,7 +411,7 @@ if (!pendingCall) {
 });
 
 await Chat.findByIdAndUpdate(chatId, {
-  lastMessage: completedCallMessage._id,
+  lastMessage: missedMessage._id,
 });
             await Notification.deleteMany({
               sender: from,
@@ -443,7 +469,10 @@ io.to(to).emit("newMessage", missedMessage);
 
           const completedCallMessage = await Message.create({
   chat: chatId,
-  sender: from,
+
+  // Always original caller
+  sender: originalCallerId,
+
   text: "",
   messageType: "call",
   callType: "outgoing",
@@ -456,8 +485,8 @@ io.to(to).emit("newMessage", missedMessage);
           // ---------------------------------------------
 
           await Chat.findByIdAndUpdate(chatId, {
-            lastMessage: incomingMessage._id,
-          });
+  lastMessage: completedCallMessage._id,
+});
 
           // ---------------------------------------------
           // Remove pending incoming-call notification
