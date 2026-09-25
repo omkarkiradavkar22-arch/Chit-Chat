@@ -296,25 +296,44 @@ useEffect(() => {
   }
 
   const handleNotificationCall = async () => {
-    const loaded = await loadPendingCall();
+  let loaded = false;
 
-    if (!loaded) {
-      // Remove old call parameters even if call expired
-      const url = new URL(window.location.href);
+  // Mobile PWA can take a moment to restore auth/network
+  // after being opened from a notification.
+  for (let attempt = 0; attempt < 4; attempt++) {
+    loaded = await loadPendingCall();
 
-      url.searchParams.delete("callAction");
-      url.searchParams.delete("callerId");
-      url.searchParams.delete("callType");
-      url.searchParams.delete("callId");
-
-      window.history.replaceState(
-        {},
-        "",
-        url.pathname + url.search
-      );
-
-      return;
+    if (loaded) {
+      break;
     }
+
+    // Small delay before retrying
+    await new Promise((resolve) =>
+      setTimeout(resolve, 700)
+    );
+  }
+
+  if (!loaded) {
+    console.log(
+      "No pending call found after notification retries"
+    );
+
+    // Only now remove old call parameters
+    const url = new URL(window.location.href);
+
+    url.searchParams.delete("callAction");
+    url.searchParams.delete("callerId");
+    url.searchParams.delete("callType");
+    url.searchParams.delete("callId");
+
+    window.history.replaceState(
+      {},
+      "",
+      url.pathname + url.search
+    );
+
+    return;
+  }
 
     // ==========================================
     // 🔴 DECLINE FROM PUSH NOTIFICATION
