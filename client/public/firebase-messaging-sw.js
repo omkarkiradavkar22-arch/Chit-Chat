@@ -27,14 +27,45 @@ messaging.onBackgroundMessage((payload) => {
     payload.notification?.title ||
     "Chit chat";
 
-  const notificationOptions = {
-    body:
-      payload.notification?.body ||
-      "You have a new notification",
-    icon: "/chit-chat-logo-192x192.png",
-    badge: "/chit-chat-logo-192x192.png",
-    data: payload.data || {},
-  };
+  const data = payload.data || {};
+
+const notificationOptions = {
+  body:
+    payload.notification?.body ||
+    "You have a new notification",
+
+  icon:
+    data.callerPic ||
+    "/chit-chat-logo-192x192.png",
+
+  badge: "/chit-chat-logo-192x192.png",
+
+  data,
+
+  // Incoming call notification only
+  ...(data.type === "incoming_call"
+    ? {
+        requireInteraction: true,
+
+        tag:
+          data.tag ||
+          `incoming-call-${
+            data.chatId || data.callerId || "unknown"
+          }`,
+
+        actions: [
+          {
+            action: "accept-call",
+            title: "Accept",
+          },
+          {
+            action: "decline-call",
+            title: "Decline",
+          },
+        ],
+      }
+    : {}),
+};
 
   self.registration.showNotification(
     notificationTitle,
@@ -45,20 +76,56 @@ messaging.onBackgroundMessage((payload) => {
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
 
-  event.waitUntil(
-    clients.matchAll({
-      type: "window",
-      includeUncontrolled: true,
-    }).then((clientList) => {
-      for (const client of clientList) {
-        if ("focus" in client) {
-          return client.focus();
-        }
-      }
+  const data = event.notification.data || {};
+  const action = event.action;
 
-      if (clients.openWindow) {
-        return clients.openWindow("/");
-      }
-    })
+  let targetUrl = data.url || "/";
+
+  // Incoming call notification
+  if (data.type === "incoming_call") {
+    let callAction = "open";
+
+    if (action === "accept-call") {
+      callAction = "accept";
+    }
+
+    if (action === "decline-call") {
+      callAction = "decline";
+    }
+
+    const chatId = data.chatId || "";
+
+    targetUrl =
+      `/chat/${chatId}` +
+      `?callAction=${callAction}` +
+      `&callerId=${encodeURIComponent(data.callerId || "")}` +
+      `&callType=${encodeURIComponent(data.callType || "audio")}` +
+      `&callId=${encodeURIComponent(data.callId || "")}`;
+  }
+
+  event.waitUntil(
+    clients
+      .matchAll({
+        type: "window",
+        includeUncontrolled: true,
+      })
+      .then(async (clientList) => {
+        for (const client of clientList) {
+          if (
+            client.url.includes(self.location.origin) &&
+            "focus" in client
+          ) {
+            if ("navigate" in client) {
+              await client.navigate(targetUrl);
+            }
+
+            return client.focus();
+          }
+        }
+
+        if (clients.openWindow) {
+          return clients.openWindow(targetUrl);
+        }
+      })
   );
 });
