@@ -85,6 +85,13 @@ useEffect(() => {
   };
 }, [callStatus]);
 
+  alert(
+  "CALL OVERLAY STATE: " +
+  callStatus +
+  " | remoteUser: " +
+  (remoteUser ? remoteUser.name : "NULL")
+);
+  
   if (callStatus === "idle" || !remoteUser) return null;
 
   const isVideoCall = callType === "video";
