@@ -84,13 +84,6 @@ useEffect(() => {
     ringtone.currentTime = 0;
   };
 }, [callStatus]);
-
-  alert(
-  "CALL OVERLAY STATE: " +
-  callStatus +
-  " | remoteUser: " +
-  (remoteUser ? remoteUser.name : "NULL")
-);
   
   if (callStatus === "idle" || !remoteUser) return null;
 
