@@ -267,6 +267,13 @@ export const CallProvider = ({ children }) => {
     setCallType(pendingCall.callType || "audio");
     setCallStatus("incoming");
 
+    alert(
+  "MOBILE PENDING LOADED | incoming | remoteUser: " +
+  pendingCall.callerName
+);
+
+return true;
+
     return true;
  } catch (error) {
   alert(
