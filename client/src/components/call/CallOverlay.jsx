@@ -1,7 +1,10 @@
 import { useEffect, useRef } from "react";
 import { useCall } from "../../context/CallContext";
 import { useTheme } from "../../context/ThemeContext";
-import { FaPhone, FaPhoneSlash, FaMicrophone,
+import {
+  FaPhone,
+  FaPhoneSlash,
+  FaMicrophone,
   FaMicrophoneSlash,
   FaVideo,
   FaVideoSlash,
@@ -84,7 +87,7 @@ useEffect(() => {
     ringtone.currentTime = 0;
   };
 }, [callStatus]);
-  
+
   if (callStatus === "idle" || !remoteUser) return null;
 
   const isVideoCall = callType === "video";
@@ -154,13 +157,19 @@ useEffect(() => {
     isDark ? "text-gray-300" : "text-gray-600"
   }`}
 >
-          {callStatus === "incoming" &&
-            (isVideoCall
-              ? "🎥 Incoming video call..."
-              : "Incoming voice call...")}
-          {callStatus === "outgoing" && "Calling..."}
-          {callStatus === "connected" && formatDuration(callDuration)}
-        </p>
+  {callStatus === "incoming" && (
+    <span className="inline-flex items-center justify-center gap-1.5">
+      {isVideoCall && <FaVideo size={13} />}
+      {isVideoCall
+        ? "Incoming video call..."
+        : "Incoming voice call..."}
+    </span>
+  )}
+
+  {callStatus === "outgoing" && "Calling..."}
+
+  {callStatus === "connected" && formatDuration(callDuration)}
+</p>
       </div>
 
       <div className="flex items-center gap-6 sm:gap-8 mb-4 sm:mb-6 px-4 relative z-10">
