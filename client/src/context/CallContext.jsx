@@ -300,18 +300,24 @@ useEffect(() => {
 
   // Mobile PWA can take a moment to restore auth/network
   // after being opened from a notification.
-  for (let attempt = 0; attempt < 4; attempt++) {
-    loaded = await loadPendingCall();
+ for (let attempt = 0; attempt < 10; attempt++) {
+  console.log(
+    `📞 Pending call attempt ${attempt + 1}/10`
+  );
 
-    if (loaded) {
-      break;
-    }
+  loaded = await loadPendingCall();
 
-    // Small delay before retrying
-    await new Promise((resolve) =>
-      setTimeout(resolve, 700)
+  if (loaded) {
+    console.log(
+      "📞 Pending call restored successfully"
     );
+    break;
   }
+
+  await new Promise((resolve) =>
+    setTimeout(resolve, 1000)
+  );
+}
 
   if (!loaded) {
     console.log(
