@@ -705,10 +705,16 @@ const messageRefs = useRef({});
 };
 
   useEffect(() => {
-    if (chatId) {
-      getMessages();
-    }
-  }, [chatId]);
+  if (!chatId) return;
+
+  // 1. Show this chat's cached messages immediately
+  const cachedMessages = getCachedMessages(chatId);
+
+  setMessages(cachedMessages);
+
+  // 2. Fetch latest messages from server in background
+  getMessages();
+}, [chatId]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({
@@ -2127,15 +2133,11 @@ return (
       {/* Messages */}
 
       <div className="flex-1 min-w-0 w-full overflow-y-auto p-5 pb-24 bg-gray-100 dark:bg-gray-950 transition-colors">
-        {loading ? (
-         <div className="text-center text-gray-700 dark:text-gray-300">
-            Loading...
-          </div>
-        ) : visibleMessages.length === 0 ? (
-         <div className="text-center text-gray-500 dark:text-gray-400">
-            No messages yet.
-          </div>
-        ) : (
+        {visibleMessages.length === 0 ? (
+  <div className="text-center text-gray-500 dark:text-gray-400">
+    No messages yet.
+  </div>
+) : (
           visibleMessages.map((message, index) => {
   const matchIndex = searchMatches.findIndex(
     (item) => item._id === message._id
@@ -2251,18 +2253,26 @@ onTouchCancel={cancelLongPress}
     refreshChatInfo={refreshChatInfo}
           message={message}
 
-          onAttachmentCacheStateChange={(
+  onAttachmentCacheStateChange={(
   messageId,
   fileUrl,
   isCached
 ) => {
-  setMessageAttachmentCacheState((prev) => ({
-    ...prev,
-    [messageId]: {
-      ...(prev[messageId] || {}),
-      [fileUrl]: isCached,
-    },
-  }));
+  setMessageAttachmentCacheState((prev) => {
+    if (
+      prev[messageId]?.[fileUrl] === isCached
+    ) {
+      return prev;
+    }
+
+    return {
+      ...prev,
+      [messageId]: {
+        ...(prev[messageId] || {}),
+        [fileUrl]: isCached,
+      },
+    };
+  });
 }}
           chatId={chatId}
           liveLocation={liveLocation}
