@@ -235,6 +235,11 @@ export const CallProvider = ({ children }) => {
   try {
     const response = await api.get("/calls/pending");
 
+    alert(
+  "PENDING RESPONSE: " +
+  JSON.stringify(response.data)
+);
+
     const pendingCall = response.data.call;
 
     if (!pendingCall) {
@@ -263,20 +268,26 @@ export const CallProvider = ({ children }) => {
     setCallStatus("incoming");
 
     return true;
-  } catch (error) {
-    if (error.response?.status === 404) {
-      console.log("No active pending call");
-      return false;
-    }
+ } catch (error) {
+  alert(
+    "PENDING ERROR: " +
+    (error.response?.status || "NO STATUS") +
+    " | " +
+    JSON.stringify(error.response?.data || {})
+  );
 
-    console.error(
-      "Failed to load pending call:",
-      error
-    );
-
+  if (error.response?.status === 404) {
+    console.log("No active pending call");
     return false;
   }
-}, []);
+
+  console.error(
+    "Failed to load pending call:",
+    error
+  );
+
+  return false;
+}}, []);
 
 useEffect(() => {
   if (!user || !socket) return;
