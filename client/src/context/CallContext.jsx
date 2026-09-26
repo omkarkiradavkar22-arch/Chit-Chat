@@ -235,11 +235,6 @@ export const CallProvider = ({ children }) => {
   try {
     const response = await api.get("/calls/pending");
 
-    alert(
-  "PENDING RESPONSE: " +
-  JSON.stringify(response.data)
-);
-
     const pendingCall = response.data.call;
 
     if (!pendingCall) {
@@ -267,34 +262,21 @@ export const CallProvider = ({ children }) => {
     setCallType(pendingCall.callType || "audio");
     setCallStatus("incoming");
 
-    alert(
-  "MOBILE PENDING LOADED | incoming | remoteUser: " +
-  pendingCall.callerName
-);
-
-return true;
-
     return true;
- } catch (error) {
-  alert(
-    "PENDING ERROR: " +
-    (error.response?.status || "NO STATUS") +
-    " | " +
-    JSON.stringify(error.response?.data || {})
-  );
+  } catch (error) {
+    if (error.response?.status === 404) {
+      console.log("No active pending call");
+      return false;
+    }
 
-  if (error.response?.status === 404) {
-    console.log("No active pending call");
+    console.error(
+      "Failed to load pending call:",
+      error
+    );
+
     return false;
   }
-
-  console.error(
-    "Failed to load pending call:",
-    error
-  );
-
-  return false;
-}}, []);
+}, []);
 
 useEffect(() => {
   if (!user || !socket) return;
@@ -318,24 +300,18 @@ useEffect(() => {
 
   // Mobile PWA can take a moment to restore auth/network
   // after being opened from a notification.
- for (let attempt = 0; attempt < 10; attempt++) {
-  console.log(
-    `📞 Pending call attempt ${attempt + 1}/10`
-  );
+  for (let attempt = 0; attempt < 4; attempt++) {
+    loaded = await loadPendingCall();
 
-  loaded = await loadPendingCall();
+    if (loaded) {
+      break;
+    }
 
-  if (loaded) {
-    console.log(
-      "📞 Pending call restored successfully"
+    // Small delay before retrying
+    await new Promise((resolve) =>
+      setTimeout(resolve, 700)
     );
-    break;
   }
-
-  await new Promise((resolve) =>
-    setTimeout(resolve, 1000)
-  );
-}
 
   if (!loaded) {
     console.log(
