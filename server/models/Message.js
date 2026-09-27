@@ -97,6 +97,12 @@ sharedPost: {
   default: null,
 },
 
+sharedProfile: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "User",
+  default: null,
+},
+
 replyTo: {
   type: mongoose.Schema.Types.ObjectId,
   ref: "Message",
