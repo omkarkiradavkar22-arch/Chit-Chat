@@ -7,7 +7,8 @@ const SocketContext = createContext();
 export const SocketProvider = ({ children }) => {
   const { user } = useAuth();
 
-  const [socket, setSocket] = useState(null);
+const [socket, setSocket] = useState(null);
+const [onlineUsers, setOnlineUsers] = useState([]);
 
 useEffect(() => {
     if (!user) return;
@@ -34,6 +35,10 @@ useEffect(() => {
       console.log("🚪 [SocketContext] Emitted join for room:", user._id);
     });
 
+    newSocket.on("onlineUsers", (users) => {
+  setOnlineUsers(users.map(String));
+});
+
     newSocket.on("connect_error", (err) => {
       console.error("🔴 [SocketContext] connect_error:", err.message);
     });
@@ -50,9 +55,11 @@ useEffect(() => {
   }, [user]);
 
   return (
-    <SocketContext.Provider value={{ socket }}>
-      {children}
-    </SocketContext.Provider>
+   <SocketContext.Provider
+  value={{ socket, onlineUsers }}
+>
+  {children}
+</SocketContext.Provider>
   );
 };
 
