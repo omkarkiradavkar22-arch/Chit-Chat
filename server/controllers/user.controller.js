@@ -1,4 +1,6 @@
+import mongoose from "mongoose";
 import User from "../models/User.js";
+import Chat from "../models/Chat.js";
 import cloudinary from "../config/cloudinary.js";
 import streamifier from "streamifier";
 import Notification from "../models/Notification.js";
@@ -156,41 +158,77 @@ const followsMe = user.following.some(
 // FORMAT PROFILE POSTS
 // ==============================
 
-const formattedPosts = user.posts.map((post) => {
-  const postObj = post.toObject();
+const formattedPosts = await Promise.all(
+  user.posts.map(async (post) => {
+    const postObj = post.toObject();
 
-  const likesArray = Array.isArray(post.likes)
-    ? post.likes
-    : [];
+    const likesArray = Array.isArray(post.likes)
+      ? post.likes
+      : [];
 
-  const commentsArray = Array.isArray(post.comments)
-    ? post.comments
-    : [];
+    const commentsArray = Array.isArray(post.comments)
+      ? post.comments
+      : [];
 
-  const savedPostsArray = Array.isArray(currentUser.savedPosts)
-    ? currentUser.savedPosts
-    : [];
+    const savedPostsArray = Array.isArray(currentUser.savedPosts)
+      ? currentUser.savedPosts
+      : [];
 
-  return {
-    ...postObj,
+    // Find a user followed by current user
+    // who has liked this post
+    const followingIds = new Set(
+      (currentUser.following || []).map((id) =>
+        id.toString()
+      )
+    );
 
-    likesCount: likesArray.length,
+    const followedLikerId = likesArray.find(
+      (likerId) =>
+        followingIds.has(likerId.toString())
+    );
 
-    commentsCount: commentsArray.length,
+    let likedByFollowingUser = null;
 
-    isLiked: likesArray.some(
-      (id) =>
-        id.toString() ===
-        currentUser._id.toString()
-    ),
+    if (followedLikerId) {
+      likedByFollowingUser = await User.findById(
+        followedLikerId
+      ).select("name username profilePic");
+    }
 
-    isSaved: savedPostsArray.some(
-      (id) =>
-        id.toString() ===
-        post._id.toString()
-    ),
-  };
-});
+    let firstLiker = null;
+
+const firstLikerId = likesArray[0];
+
+if (firstLikerId) {
+  firstLiker = await User.findById(
+    firstLikerId
+  ).select("name username profilePic");
+}
+
+    return {
+      ...postObj,
+
+      likesCount: likesArray.length,
+
+      commentsCount: commentsArray.length,
+
+      isLiked: likesArray.some(
+        (id) =>
+          id.toString() ===
+          currentUser._id.toString()
+      ),
+
+      isSaved: savedPostsArray.some(
+        (id) =>
+          id.toString() ===
+          post._id.toString()
+      ),
+
+      likedByFollowingUser,
+      firstLiker,
+    };
+  })
+);
 
 const userResponse = user.toObject();
 
@@ -408,6 +446,213 @@ export const unfollowUser = async (req, res) => {
 
   } catch (error) {
     res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const getSuggestedUsers = async (req, res) => {
+  try {
+    const currentUser = await User.findById(
+      req.user._id
+    );
+
+    if (!currentUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // ---------------------------------
+    // USERS WITH BLOCKED RELATIONSHIP
+    // ---------------------------------
+    const blockedChats = await Chat.find({
+      participants: currentUser._id,
+      isBlocked: true,
+    }).select("participants");
+
+    const blockedUserIds = blockedChats.flatMap(
+      (chat) =>
+        chat.participants
+          .filter(
+            (participantId) =>
+              participantId.toString() !==
+              currentUser._id.toString()
+          )
+          .map((participantId) =>
+            participantId.toString()
+          )
+    );
+
+    // ---------------------------------
+    // USERS WITH PENDING REQUEST
+    // sent by current user
+    // ---------------------------------
+    const pendingUsers = await User.find({
+      followRequests: currentUser._id,
+    }).select("_id");
+
+    const pendingUserIds = pendingUsers.map(
+      (user) => user._id.toString()
+    );
+
+    // ---------------------------------
+// DISMISSED USERS FROM FRONTEND
+// ---------------------------------
+const dismissedIds = req.query.exclude
+  ? req.query.exclude
+      .split(",")
+      .filter((id) =>
+        mongoose.Types.ObjectId.isValid(id)
+      )
+  : [];
+
+// ---------------------------------
+// EXCLUDE USERS
+// ---------------------------------
+const excludedIds = [
+  currentUser._id.toString(),
+
+  ...currentUser.following.map((id) =>
+    id.toString()
+  ),
+
+  ...blockedUserIds,
+
+  ...dismissedIds,
+];
+
+    // ---------------------------------
+    // RANDOM 3 SUGGESTIONS
+    // ---------------------------------
+    const suggestions = await User.aggregate([
+  {
+    $match: {
+      _id: {
+        $nin: excludedIds.map(
+          (id) =>
+            new mongoose.Types.ObjectId(id)
+        ),
+      },
+    },
+  },
+
+  {
+    $sample: {
+      size: 3,
+    },
+  },
+
+  {
+   $project: {
+  name: 1,
+  username: 1,
+  profilePic: 1,
+  isPrivate: 1,
+  followers: 1,
+  following: 1,
+},
+  },
+]);
+
+// ---------------------------------
+// MUTUAL FOLLOW CONTEXT
+// Example:
+// A follows B
+// B follows C
+// C suggestion → "Followed by B"
+// ---------------------------------
+
+const currentFollowingIds =
+  currentUser.following.map((id) =>
+    id.toString()
+  );
+
+const mutualUserIds = new Set();
+
+suggestions.forEach((suggestedUser) => {
+  (suggestedUser.followers || []).forEach(
+    (followerId) => {
+      const id = followerId.toString();
+
+      if (currentFollowingIds.includes(id)) {
+        mutualUserIds.add(id);
+      }
+    }
+  );
+});
+
+const mutualUsers = await User.find({
+  _id: {
+    $in: [...mutualUserIds],
+  },
+}).select("name username profilePic");
+
+const mutualUserMap = new Map(
+  mutualUsers.map((mutualUser) => [
+    mutualUser._id.toString(),
+    {
+      _id: mutualUser._id,
+      name: mutualUser.name,
+      username: mutualUser.username,
+      profilePic: mutualUser.profilePic,
+    },
+  ])
+);
+
+const formattedSuggestions =
+  suggestions.map((suggestedUser) => {
+    const followedBy = (
+      suggestedUser.followers || []
+    )
+      .map((followerId) =>
+        mutualUserMap.get(
+          followerId.toString()
+        )
+      )
+      .filter(Boolean);
+
+    const {
+      followers,
+      ...userData
+    } = suggestedUser;
+
+   const followsYou = (
+  suggestedUser.following || []
+).some(
+  (followingId) =>
+    followingId.toString() ===
+    currentUser._id.toString()
+);
+
+// Check if current user already sent
+// a follow request to this suggested user
+const isRequested = pendingUserIds.includes(
+  suggestedUser._id.toString()
+);
+
+return {
+  ...userData,
+  followedBy,
+  followsYou,
+  isRequested,
+};
+  });
+
+return res.status(200).json({
+  success: true,
+  users: formattedSuggestions,
+});
+
+  } catch (error) {
+    console.error(
+      "GET SUGGESTED USERS ERROR:",
+      error
+    );
+
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
@@ -659,5 +904,155 @@ export const toggleAITaskDetection = async (req, res) => {
       success: false,
       message: error.message,
     });
+  }
+};
+
+export const getProfileSharePreview = async (req, res) => {
+  try {
+    const { username } = req.params;
+
+    const user = await User.findOne({
+      username: username.toLowerCase(),
+    }).select("name username profilePic bio");
+
+    if (!user) {
+      return res.status(404).send("User not found");
+    }
+
+    const frontendUrl =
+      process.env.CLIENT_URL ||
+      "http://localhost:5173";
+
+    const profileUrl =
+      `${frontendUrl}/profile/${user.username}`;
+
+    let profileImage = user.profilePic;
+
+    // Convert default relative image into full URL
+    if (
+      !profileImage ||
+      profileImage === "/default-profile-picture.png"
+    ) {
+      profileImage =
+        `${frontendUrl}/default-profile-picture.png`;
+    }
+
+    const description =
+      user.bio?.trim() ||
+      `View @${user.username}'s profile on Chit-Chat`;
+
+    // Escape values before putting them inside HTML
+    const escapeHtml = (value = "") =>
+      String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;");
+
+    const safeName = escapeHtml(user.name);
+    const safeUsername = escapeHtml(user.username);
+    const safeDescription = escapeHtml(description);
+    const safeProfileUrl = escapeHtml(profileUrl);
+    const safeProfileImage = escapeHtml(profileImage);
+
+    return res
+      .status(200)
+      .type("html")
+      .send(`
+        <!DOCTYPE html>
+        <html lang="en">
+          <head>
+            <meta charset="UTF-8" />
+
+            <meta
+              name="viewport"
+              content="width=device-width, initial-scale=1.0"
+            />
+
+            <title>
+              ${safeName} (@${safeUsername}) | Chit-Chat
+            </title>
+
+            <!-- Open Graph -->
+            <meta
+              property="og:title"
+              content="${safeName} (@${safeUsername})"
+            />
+
+            <meta
+              property="og:description"
+              content="${safeDescription}"
+            />
+
+            <meta
+              property="og:image"
+              content="${safeProfileImage}"
+            />
+
+            <meta
+              property="og:url"
+              content="${safeProfileUrl}"
+            />
+
+            <meta
+              property="og:type"
+              content="profile"
+            />
+
+            <meta
+              property="og:site_name"
+              content="Chit-Chat"
+            />
+
+            <!-- Twitter / Other platforms -->
+            <meta
+              name="twitter:card"
+              content="summary_large_image"
+            />
+
+            <meta
+              name="twitter:title"
+              content="${safeName} (@${safeUsername})"
+            />
+
+            <meta
+              name="twitter:description"
+              content="${safeDescription}"
+            />
+
+            <meta
+              name="twitter:image"
+              content="${safeProfileImage}"
+            />
+
+            <!-- Open profile in Chit-Chat -->
+            <meta
+              http-equiv="refresh"
+              content="0;url=${safeProfileUrl}"
+            />
+          </head>
+
+          <body>
+            <p>
+              Opening ${safeName}'s Chit-Chat profile...
+            </p>
+
+            <script>
+              window.location.replace(
+                ${JSON.stringify(profileUrl)}
+              );
+            </script>
+          </body>
+        </html>
+      `);
+  } catch (error) {
+    console.error(
+      "PROFILE SHARE PREVIEW ERROR:",
+      error
+    );
+
+    return res.status(500).send(
+      "Unable to load profile preview"
+    );
   }
 };
