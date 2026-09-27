@@ -13,7 +13,10 @@ import {
   toggleLike,
   toggleSavePost,
   getSavedPosts,
-  getLikedPosts
+  getLikedPosts,
+  toggleHideLikesCount,
+toggleComments,
+getPostLikers
 } from "../controllers/post.controller.js";
 const router = express.Router();
 
@@ -32,7 +35,21 @@ router.get("/saved", protect, getSavedPosts);
 router.get("/user/:username", protect, getUserPosts);
 router.get("/:id", protect, getSinglePost);
 //router.post("/:id/unlike", protect, unlikePost);
+router.get("/:id/likers", protect, getPostLikers);
 router.post("/:id/toggle-like", protect, toggleLike);
+
+router.patch(
+  "/:id/toggle-hide-likes",
+  protect,
+  toggleHideLikesCount
+);
+
+router.patch(
+  "/:id/toggle-comments",
+  protect,
+  toggleComments
+);
+
 router.post("/:id/toggle-save", protect, toggleSavePost);
 router.delete("/:id", protect, deletePost);
 export default router;
