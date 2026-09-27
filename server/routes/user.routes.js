@@ -14,6 +14,8 @@ import {
   rejectFollowRequest,
   cancelFollowRequest,
   toggleAITaskDetection,
+  getSuggestedUsers,
+  getProfileSharePreview,
 } from "../controllers/user.controller.js";
 
 const router = express.Router();
@@ -32,6 +34,12 @@ router.get("/search", protect, searchUsers);
 router.patch("/privacy", protect, togglePrivacy);
 router.patch("/ai-task-detection", protect, toggleAITaskDetection);
 router.get("/follow-requests", protect, getFollowRequests);
+
+router.get("/suggestions/list", protect, getSuggestedUsers);
+
+// Public route for WhatsApp / social media profile preview
+router.get("/share/:username", getProfileSharePreview);
+
 router.get("/:username", protect, getUserProfile);
 
 router.post("/follow/:id", protect, followUser);
