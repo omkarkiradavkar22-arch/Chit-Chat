@@ -12,10 +12,13 @@ import {
   FaShareSquare,
   FaBan,
 FaTrash,
+FaCheck,
+ FaCheckDouble,
 } from "react-icons/fa";
 import StarredMessages from "./StarredMessages";
 import { useState, useEffect, useRef } from "react";
 import Tasks from "./Tasks";
+import { useAuth } from "../../context/AuthContext";
 
 const getLastMessagePreview = (message) => {
   if (!message) return "No messages yet";
@@ -41,6 +44,15 @@ const getLastMessagePreview = (message) => {
       </span>
     );
   }
+
+  if (message.sharedProfile) {
+  return (
+    <span className="flex items-center gap-1">
+      <FaShareSquare />
+      Shared a profile
+    </span>
+  );
+}
 
   if (message.messageType === "call") {
   const isVideoCall = message.callMediaType === "video";
@@ -133,6 +145,7 @@ function ChatSidebar({
   onChatsDeleted,
 }) {
   const { chatId } = useParams();
+  const { user } = useAuth();
   const [showStarred, setShowStarred] = useState(false);
   const [showTasks, setShowTasks] = useState(false);
 const [pendingTaskCount, setPendingTaskCount] = useState(0);
@@ -442,23 +455,93 @@ useEffect(() => {
             )}
             </div>
 
-            <div className="flex-1 overflow-hidden">
+           <div className="flex-1 min-w-0 overflow-hidden">
 
-              <h3 className="font-semibold truncate text-gray-900 dark:text-white">
-                {chat.otherUser?.name}
-              </h3>
+  {/* Name + last message time */}
+  <div className="flex items-center justify-between gap-2">
 
-              <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
-  {getLastMessagePreview(chat.lastMessage)}
-</p>
+    <h3 className="font-semibold truncate text-gray-900 dark:text-white">
+      {chat.otherUser?.name}
+    </h3>
 
-            </div>
+    {chat.lastMessage?.createdAt && (
+      <span className="text-[11px] text-gray-400 dark:text-gray-500 shrink-0">
+        {new Date(chat.lastMessage.createdAt).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        })}
+      </span>
+    )}
 
-            {chat.unreadCount > 0 && (
-              <div className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center">
-                {chat.unreadCount}
-              </div>
+  </div>
+
+  {/* Last message + tick */}
+  <div className="flex items-center justify-between gap-2">
+
+    <div className="text-sm text-gray-500 dark:text-gray-400 truncate min-w-0">
+      {getLastMessagePreview(chat.lastMessage)}
+    </div>
+
+    <div className="flex items-center gap-2 shrink-0">
+
+      {/* Tick only when last message was sent by me */}
+      {chat.lastMessage &&
+        String(
+          typeof chat.lastMessage.sender === "object"
+            ? chat.lastMessage.sender?._id
+            : chat.lastMessage.sender
+        ) === String(user?._id) && (
+          <span className="text-xs">
+
+            {chat.lastMessage.seenBy?.some(
+              (id) =>
+                String(
+                  typeof id === "object"
+                    ? id?._id
+                    : id
+                ) !== String(user?._id)
+            ) ? (
+
+              <FaCheckDouble
+                className="text-cyan-500"
+                title="Seen"
+              />
+
+            ) : onlineUsers.some(
+                (id) =>
+                  String(id) ===
+                  String(chat.otherUser?._id)
+              ) ? (
+
+              <FaCheckDouble
+                className="text-gray-400 dark:text-gray-300"
+                title="Delivered"
+              />
+
+            ) : (
+
+              <FaCheck
+                className="text-gray-400 dark:text-gray-300"
+                title="Sent"
+              />
+
             )}
+
+          </span>
+        )}
+
+      {/* Unread count */}
+      {chat.unreadCount > 0 && (
+        <div className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center">
+          {chat.unreadCount}
+        </div>
+      )}
+
+    </div>
+
+  </div>
+
+</div>
 
           </Link>
         ))
