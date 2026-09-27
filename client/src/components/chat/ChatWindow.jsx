@@ -26,6 +26,7 @@ import { useSocket } from "../../context/SocketContext";
 import { useAuth } from "../../context/AuthContext";
 import TypingIndicator from "./TypingIndicator";
 import ChatHeader from "./ChatHeader";
+import { useLocation } from "react-router-dom";
 
 
 const getMessageCacheKey = (chatId) =>
@@ -224,7 +225,7 @@ const deleteSelectedForEveryone = async () => {
 
 
   const bottomRef = useRef(null);
-  const { socket } = useSocket();
+const { socket } = useSocket();
   const [replyMessage, setReplyMessage] =
   useState(null);
   const { user } = useAuth();
@@ -609,7 +610,12 @@ const canDeleteForEveryone =
   ) &&
   !selectedSingleMessage.deletedForEveryone;
 
+  
   const receiverId = otherUser?._id;
+
+  const isReceiverOnline = onlineUsers.some(
+  (id) => String(id) === String(receiverId)
+);
 
   useEffect(() => {
   if (!socket) return;
@@ -659,6 +665,36 @@ const [aiSearchResults, setAiSearchResults] = useState([]);
 const [aiSearchLoading, setAiSearchLoading] = useState(false);
 
 const messageRefs = useRef({});
+
+const location = useLocation();
+
+const [highlightedMessageId, setHighlightedMessageId] =
+  useState(null);
+
+useEffect(() => {
+  const targetMessageId = location.state?.targetMessageId;
+
+  if (!targetMessageId || messages.length === 0) return;
+
+  const timer = setTimeout(() => {
+    const element = messageRefs.current[targetMessageId];
+
+    if (!element) return;
+
+    element.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
+
+    setHighlightedMessageId(targetMessageId);
+
+    setTimeout(() => {
+      setHighlightedMessageId(null);
+    }, 3000);
+  }, 300);
+
+  return () => clearTimeout(timer);
+}, [location.state?.targetMessageId, messages]);
 
   const getMessages = async () => {
   try {
@@ -2277,7 +2313,7 @@ onTouchCancel={cancelLongPress}
           chatId={chatId}
           liveLocation={liveLocation}
            editRequestedMessageId={editRequestedMessageId}
-
+          isReceiverOnline={isReceiverOnline}
   onEditRequestHandled={() => {
     setEditRequestedMessageId(null);
   }}
@@ -2288,6 +2324,10 @@ onTouchCancel={cancelLongPress}
             searchMatches[searchIndex]?._id ===
               message._id
           }
+
+          isHighlighted={
+  highlightedMessageId === message._id
+}
 
           onPin={(updatedChat) => {
             setChatInfo(updatedChat);
