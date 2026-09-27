@@ -1282,11 +1282,13 @@ function MessageBubble({
   refreshChatInfo,
   searchQuery,
   isSearchMatch,
+  isHighlighted,
   liveLocation,
   onAttachmentCacheStateChange,
 
   editRequestedMessageId,
   onEditRequestHandled,
+  isReceiverOnline,
 }) {
     const { user } = useAuth();
     const { socket } = useSocket();
@@ -1308,23 +1310,21 @@ const handleAttachmentCacheState = (
   isCached
 ) => {
   setAttachmentCacheState((prev) => {
-    // Same value already stored → NOTHING change
     if (prev[fileUrl] === isCached) {
       return prev;
     }
-
-    // Parent ला फक्त actual change असेल तेव्हाच inform कर
-    onAttachmentCacheStateChange?.(
-      message._id,
-      fileUrl,
-      isCached
-    );
 
     return {
       ...prev,
       [fileUrl]: isCached,
     };
   });
+
+  onAttachmentCacheStateChange?.(
+    message._id,
+    fileUrl,
+    isCached
+  );
 };
 
 const touchStartXRef = useRef(null);
@@ -1334,9 +1334,38 @@ const longPressTriggeredRef = useRef(false);
 const menuButtonRef = useRef(null);
 const menuRef = useRef(null);
 const reactionBarRef = useRef(null);
+const editRef = useRef(null);
 
 const [editing, setEditing] = useState(false);
-const [editedText, setEditedText] = useState(message.text);
+const [editedText, setEditedText] = useState(
+  message.text || ""
+);
+
+useEffect(() => {
+  if (!editing) return;
+
+  const handleOutsideEdit = (event) => {
+    if (
+      editRef.current &&
+      !editRef.current.contains(event.target)
+    ) {
+      setEditedText(message.text || "");
+      setEditing(false);
+    }
+  };
+
+  document.addEventListener(
+    "pointerdown",
+    handleOutsideEdit
+  );
+
+  return () => {
+    document.removeEventListener(
+      "pointerdown",
+      handleOutsideEdit
+    );
+  };
+}, [editing, message.text]);
 
 // Mobile selection मधून Edit request आली तर
 // existing inline edit mode open कर
@@ -1460,11 +1489,27 @@ const handleCreateTask = async () => {
 };
 
 const handleEdit = async () => {
+  const newText = editedText.trim();
+  const oldText = (message.text || "").trim();
+
+  // Empty message save करू नको
+  if (!newText) {
+    return;
+  }
+
+  // काहीच change नसेल तर फक्त edit mode बंद
+  if (newText === oldText) {
+    setEditedText(message.text || "");
+    setEditing(false);
+    setShowMenu(false);
+    return;
+  }
+
   try {
     const { data } = await api.put(
       `/messages/${message._id}`,
       {
-        text: editedText,
+        text: newText,
       }
     );
 
@@ -1843,15 +1888,18 @@ const handleTouchEnd = () => {
     setShowEmoji(false);
   }
 }}
-  id={`message-${message._id}`}className={`relative min-w-0 max-w-[85%] sm:max-w-[70%] rounded-2xl px-4 py-3 shadow transition-all ${
-     isSearchMatch
-      ? "ring-4 ring-yellow-400 ring-offset-2"
-      : ""
-  } ${
-    isMine
-  ? "bg-blue-600 text-white"
-  : "bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-  }`}
+ id={`message-${message._id}`}
+className={`relative min-w-0 max-w-[85%] sm:max-w-[70%] rounded-2xl px-4 py-3 shadow transition-all duration-300 ${
+  isHighlighted
+    ? "ring-2 ring-yellow-400 ring-offset-2 ring-offset-transparent shadow-[0_0_16px_rgba(250,204,21,0.55)]"
+    : isSearchMatch
+    ? "ring-4 ring-yellow-400 ring-offset-2"
+    : ""
+} ${
+  isMine
+    ? "bg-blue-600 text-white"
+    : "bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+}`}
 >
         
 
@@ -2353,6 +2401,123 @@ const handleTouchEnd = () => {
       >
         View Post
       </div>
+    </div>
+  )}
+  
+  {/* =========================
+    SHARED PROFILE
+========================= */}
+{!message.deletedForEveryone &&
+  message.sharedProfile && (
+    <div
+      className={`
+        mb-2
+        w-[260px]
+        max-w-full
+        rounded-xl
+        overflow-hidden
+        border
+        ${
+          isMine
+            ? "bg-blue-500 border-blue-400"
+            : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+        }
+      `}
+    >
+      {/* PROFILE INFO */}
+      <div className="flex items-center gap-3 p-3">
+        <img
+          src={
+            message.sharedProfile.profilePic ||
+            "/default-profile-picture.png"
+          }
+          alt={message.sharedProfile.name || "Profile"}
+          className="
+            w-12 h-12
+            rounded-full
+            object-cover
+            shrink-0
+          "
+        />
+
+        <div className="min-w-0 flex-1">
+          <p
+            className={`
+              text-sm
+              font-semibold
+              truncate
+              ${
+                isMine
+                  ? "text-white"
+                  : "text-gray-900 dark:text-white"
+              }
+            `}
+          >
+            {message.sharedProfile.name}
+          </p>
+
+          <p
+            className={`
+              text-xs
+              truncate
+              mt-0.5
+              ${
+                isMine
+                  ? "text-blue-100"
+                  : "text-gray-500 dark:text-gray-400"
+              }
+            `}
+          >
+            @{message.sharedProfile.username}
+          </p>
+        </div>
+      </div>
+
+      {/* BIO */}
+      {message.sharedProfile.bio && (
+        <div className="px-3 pb-3">
+          <p
+            className={`
+              text-xs
+              line-clamp-2
+              ${
+                isMine
+                  ? "text-blue-100"
+                  : "text-gray-600 dark:text-gray-300"
+              }
+            `}
+          >
+            {message.sharedProfile.bio}
+          </p>
+        </div>
+      )}
+
+      {/* VIEW PROFILE */}
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+
+          window.location.href =
+            `/profile/${message.sharedProfile.username}`;
+        }}
+        className={`
+          w-full
+          px-3 py-2.5
+          text-center
+          text-sm
+          font-semibold
+          border-t
+          transition
+          ${
+            isMine
+              ? "text-white border-blue-400 hover:bg-white/10"
+              : "text-blue-600 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700"
+          }
+        `}
+      >
+        View Profile
+      </button>
     </div>
   )}
   
@@ -2858,20 +3023,60 @@ const handleTouchEnd = () => {
     <FaBan/> This message was deleted
   </p>
 ) : editing ? (
-  <>
+  <div ref={editRef}>
     <input
-      value={editedText}
-      onChange={(e) => setEditedText(e.target.value)}
-      className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded px-2 py-1 w-full outline-none"
-    />
+  value={editedText}
+  onChange={(e) => setEditedText(e.target.value)}
+  autoFocus
+  onKeyDown={(e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
 
-    <button
-      onClick={handleEdit}
-      className="mt-2 text-sm bg-blue-600 text-white px-3 py-1 rounded"
-    >
-      Save
-    </button>
-  </>
+      if (
+        editedText.trim() !==
+        (message.text || "").trim()
+      ) {
+        handleEdit();
+      } else {
+        setEditing(false);
+      }
+    }
+
+    if (e.key === "Escape") {
+      setEditedText(message.text || "");
+      setEditing(false);
+    }
+  }}
+  className={`
+    w-full
+    rounded-lg
+    px-3 py-2
+    outline-none
+    border
+    ${
+      isMine
+        ? "bg-blue-500 border-blue-400 text-white placeholder-blue-200 focus:border-white/70"
+        : "bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white"
+    }
+  `}
+/>
+
+    {editedText.trim() !==
+      (message.text || "").trim() && (
+      <button
+        type="button"
+        onClick={handleEdit}
+        className="
+          mt-2
+          text-xs
+          font-medium
+          text-white
+        "
+      >
+        Save
+      </button>
+    )}
+  </div>
 ) : (
   <p className="break-words overflow-wrap-anywhere">
     {renderMessageText(message.text)}
@@ -2946,7 +3151,7 @@ const handleTouchEnd = () => {
     Delete
   </button>
 )} */}
-          {isMine &&
+        {isMine &&
   (message.pending ? (
     <span
       title="Pending"
@@ -2955,9 +3160,17 @@ const handleTouchEnd = () => {
       <FaClock size={12} />
     </span>
   ) : isSeen ? (
-    <FaCheckDouble className="text-blue-200" />
+    <span title="Seen">
+      <FaCheckDouble className="text-cyan-300" />
+    </span>
+  ) : isReceiverOnline ? (
+    <span title="Delivered">
+      <FaCheckDouble className="text-blue-100" />
+    </span>
   ) : (
-    <FaCheck />
+    <span title="Sent">
+      <FaCheck className="text-blue-100" />
+    </span>
   ))}
 
         </div>
