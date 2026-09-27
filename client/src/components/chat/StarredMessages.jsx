@@ -1,17 +1,100 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
-import { FaTimes, FaStar, FaSearch } from "react-icons/fa";
+
+import {
+  FaTimes,
+  FaStar,
+  FaSearch,
+  FaImage,
+  FaVideo,
+  FaMicrophone,
+  FaFileAlt,
+  FaMapMarkerAlt,
+  FaShareSquare,
+  FaUser,
+  FaLink,
+} from "react-icons/fa";
 import { useTheme } from "../../context/ThemeContext";
 
-function previewText(msg) {
-  if (msg.text) return msg.text;
+function getMessagePreview(msg) {
+  if (msg.sharedPost) {
+    return {
+      icon: FaShareSquare,
+      text: "Shared a post",
+    };
+  }
+
+  if (msg.sharedProfile) {
+    return {
+      icon: FaUser,
+      text: "Shared a profile",
+    };
+  }
+
+  if (
+    msg.location?.latitude != null &&
+    msg.location?.longitude != null
+  ) {
+    return {
+      icon: FaMapMarkerAlt,
+      text: "Location",
+    };
+  }
+
+  const text = msg.text?.trim();
+
+if (
+  text &&
+  /^https?:\/\/\S+$/i.test(text)
+) {
+  return {
+    icon: FaLink,
+    text: text,
+  };
+}
+
+  if (msg.text?.trim()) {
+    return {
+      icon: null,
+      text: msg.text,
+    };
+  }
+
   const type = msg.attachments?.[0]?.type;
-  if (type === "image") return "📷 Photo";
-  if (type === "video") return "🎥 Video";
-  if (type === "audio") return "🎤 Voice message";
-  if (type === "file") return "📄 File";
-  return "Message";
+
+  if (type === "image") {
+    return {
+      icon: FaImage,
+      text: "Photo",
+    };
+  }
+
+  if (type === "video") {
+    return {
+      icon: FaVideo,
+      text: "Video",
+    };
+  }
+
+  if (type === "audio") {
+    return {
+      icon: FaMicrophone,
+      text: "Voice message",
+    };
+  }
+
+  if (type === "file") {
+    return {
+      icon: FaFileAlt,
+      text: "File",
+    };
+  }
+
+  return {
+    icon: null,
+    text: "Message",
+  };
 }
 
 function StarredMessages({ isOpen, onClose }) {
@@ -62,9 +145,10 @@ function StarredMessages({ isOpen, onClose }) {
     }
   };
 
+
   return (
    <div
-  className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${
+  className={`fixed inset-0 z-[9999] flex items-center justify-center p-4  ${
     darkMode ? "bg-black/70" : "bg-black/40"
   }`}
 >
@@ -128,13 +212,22 @@ function StarredMessages({ isOpen, onClose }) {
 </p>
           ) : (
             <div className="flex flex-col gap-2">
-              {messages.map((msg) => (
-                <div
+              {messages.map((msg) => {
+  const preview = getMessagePreview(msg);
+  const PreviewIcon = preview.icon;
+
+  return (
+    <div
                   key={msg._id}
                   onClick={() => {
-                    navigate(`/chat/${msg.chat?._id || msg.chat}`);
-                    onClose();
-                  }}
+  navigate(`/chat/${msg.chat?._id || msg.chat}`, {
+    state: {
+      targetMessageId: msg._id,
+    },
+  });
+
+  onClose();
+}}
                   className={`flex items-start gap-3 p-3 rounded-lg border transition cursor-pointer ${
   darkMode
     ? "bg-[#172235] border-gray-700 hover:bg-[#1c2a40] hover:border-blue-500/50"
@@ -156,13 +249,22 @@ function StarredMessages({ isOpen, onClose }) {
 >
                       {msg.sender?.name}
                     </p>
-                    <p
-  className={`text-sm truncate ${
+                    <div
+  className={`flex items-center gap-1.5 text-sm ${
     darkMode ? "text-gray-300" : "text-gray-600"
   }`}
 >
-                      {previewText(msg)}
-                    </p>
+  {PreviewIcon && (
+    <PreviewIcon
+      size={13}
+      className="shrink-0"
+    />
+  )}
+
+  <span className="truncate">
+    {preview.text}
+  </span>
+</div>
                     <p
   className={`text-xs mt-0.5 ${
     darkMode ? "text-gray-500" : "text-gray-400"
@@ -186,8 +288,9 @@ function StarredMessages({ isOpen, onClose }) {
                   >
                     <FaStar size={16} />
                   </button>
-                </div>
-              ))}
+                   </div>
+  );
+})}
             </div>
           )}
         </div>
