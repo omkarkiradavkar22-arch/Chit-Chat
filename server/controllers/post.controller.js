@@ -5,6 +5,42 @@ import streamifier from "streamifier";
 import Notification from "../models/Notification.js";
 import { sendPushToUser } from "../services/webPush.js";
 
+const getLikedByFollowingUser = async (
+  post,
+  currentUser
+) => {
+  const followingIds = new Set(
+    (currentUser.following || []).map((id) =>
+      id.toString()
+    )
+  );
+
+  const followedLikerId = (post.likes || []).find(
+    (likerId) =>
+      followingIds.has(likerId.toString())
+  );
+
+  if (!followedLikerId) {
+    return null;
+  }
+
+  return await User.findById(
+    followedLikerId
+  ).select("name username profilePic");
+};
+
+const getFirstLiker = async (post) => {
+  const firstLikerId = post.likes?.[0];
+
+  if (!firstLikerId) {
+    return null;
+  }
+
+  return await User.findById(
+    firstLikerId
+  ).select("name username profilePic");
+};
+
 const uploadToCloudinary = (buffer) => {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
@@ -124,6 +160,15 @@ export const getSinglePost = async (req, res) => {
       (id) => id.toString() === post._id.toString()
     );
 
+    const likedByFollowingUser =
+  await getLikedByFollowingUser(
+    post,
+    currentUser
+  );
+
+  const firstLiker =
+  await getFirstLiker(post);
+
     res.status(200).json({
       success: true,
       post: {
@@ -131,7 +176,9 @@ export const getSinglePost = async (req, res) => {
         isLiked: liked,
         isSaved: saved,
         likesCount: post.likes.length,
-        commentsCount: post.comments.length,
+commentsCount: post.comments.length,
+likedByFollowingUser,
+firstLiker,
       },
     });
 
@@ -213,53 +260,84 @@ export const getFeedPosts = async (req, res) => {
       .skip((page - 1) * limit)
       .limit(limit);
 
-    const updatedPosts = posts
-      .filter((post) => post.user)
-      .map((post) => {
-        const postUser = post.user;
+    const updatedPosts = await Promise.all(
+  posts
+    .filter((post) => post.user)
+    .map(async (post) => {
+      const postUser = post.user;
 
-        const liked = post.likes.some(
+      const liked = post.likes.some(
+        (id) =>
+          id.toString() ===
+          req.user._id.toString()
+      );
+
+      const saved = currentUser.savedPosts.some(
+        (id) =>
+          id.toString() ===
+          post._id.toString()
+      );
+
+      const isFollowing =
+        currentUser.following.some(
+          (id) =>
+            id.toString() ===
+            postUser._id.toString()
+        );
+
+      const isRequested =
+        postUser.followRequests?.some(
           (id) =>
             id.toString() ===
             req.user._id.toString()
-        );
+        ) || false;
 
-        const saved = currentUser.savedPosts.some(
-          (id) =>
-            id.toString() ===
-            post._id.toString()
-        );
+      // --------------------------------
+      // FIND A FOLLOWED USER WHO LIKED
+      // --------------------------------
 
-        const isFollowing =
-          currentUser.following.some(
-            (id) =>
-              id.toString() ===
-              postUser._id.toString()
-          );
+      const followingIds = new Set(
+        currentUser.following.map((id) =>
+          id.toString()
+        )
+      );
 
-        const isRequested =
-          postUser.followRequests?.some(
-            (id) =>
-              id.toString() ===
-              req.user._id.toString()
-          ) || false;
+      const followedLikerId = post.likes.find(
+        (likerId) =>
+          followingIds.has(likerId.toString())
+      );
 
-        return {
-          ...post.toObject(),
+      let likedByFollowingUser = null;
 
-          isLiked: liked,
-          isSaved: saved,
+      if (followedLikerId) {
+        likedByFollowingUser = await User.findById(
+          followedLikerId
+        ).select("name username profilePic");
+      }
 
-          likesCount: post.likes.length,
-          commentsCount: post.comments.length,
+      const firstLiker =
+  await getFirstLiker(post);
 
-          user: {
-            ...postUser.toObject(),
-            isFollowing,
-            isRequested,
-          },
-        };
-      });
+      return {
+        ...post.toObject(),
+
+        isLiked: liked,
+        isSaved: saved,
+
+      likesCount: post.likes.length,
+commentsCount: post.comments.length,
+
+likedByFollowingUser,
+firstLiker,
+
+        user: {
+          ...postUser.toObject(),
+          isFollowing,
+          isRequested,
+        },
+      };
+    })
+);
 
     const hasMore =
       page * limit < totalPosts;
@@ -349,10 +427,11 @@ export const getExplorePosts = async (req, res) => {
       .skip((page - 1) * limit)
       .limit(limit);
 
-    const updatedPosts = posts
-      .filter((post) => post.user)
-      .map((post) => {
-        const liked = post.likes.some(
+    const updatedPosts = await Promise.all(
+  posts
+    .filter((post) => post.user)
+    .map(async (post) => {
+          const liked = post.likes.some(
           (id) =>
             id.toString() ===
             req.user._id.toString()
@@ -364,16 +443,28 @@ export const getExplorePosts = async (req, res) => {
             post._id.toString()
         );
 
+        const likedByFollowingUser =
+  await getLikedByFollowingUser(
+    post,
+    currentUser
+  );
+
+  const firstLiker =
+  await getFirstLiker(post);
+
         return {
           ...post.toObject(),
 
           isLiked: liked,
           isSaved: saved,
 
-          likesCount: post.likes.length,
-          commentsCount: post.comments.length,
+         likesCount: post.likes.length,
+commentsCount: post.comments.length,
+likedByFollowingUser,
+firstLiker,
         };
-      });
+          })
+);
 
     const hasMore =
       page * limit < totalPosts;
@@ -427,7 +518,8 @@ export const getUserPosts = async (req, res) => {
       .populate("user", "name username profilePic")
       .sort({ createdAt: -1 });
 
-    const updatedPosts = posts.map((post) => {
+    const updatedPosts = await Promise.all(
+  posts.map(async (post) => {
       const liked = post.likes.some(
         (id) => id.toString() === req.user._id.toString()
       );
@@ -436,14 +528,26 @@ export const getUserPosts = async (req, res) => {
         (id) => id.toString() === post._id.toString()
       );
 
-     return {
+      const likedByFollowingUser =
+  await getLikedByFollowingUser(
+    post,
+    currentUser
+  );
+
+  const firstLiker =
+  await getFirstLiker(post);
+
+    return {
   ...post.toObject(),
   isLiked: liked,
   isSaved: saved,
   likesCount: post.likes.length,
   commentsCount: post.comments.length,
+  likedByFollowingUser,
+  firstLiker,
 };
-    });
+      })
+);
 
     res.status(200).json({
       success: true,
@@ -493,6 +597,105 @@ export const editPost = async (req, res) => {
 
   } catch (error) {
     res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// ==============================
+// HIDE / UNHIDE LIKE COUNT
+// ==============================
+
+export const toggleHideLikesCount = async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+
+    if (!post) {
+      return res.status(404).json({
+        success: false,
+        message: "Post not found",
+      });
+    }
+
+    // Only post owner can hide/unhide like count
+    if (
+      post.user.toString() !==
+      req.user._id.toString()
+    ) {
+      return res.status(403).json({
+        success: false,
+        message:
+          "You can change like count visibility only for your own post",
+      });
+    }
+
+    // Toggle hide/unhide
+    post.hideLikesCount =
+      !post.hideLikesCount;
+
+    await post.save();
+
+    return res.status(200).json({
+      success: true,
+      hideLikesCount:
+        post.hideLikesCount,
+      message: post.hideLikesCount
+        ? "Like count hidden"
+        : "Like count visible",
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// ==============================
+// TURN ON / OFF COMMENTING
+// ==============================
+
+export const toggleComments = async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+
+    if (!post) {
+      return res.status(404).json({
+        success: false,
+        message: "Post not found",
+      });
+    }
+
+    // Only post owner can change commenting setting
+    if (
+      post.user.toString() !==
+      req.user._id.toString()
+    ) {
+      return res.status(403).json({
+        success: false,
+        message:
+          "You can change commenting only for your own post",
+      });
+    }
+
+    post.commentsDisabled =
+      !post.commentsDisabled;
+
+    await post.save();
+
+    return res.status(200).json({
+      success: true,
+      commentsDisabled:
+        post.commentsDisabled,
+      message: post.commentsDisabled
+        ? "Commenting turned off"
+        : "Commenting turned on",
+    });
+
+  } catch (error) {
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
@@ -554,6 +757,92 @@ export const deletePost = async (req, res) => {
   }
 };
 
+// ==============================
+// GET POST LIKERS - OWNER ONLY
+// ==============================
+
+export const getPostLikers = async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+
+    if (!post) {
+      return res.status(404).json({
+        success: false,
+        message: "Post not found",
+      });
+    }
+
+    // Only post owner can see liker list
+    if (post.user.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "Only post owner can view likes",
+      });
+    }
+
+    const currentUser = await User.findById(
+      req.user._id
+    ).select("following");
+
+    const likers = await User.find({
+      _id: { $in: post.likes },
+    }).select(
+      "name username profilePic isPrivate followers following followRequests"
+    );
+
+    const formattedLikers = likers.map((liker) => {
+      const isMe =
+        liker._id.toString() ===
+        req.user._id.toString();
+
+      const isFollowing = (
+        currentUser.following || []
+      ).some(
+        (id) =>
+          id.toString() === liker._id.toString()
+      );
+
+      const isRequested = (
+        liker.followRequests || []
+      ).some(
+        (id) =>
+          id.toString() === req.user._id.toString()
+      );
+
+      const followsYou = (
+        liker.following || []
+      ).some(
+        (id) =>
+          id.toString() === req.user._id.toString()
+      );
+
+      return {
+        _id: liker._id,
+        name: liker.name,
+        username: liker.username,
+        profilePic: liker.profilePic,
+        isPrivate: liker.isPrivate,
+
+        isMe,
+        isFollowing,
+        isRequested,
+        followsYou,
+      };
+    });
+
+    return res.status(200).json({
+      success: true,
+      count: formattedLikers.length,
+      likers: formattedLikers,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 export const toggleLike = async (req, res) => {
   try {
     const post = await Post.findById(req.params.id);
@@ -589,10 +878,28 @@ await Notification.findOneAndDelete({
   type: "like",
 });
 
+const updatedPost = await Post.findById(
+  post._id
+);
+
+const currentUser =
+  await User.findById(req.user._id);
+
+const likedByFollowingUser =
+  await getLikedByFollowingUser(
+    updatedPost,
+    currentUser
+  );
+
+const firstLiker =
+  await getFirstLiker(updatedPost);
+
 return res.status(200).json({
   success: true,
   liked: false,
   likesCount: post.likes.length,
+  likedByFollowingUser,
+  firstLiker,
   message: "Post unliked successfully",
 });
     }
@@ -625,12 +932,26 @@ await User.findByIdAndUpdate(req.user._id, {
 }
 
 
+const currentUser =
+  await User.findById(req.user._id);
+
+const likedByFollowingUser =
+  await getLikedByFollowingUser(
+    post,
+    currentUser
+  );
+
+const firstLiker =
+  await getFirstLiker(post);
+
     res.status(200).json({
-      success: true,
-      liked: true,
-      likesCount: post.likes.length,
-      message: "Post liked successfully",
-    });
+  success: true,
+  liked: true,
+  likesCount: post.likes.length,
+  likedByFollowingUser,
+  firstLiker,
+  message: "Post liked successfully",
+});
 
   } catch (error) {
     res.status(500).json({
@@ -708,9 +1029,10 @@ export const getSavedPosts = async (req, res) => {
       });
     }
 
-    const updatedPosts = currentUser.savedPosts
-      .filter((post) => post.user)
-      .map((post) => {
+    const updatedPosts = await Promise.all(
+  currentUser.savedPosts
+    .filter((post) => post.user)
+    .map(async (post) => {
         const postUser = post.user;
 
         const isLiked = post.likes.some(
@@ -733,14 +1055,24 @@ export const getSavedPosts = async (req, res) => {
               currentUser._id.toString()
           ) || false;
 
+          const likedByFollowingUser =
+  await getLikedByFollowingUser(
+    post,
+    currentUser
+  );
+
+  const firstLiker =
+  await getFirstLiker(post);
+
         return {
           ...post.toObject(),
 
           isLiked,
           isSaved: true,
-
-          likesCount: post.likes.length,
-          commentsCount: post.comments.length,
+likesCount: post.likes.length,
+commentsCount: post.comments.length,
+likedByFollowingUser,
+firstLiker,
 
           user: {
             ...postUser.toObject(),
@@ -748,7 +1080,8 @@ export const getSavedPosts = async (req, res) => {
             isRequested,
           },
         };
-      });
+      })
+    );
 
     return res.status(200).json({
       success: true,
@@ -788,9 +1121,10 @@ export const getLikedPosts = async (req, res) => {
       });
     }
 
-    const updatedPosts = currentUser.likedPosts
-      .filter((post) => post.user)
-      .map((post) => {
+    const updatedPosts = await Promise.all(
+  currentUser.likedPosts
+    .filter((post) => post.user)
+    .map(async (post) => {
         const postUser = post.user;
 
         const isFollowing =
@@ -814,6 +1148,15 @@ export const getLikedPosts = async (req, res) => {
               post._id.toString()
           );
 
+          const likedByFollowingUser =
+  await getLikedByFollowingUser(
+    post,
+    currentUser
+  );
+
+  const firstLiker =
+  await getFirstLiker(post);
+
         return {
           ...post.toObject(),
 
@@ -823,7 +1166,9 @@ export const getLikedPosts = async (req, res) => {
           isSaved,
 
           likesCount: post.likes.length,
-          commentsCount: post.comments.length,
+commentsCount: post.comments.length,
+likedByFollowingUser,
+firstLiker,
 
           user: {
             ...postUser.toObject(),
@@ -831,7 +1176,8 @@ export const getLikedPosts = async (req, res) => {
             isRequested,
           },
         };
-      });
+      })
+    );
 
     return res.status(200).json({
       success: true,
