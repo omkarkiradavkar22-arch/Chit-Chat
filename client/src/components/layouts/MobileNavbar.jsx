@@ -58,6 +58,15 @@ const { socket } = useSocket();
   } catch (err) {}
 };
 
+useEffect(() => {
+  // User is currently inside Messages
+  if (pathname === "/chat" || pathname.startsWith("/chat/")) {
+    setMessageUnreadCount(0);
+  } else {
+    loadMessageUnread();
+  }
+}, [pathname]);
+
 const loadTaskPending = async () => {
   try {
     const { data } = await api.get("/tasks");
@@ -101,7 +110,8 @@ const loadTaskPending = async () => {
 >
   <FaComments size={22} />
 
-  {messageUnreadCount > 0 && (
+  {!pathname.startsWith("/chat") &&
+  messageUnreadCount > 0 && (
     <span
       className="
       absolute
