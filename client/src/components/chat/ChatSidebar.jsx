@@ -443,16 +443,20 @@ useEffect(() => {
 
             <img
               src={
-                chat.otherUser?.profilePic
-                || "/default-profile-picture.png"
-              }
+  chat.isBlocked &&
+  String(chat.blockedBy) !== String(user?._id)
+    ? "/default-profile-picture.png"
+    : chat.otherUser?.profilePic ||
+      "/default-profile-picture.png"
+}
               alt={chat.otherUser?.name}
               className="w-12 h-12 rounded-full object-cover"
               />
 
-            {onlineUsers.includes(chat.otherUser?._id) && (
-              <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
-            )}
+            {!chat.isBlocked &&
+  onlineUsers.includes(chat.otherUser?._id) && (
+    <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
+  )}
             </div>
 
            <div className="flex-1 min-w-0 overflow-hidden">
