@@ -4,6 +4,10 @@ import { toast } from "react-hot-toast";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { useNavigate } from "react-router-dom";
+import {
+  FaHeart,
+  FaRegHeart,
+} from "react-icons/fa";
 
 function CommentSection({ post }) {
   const { user } = useAuth();
@@ -116,6 +120,31 @@ const darkMode = theme === "dark";
     }
   };
 
+  const toggleCommentLike = async (commentId) => {
+  try {
+    const { data } = await api.post(
+      `/comments/${commentId}/toggle-like`
+    );
+
+    setComments((prev) =>
+      prev.map((comment) =>
+        comment._id === commentId
+          ? {
+              ...comment,
+              isLiked: data.liked,
+              likesCount: data.likesCount,
+            }
+          : comment
+      )
+    );
+  } catch (error) {
+    toast.error(
+      error.response?.data?.message ||
+        "Failed to like comment"
+    );
+  }
+};
+
   useEffect(() => {
     loadComments();
   }, [post._id]);
@@ -145,9 +174,9 @@ const darkMode = theme === "dark";
       ) : (
         comments.map((comment) => (
           <div
-            key={comment._id}
-            className="flex gap-3 mb-4"
-          >
+  key={comment._id}
+  className="flex gap-3 mb-4 items-start"
+>
             {/* PROFILE IMAGE */}
             <img
               onClick={() =>
@@ -226,6 +255,7 @@ const darkMode = theme === "dark";
 
                   {/* ACTIONS */}
                   <div className="flex gap-4 mt-2 text-sm">
+                    
                     {/* EDIT */}
                     {user._id === comment.user._id && (
                       <button
@@ -254,7 +284,35 @@ const darkMode = theme === "dark";
                   </div>
                 </>
               )}
+              
             </div>
+
+            {/* COMMENT LIKE - RIGHT SIDE */}
+<button
+  onClick={() =>
+    toggleCommentLike(comment._id)
+  }
+  className="shrink-0 flex flex-col items-center gap-1 mt-1 px-1"
+>
+  {comment.isLiked ? (
+    <FaHeart
+      className="text-red-500"
+      size={15}
+    />
+  ) : (
+    <FaRegHeart
+      className="text-gray-500 dark:text-gray-400"
+      size={15}
+    />
+  )}
+
+  {Number(comment.likesCount || 0) > 0 && (
+    <span className="text-[11px] text-gray-500 dark:text-gray-400">
+      {comment.likesCount}
+    </span>
+  )}
+</button>
+            
           </div>
         ))
       )}
