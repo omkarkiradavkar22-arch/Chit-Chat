@@ -103,7 +103,7 @@ onPendingCountChange?.((prev) => Math.max(0, prev - 1));
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4">
 
       <div className="w-full max-w-lg max-h-[80vh] flex flex-col overflow-hidden rounded-2xl bg-white dark:bg-gray-900 shadow-2xl">
 
