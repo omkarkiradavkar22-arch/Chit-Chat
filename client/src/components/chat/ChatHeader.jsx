@@ -18,6 +18,8 @@ import api from "../../services/api";
 import { toast } from "react-hot-toast";
 import MediaGallery from "./MediaGallery";
 import { useCall } from "../../context/CallContext";
+import { useAuth } from "../../context/AuthContext";
+
 function ChatHeader({
   otherUser,
   onlineUsers,
@@ -34,6 +36,8 @@ function ChatHeader({
    const [showDisappearingMenu, setShowDisappearingMenu] = useState(false);
    const menuRef = useRef(null);
    const { startCall } = useCall();
+
+   const { user } = useAuth();
 
    useEffect(() => {
   const handleOutsideClick = (event) => {
@@ -106,7 +110,30 @@ function ChatHeader({
   }
 };
 
-  const isOnline = onlineUsers.includes(otherUser._id);
+const handleCall = (type) => {
+  if (chatInfo?.isBlocked) {
+    if (
+      String(chatInfo.blockedBy) ===
+      String(user?._id)
+    ) {
+      toast.error(
+        "Unblock this user to make a call."
+      );
+    } else {
+      toast.error(
+        "You cannot call this user."
+      );
+    }
+
+    return;
+  }
+
+  startCall(otherUser, type, chatId);
+};
+
+  const isOnline =
+  !chatInfo?.isBlocked &&
+  onlineUsers.includes(otherUser._id);
 
   return (
     <>
@@ -164,18 +191,20 @@ function ChatHeader({
           {otherUser.name}
         </h2>
 
-        <p className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
-          {isOnline
-            ? "Online"
-            :otherUser.lastSeen
-  ? `Last seen ${new Date(
-      otherUser.lastSeen
-    ).toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    })}`
-  : "Offline"}
-        </p>
+        {!chatInfo?.isBlocked && (
+  <p className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
+    {isOnline
+      ? "Online"
+      : otherUser.lastSeen
+      ? `Last seen ${new Date(
+          otherUser.lastSeen
+        ).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        })}`
+      : "Offline"}
+  </p>
+)}
 
       </div>
 
@@ -185,7 +214,7 @@ function ChatHeader({
     <div className="flex items-center gap-2">
 
       <button
-       onClick={() => startCall(otherUser, "audio", chatId)}
+onClick={() => handleCall("audio")}
         className="
   w-10
   h-10
@@ -204,8 +233,9 @@ function ChatHeader({
       </button>
 
       <button
-      onClick={() => startCall(otherUser, "video", chatId)}
-        className="
+
+onClick={() => handleCall("video")}
+className="
   w-10
   h-10
   rounded-full
@@ -441,7 +471,7 @@ function ChatHeader({
             setChatInfo({
               ...chatInfo,
               isBlocked: true,
-              blockedBy: otherUser._id,
+              blockedBy: user._id,
             });
 
             toast.success("User blocked");
