@@ -1,8 +1,4 @@
-import {
-  FaHome,
-  FaTasks,
-  FaCompass,
-  FaBell,
+import { FaHome, FaTasks, FaCompass, FaBell,
   FaComments,
   FaUser,
 } from "react-icons/fa";
