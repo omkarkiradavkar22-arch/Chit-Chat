@@ -37,16 +37,22 @@ function Login() {
       const { data } = await api.post("/auth/login", formData);
 
       if (data.success) {
-        // Save token for cross-domain auth (Authorization header fallback)
-        localStorage.setItem("token", data.token);
+  // Save token for cross-domain auth
+  localStorage.setItem("token", data.token);
 
-        // Load logged-in user
-        await loadUser();
+  // Load logged-in user
+  await loadUser();
 
-        toast.success("Login Successful");
+  // Welcome user
+  toast.success(
+    `Welcome ${data.user?.username || "user"}`,
+    {
+      duration: 3000,
+    }
+  );
 
-        navigate("/");
-      }
+  navigate("/");
+}
     } catch (error) {
       toast.error(
         error.response?.data?.message || "Login Failed"
