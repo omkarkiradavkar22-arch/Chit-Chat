@@ -393,13 +393,20 @@ case "message": {
         {!notification.isRead && (
     <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
   )}
-        <img
-          src={
-            notification.sender.profilePic || "/default-profile-picture.png"
-          }
-          alt=""
-          className="w-12 h-12 rounded-full object-cover"
-        />
+        <Link
+  to={`/profile/${notification.sender.username}`}
+  onClick={(e) => e.stopPropagation()}
+  className="shrink-0"
+>
+  <img
+    src={
+      notification.sender.profilePic ||
+      "/default-profile-picture.png"
+    }
+    alt={notification.sender.name}
+    className="w-12 h-12 rounded-full object-cover cursor-pointer"
+  />
+</Link>
 
         {notification.type === "message" &&
           (notification.priority === "urgent" ||
