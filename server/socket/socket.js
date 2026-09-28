@@ -31,34 +31,14 @@ export const initSocket = (server) => {
   });
 
   io.on("connection", (socket) => {
-    console.log("🟢 User Connected:", socket.id);
 
     socket.on("join", (userId) => {
       onlineUsers.set(userId, socket.id);
 
 
       socket.join(userId);
-
-      console.log("🚪 [SERVER] join received:", {
-        userId,
-        userIdType: typeof userId,
-        socketId: socket.id,
-      });
-
-      console.log(
-        "🏠 ROOMS:",
-        [...socket.rooms]
-      );
-
-      console.log(
-        "👥 [SERVER] onlineUsers map now:",
-        Array.from(onlineUsers.entries())
-      );
-
       // Broadcast updated online users
       io.emit("onlineUsers", Array.from(onlineUsers.keys()));
-
-      console.log(`${userId} joined`);
     });
 
     // Client tells us which chat screen it currently has open, so we
@@ -111,6 +91,46 @@ export const initSocket = (server) => {
             chatId,
             callType,
           });
+
+          // =====================================
+// BLOCKED CHAT CHECK
+// =====================================
+
+if (!chatId) {
+  return;
+}
+
+const callChat = await Chat.findById(chatId);
+
+if (!callChat) {
+  console.log("❌ Call blocked: Chat not found");
+  return;
+}
+
+// Caller and receiver must belong to this chat
+const callerInChat = callChat.participants.some(
+  (id) => id.toString() === from.toString()
+);
+
+const receiverInChat = callChat.participants.some(
+  (id) => id.toString() === to.toString()
+);
+
+if (!callerInChat || !receiverInChat) {
+  console.log("❌ Call blocked: Invalid participants");
+  return;
+}
+
+// Block call if chat is blocked
+if (callChat.isBlocked) {
+  console.log("🚫 Call blocked: Chat is blocked");
+
+  io.to(from).emit("call:blocked", {
+    message: "You cannot call this user",
+  });
+
+  return;
+}
 
           // Send incoming call to receiver
           io.to(to).emit("call:invite", {
