@@ -45,7 +45,7 @@ function Register() {
         // Load logged-in user
         await loadUser();
 
-        toast.success("Account Created Successfully 🎉");
+        toast.success("Account Created Successfully");
 
         navigate("/");
       }
