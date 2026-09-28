@@ -69,12 +69,13 @@ const normalClass =
 };
 
  useEffect(() => {
-  if (user) {
-    loadUnread();
+  // User is currently inside Messages
+  if (pathname === "/chat" || pathname.startsWith("/chat/")) {
+    setMessageUnreadCount(0);
+  } else {
     loadMessageUnread();
-    loadTaskPending();
   }
-}, [user]);
+}, [pathname]);
 
   // Live Notification Badge
   useEffect(() => {
