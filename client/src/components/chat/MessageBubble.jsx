@@ -1806,202 +1806,6 @@ const handleTouchEnd = () => {
   }`}
 >
 
-   {fullImage && (
-  <div
-    className="
-      fixed inset-0 z-[9999]
-      bg-black/90
-      flex items-center justify-center
-      p-4
-      overscroll-none
-      touch-none
-    "
-    onClick={() => setFullImage(null)}
-
-    onPointerDown={(e) => {
-      imageSwipeStartXRef.current = e.clientX;
-      imageSwipeStartYRef.current = e.clientY;
-
-      try {
-        e.currentTarget.setPointerCapture(e.pointerId);
-      } catch {
-        // Ignore if pointer capture is unavailable
-      }
-    }}
-
-    onPointerUp={(e) => {
-      const startX = imageSwipeStartXRef.current;
-      const startY = imageSwipeStartYRef.current;
-
-      if (startX === null || startY === null) return;
-
-      const diffX = e.clientX - startX;
-      const diffY = e.clientY - startY;
-
-      // Horizontal swipe only
-      if (
-        imageAttachments.length > 1 &&
-        Math.abs(diffX) >= 40 &&
-        Math.abs(diffX) > Math.abs(diffY)
-      ) {
-        // LEFT SWIPE → NEXT IMAGE
-        if (diffX < 0) {
-          const nextIndex =
-            (fullImageIndex + 1) %
-            imageAttachments.length;
-
-          setFullImageIndex(nextIndex);
-          setFullImage(
-            imageAttachments[nextIndex].url
-          );
-        }
-
-        // RIGHT SWIPE → PREVIOUS IMAGE
-        if (diffX > 0) {
-          const previousIndex =
-            (
-              fullImageIndex -
-              1 +
-              imageAttachments.length
-            ) % imageAttachments.length;
-
-          setFullImageIndex(previousIndex);
-          setFullImage(
-            imageAttachments[previousIndex].url
-          );
-        }
-      }
-
-      imageSwipeStartXRef.current = null;
-      imageSwipeStartYRef.current = null;
-    }}
-
-    onPointerCancel={() => {
-      imageSwipeStartXRef.current = null;
-      imageSwipeStartYRef.current = null;
-    }}
-  >
-    {/* Close Button */}
-    <button
-      type="button"
-      onClick={(e) => {
-        e.stopPropagation();
-        setFullImage(null);
-      }}
-      className="
-        absolute top-5 right-5
-        w-10 h-10
-        rounded-full
-        bg-white/10 hover:bg-white/20
-        text-white
-        flex items-center justify-center
-        text-xl
-        z-20
-      "
-    >
-      ✕
-    </button>
-
-    {/* LEFT ARROW */}
-    {imageAttachments.length > 1 && (
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-
-          const previousIndex =
-            (
-              fullImageIndex -
-              1 +
-              imageAttachments.length
-            ) % imageAttachments.length;
-
-          setFullImageIndex(previousIndex);
-          setFullImage(
-            imageAttachments[previousIndex].url
-          );
-        }}
-        className="
-          absolute left-3 sm:left-6
-          top-1/2 -translate-y-1/2
-          w-11 h-11
-          rounded-full
-          bg-black/40 hover:bg-black/60
-          text-white
-          flex items-center justify-center
-          z-20
-        "
-      >
-        <FaChevronLeft size={22} />
-      </button>
-    )}
-
-    {/* IMAGE */}
-    <img
-      src={fullImage}
-      alt="Full preview"
-      draggable={false}
-      onDragStart={(e) => e.preventDefault()}
-      onClick={(e) => e.stopPropagation()}
-      className="
-        max-w-full
-        max-h-[85vh]
-        object-contain
-        rounded-lg
-        select-none
-        pointer-events-none
-      "
-    />
-
-    {/* RIGHT ARROW */}
-    {imageAttachments.length > 1 && (
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-
-          const nextIndex =
-            (fullImageIndex + 1) %
-            imageAttachments.length;
-
-          setFullImageIndex(nextIndex);
-          setFullImage(
-            imageAttachments[nextIndex].url
-          );
-        }}
-        className="
-          absolute right-3 sm:right-6
-          top-1/2 -translate-y-1/2
-          w-11 h-11
-          rounded-full
-          bg-black/40 hover:bg-black/60
-          text-white
-          flex items-center justify-center
-          z-20
-        "
-      >
-        <FaChevronRight size={22} />
-      </button>
-    )}
-
-    {/* IMAGE COUNTER */}
-    {imageAttachments.length > 1 && (
-      <div
-        className="
-          absolute bottom-6
-          left-1/2 -translate-x-1/2
-          px-3 py-1.5
-          rounded-full
-          bg-black/50
-          text-white text-sm
-          z-20
-        "
-      >
-        {fullImageIndex + 1} / {imageAttachments.length}
-      </div>
-    )}
-  </div>
-)}
       <div
       onTouchStart={handleTouchStart}
   onTouchMove={handleTouchMove}
@@ -3302,7 +3106,88 @@ className={`relative min-w-0 max-w-[85%] sm:max-w-[70%] rounded-2xl px-4 py-3 sh
 
         </div>
       </div>
-     <ForwardModal
+      {fullImage && (
+  <div
+    className="fixed inset-0 z-[9999] bg-black/90 flex items-center justify-center"
+    onClick={() => setFullImage(null)}
+  >
+    {/* CLOSE BUTTON */}
+    <button
+      type="button"
+      onClick={() => setFullImage(null)}
+      className="absolute top-5 right-5 z-[10000] w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-xl transition"
+    >
+      ✕
+    </button>
+
+    {/* LEFT ARROW */}
+    {imageAttachments.length > 1 && (
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+
+          const newIndex =
+            fullImageIndex === 0
+              ? imageAttachments.length - 1
+              : fullImageIndex - 1;
+
+          setFullImageIndex(newIndex);
+          setFullImage(imageAttachments[newIndex].url);
+        }}
+        className="hidden md:flex absolute left-5 top-1/2 -translate-y-1/2 z-[10000] w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white items-center justify-center transition"
+      >
+        <FaChevronLeft size={22} />
+      </button>
+    )}
+
+    {/* IMAGE */}
+    <img
+  src={fullImage}
+  alt="Full preview"
+  draggable={false}
+  className="
+    max-w-full
+    max-h-[90vh]
+    object-contain
+    rounded-lg
+    select-none
+    touch-pan-y
+  "
+  onClick={(e) => e.stopPropagation()}
+  onDragStart={(e) => e.preventDefault()}
+/>
+
+    {/* RIGHT ARROW */}
+    {imageAttachments.length > 1 && (
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+
+          const newIndex =
+            fullImageIndex === imageAttachments.length - 1
+              ? 0
+              : fullImageIndex + 1;
+
+          setFullImageIndex(newIndex);
+          setFullImage(imageAttachments[newIndex].url);
+        }}
+        className="hidden md:flex absolute right-5 top-1/2 -translate-y-1/2 z-[10000] w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white items-center justify-center transition"
+      >
+        <FaChevronRight size={22} />
+      </button>
+    )}
+
+    {/* IMAGE COUNTER */}
+    {imageAttachments.length > 1 && (
+      <div className="absolute bottom-5 left-1/2 -translate-x-1/2 bg-black/50 text-white text-sm px-3 py-1.5 rounded-full">
+        {fullImageIndex + 1} / {imageAttachments.length}
+      </div>
+    )}
+  </div>
+)}
+            <ForwardModal
   open={showForward}
   onClose={() => setShowForward(false)}
   messageId={message._id}
