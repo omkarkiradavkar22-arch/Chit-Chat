@@ -14,11 +14,15 @@ import {
   FaWhatsapp,
   FaLink,
   FaPaperPlane,
-  FaShareAlt
+  FaShareAlt,
+FaThumbtack
 } from "react-icons/fa";
 import ChitChatIcon from "../icons/ChitChatIcon";
 
-import { useNavigate } from "react-router-dom";
+import {
+  useNavigate,
+  useLocation,
+} from "react-router-dom";
 import api from "../../services/api";
 import { toast } from "react-hot-toast";
 import { useAuth } from "../../context/AuthContext";
@@ -78,6 +82,12 @@ const [selectedShareChats, setSelectedShareChats] = useState([]);
 const [sendingPosts, setSendingPosts] = useState(false);
   const { user } = useAuth();
 
+  const location = useLocation();
+
+const openedFromOwnProfile =
+  location.state?.source === "profile" &&
+  user?._id === post.user?._id;
+
   const [showHeart, setShowHeart] = useState(false);
 const lastTapRef = useRef(0);
 
@@ -134,6 +144,12 @@ const [description, setDescription] = useState(post.description);
 const [loading, setLoading] = useState(false);
 
 const [openMenu, setOpenMenu] = useState(false);
+
+const [isPinned, setIsPinned] = useState(
+  Boolean(post.isPinned)
+);
+
+const [pinLoading, setPinLoading] = useState(false);
 
 const [hideLikesCount, setHideLikesCount] = useState(
   Boolean(post.hideLikesCount)
@@ -432,6 +448,42 @@ const toggleComments = async () => {
       error.response?.data?.message ||
         "Failed to update commenting"
     );
+  }
+};
+
+const togglePinPost = async () => {
+  if (pinLoading) return;
+
+  try {
+    setPinLoading(true);
+
+    const { data } = await api.patch(
+      `/posts/${post._id}/toggle-pin`
+    );
+
+    setIsPinned(data.isPinned);
+
+    setOpenMenu(false);
+
+    toast.success(data.message);
+
+    // Profile grid ला latest pin status मिळण्यासाठी
+    window.dispatchEvent(
+      new CustomEvent("chitchat-post-pin-change", {
+        detail: {
+          postId: post._id,
+          isPinned: data.isPinned,
+          pinnedAt: data.pinnedAt || null,
+        },
+      })
+    );
+  } catch (error) {
+    toast.error(
+      error.response?.data?.message ||
+        "Failed to update pinned post"
+    );
+  } finally {
+    setPinLoading(false);
   }
 };
 
@@ -831,6 +883,30 @@ const handleTouchEnd = () => {
     </>
   )}
 </button>
+
+{openedFromOwnProfile && (
+  <button
+    onClick={togglePinPost}
+    disabled={pinLoading}
+    className="w-full flex items-center gap-3 text-left px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 transition disabled:opacity-50"
+  >
+    <FaThumbtack
+      className={
+        isPinned
+          ? "text-blue-600"
+          : "text-gray-600 dark:text-gray-300"
+      }
+    />
+
+    <span>
+      {pinLoading
+        ? "Updating..."
+        : isPinned
+        ? "Unpin from main grid"
+        : "Pin to main grid"}
+    </span>
+  </button>
+)}
 
 <button
   onClick={toggleComments}
