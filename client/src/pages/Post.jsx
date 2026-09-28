@@ -148,6 +148,27 @@ function Post() {
     loadPosts();
   }, [id]);
 
+
+  // =========================
+// PROFILE POST TITLE
+// =========================
+
+const getProfilePostTitle = () => {
+  if (!profileSource) {
+    return null;
+  }
+
+  if (sourceType === "liked") {
+    return "Liked Posts";
+  }
+
+  if (sourceType === "saved") {
+    return "Saved Posts";
+  }
+
+  return "Posts";
+};
+
   // =========================
   // SECTION TITLE
   // =========================
@@ -183,13 +204,25 @@ function Post() {
         ) : (
           <>
             {/* =========================
-                SELECTED POST
-            ========================= */}
+    PROFILE SOURCE TITLE
+========================= */}
 
-            <PostCard
-              post={post}
-              priority={true}
-            />
+{profileSource && (
+  <div className="mb-5">
+    <h1 className="text-3xl font-bold mb-6">
+         {getProfilePostTitle()}
+        </h1>
+  </div>
+)}
+
+{/* =========================
+    SELECTED POST
+========================= */}
+
+<PostCard
+  post={post}
+  priority={true}
+/>
 
             {/* =========================
                 MORE POSTS
