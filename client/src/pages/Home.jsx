@@ -25,6 +25,9 @@ import {
   useState,
 } from "react";
 
+import { Link } from "react-router-dom";
+import { FaTimes } from "react-icons/fa";
+
 import Layout from "../components/layouts/Layout";
 import CreatePost from "../components/post/CreatePost";
 import PostCard from "../components/post/PostCard";
@@ -34,6 +37,37 @@ import { toast } from "react-hot-toast";
 function Home() {
  const [posts, setPosts] =
   useState(() => getCachedHomeFeed());
+
+  const [mobileSuggestions, setMobileSuggestions] =
+  useState([]);
+
+const [
+  suggestionFollowLoadingId,
+  setSuggestionFollowLoadingId,
+] = useState(null);
+
+const dismissedSuggestionIdsRef = useRef(new Set());
+
+useEffect(() => {
+  const fetchMobileSuggestions = async () => {
+    try {
+      const { data } = await api.get(
+        "/users/suggestions/list"
+      );
+
+      setMobileSuggestions(data.users || []);
+    } catch (error) {
+      console.error(
+        "Failed to fetch mobile suggestions:",
+        error
+      );
+
+      setMobileSuggestions([]);
+    }
+  };
+
+  fetchMobileSuggestions();
+}, []);
 
 // Only next-page/infinite-scroll loading
 const [loadingMore, setLoadingMore] =
@@ -140,6 +174,131 @@ const [loadingMore, setLoadingMore] =
 }
 }, []);
 
+const handleMobileSuggestionFollow = async (
+  userId
+) => {
+  if (suggestionFollowLoadingId) return;
+
+  try {
+    setSuggestionFollowLoadingId(userId);
+
+    const { data } = await api.post(
+      `/users/follow/${userId}`
+    );
+
+    const requestSent =
+      data.message
+        ?.toLowerCase()
+        .includes("request") || false;
+
+    window.dispatchEvent(
+      new CustomEvent("chitchat-follow-change", {
+        detail: {
+          userId: String(userId),
+          isFollowing: !requestSent,
+          isRequested: requestSent,
+        },
+      })
+    );
+
+    if (requestSent) {
+  // Private account:
+  // Keep card and show Requested
+  setMobileSuggestions((prev) =>
+    prev.map((suggestedUser) =>
+      suggestedUser._id === userId
+        ? {
+            ...suggestedUser,
+            isRequested: true,
+          }
+        : suggestedUser
+    )
+  );
+} else {
+  // Public account:
+  // Follow completed, remove from suggestions
+  setMobileSuggestions((prev) =>
+    prev.filter(
+      (suggestedUser) =>
+        suggestedUser._id !== userId
+    )
+  );
+}
+
+    toast.success(data.message);
+  } catch (error) {
+    toast.error(
+      error.response?.data?.message ||
+        "Failed to follow user"
+    );
+  } finally {
+    setSuggestionFollowLoadingId(null);
+  }
+};
+
+const handleMobileSuggestionDismiss = async (
+  userId
+) => {
+  const dismissedIndex =
+    mobileSuggestions.findIndex(
+      (user) => user._id === userId
+    );
+
+  if (dismissedIndex === -1) return;
+
+  // Remember every user dismissed during this session
+  dismissedSuggestionIdsRef.current.add(
+    String(userId)
+  );
+
+  // Exclude:
+  // 1. All previously dismissed users
+  // 2. All users currently visible
+  const excludeIds = [
+    ...dismissedSuggestionIdsRef.current,
+    ...mobileSuggestions.map(
+      (user) => String(user._id)
+    ),
+  ];
+
+  try {
+    const { data } = await api.get(
+      `/users/suggestions/list?exclude=${[
+        ...new Set(excludeIds),
+      ].join(",")}`
+    );
+
+    const replacementUser =
+      data.users?.[0] || null;
+
+    setMobileSuggestions((prev) => {
+      const updated = [...prev];
+
+      if (replacementUser) {
+        // Replace at exactly same position
+        updated[dismissedIndex] =
+          replacementUser;
+      } else {
+        // Actually no eligible users left
+        updated.splice(dismissedIndex, 1);
+      }
+
+      return updated;
+    });
+  } catch (error) {
+    console.error(
+      "Failed to load replacement suggestion:",
+      error
+    );
+
+    setMobileSuggestions((prev) =>
+      prev.filter(
+        (user) => user._id !== userId
+      )
+    );
+  }
+};
+
 const handlePostCreated = async () => {
   // Reset feed to first page
   setPage(1);
@@ -227,12 +386,124 @@ const handlePostCreated = async () => {
           <>
             {/* POSTS */}
             {posts.map((post, index) => (
-              <PostCard
-                key={post._id}
-                post={post}
-                priority={index === 0}
-              />
-            ))}
+  <div key={post._id}>
+    <PostCard
+      post={post}
+      priority={index === 0}
+    />
+
+    {/* MOBILE SUGGESTED USERS - AFTER 2ND POST */}
+    {index === 1 &&
+      mobileSuggestions.length > 0 && (
+        <div className="md:hidden mt-5 bg-white dark:bg-gray-900 border-y border-gray-200 dark:border-gray-800 py-4">
+          <div className="flex items-center justify-between px-4 mb-4">
+            <h2 className="font-semibold text-gray-900 dark:text-white">
+              Suggested for you
+            </h2>
+          </div>
+
+          <div className="flex gap-3 overflow-x-auto px-4 pb-2 scrollbar-hide">
+            {mobileSuggestions.map(
+              (suggestedUser) => (
+                <div
+                  key={suggestedUser._id}
+                  className="relative min-w-[170px] w-[170px] border border-gray-200 dark:border-gray-700 rounded-xl p-4 flex flex-col items-center bg-white dark:bg-gray-900"
+                >
+                  {/* DISMISS */}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handleMobileSuggestionDismiss(
+                        suggestedUser._id
+                      )
+                    }
+                    className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+                    aria-label={`Dismiss ${suggestedUser.name}`}
+                  >
+                    <FaTimes size={15} />
+                  </button>
+
+                  {/* PROFILE */}
+                  <Link
+                    to={`/profile/${suggestedUser.username}`}
+                    className="flex flex-col items-center w-full"
+                  >
+                    <img
+                      src={
+                        suggestedUser.profilePic ||
+                        "/default-profile-picture.png"
+                      }
+                      alt={suggestedUser.username}
+                      className="w-20 h-20 rounded-full object-cover"
+                    />
+
+                  <h3 className="mt-3 font-semibold text-sm text-gray-900 dark:text-white text-center truncate w-full">
+  {suggestedUser.name}
+</h3>
+
+<p className="text-xs text-gray-500 dark:text-gray-400 text-center truncate w-full">
+  @{suggestedUser.username}
+</p>
+
+<div className="h-[20px] mt-1 w-full flex items-center justify-center">
+  <p className="text-[11px] text-gray-500 dark:text-gray-400 text-center truncate w-full">
+    {suggestedUser.followedBy?.length > 0 ? (
+      <>
+        Followed by{" "}
+        <span className="font-medium">
+          {suggestedUser.followedBy[0].name}
+        </span>
+
+        {suggestedUser.followedBy.length > 1 &&
+          ` and ${
+            suggestedUser.followedBy.length - 1
+          } ${
+            suggestedUser.followedBy.length - 1 === 1
+              ? "other"
+              : "others"
+          }`}
+      </>
+    ) : (
+      "Suggested for you"
+    )}
+  </p>
+</div>
+                  </Link>
+
+                  {/* FOLLOW */}
+                  <button
+                    type="button"
+                   onClick={() => {
+  if (!suggestedUser.isRequested) {
+    handleMobileSuggestionFollow(
+      suggestedUser._id
+    );
+  }
+}}
+                    disabled={
+  suggestionFollowLoadingId ===
+    suggestedUser._id ||
+  suggestedUser.isRequested
+}
+                    className="mt-3 w-full py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {suggestionFollowLoadingId ===
+suggestedUser._id
+  ? "Following..."
+  : suggestedUser.isRequested
+  ? "Requested"
+  : suggestedUser.followsYou
+  ? "Follow Back"
+  : "Follow"}
+                  </button>
+                </div>
+              )
+            )}
+          </div>
+        </div>
+      )}
+  </div>
+))}
 
             {/* Infinite Scroll Trigger */}
             {hasMore && (
