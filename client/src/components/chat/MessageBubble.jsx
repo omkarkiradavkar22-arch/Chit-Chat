@@ -1807,8 +1807,14 @@ const handleTouchEnd = () => {
 >
 
       {fullImage && (
-  <div
-    className="fixed inset-0 z-[9999] bg-black/90 flex items-center justify-center p-4"
+<div
+  className="
+    fixed inset-0 z-[9999]
+    bg-black/90
+    flex items-center justify-center
+    p-4
+    overscroll-none
+  "
     onClick={() => setFullImage(null)}
 
     onTouchStart={(e) => {
@@ -3212,11 +3218,20 @@ className={`relative min-w-0 max-w-[85%] sm:max-w-[70%] rounded-2xl px-4 py-3 sh
 
     {/* IMAGE */}
     <img
-      src={fullImage}
-      alt="Full preview"
-      className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg select-none"
-      onClick={(e) => e.stopPropagation()}
-    />
+  src={fullImage}
+  alt="Full preview"
+  draggable={false}
+  className="
+    max-w-full
+    max-h-[90vh]
+    object-contain
+    rounded-lg
+    select-none
+    touch-pan-y
+  "
+  onClick={(e) => e.stopPropagation()}
+  onDragStart={(e) => e.preventDefault()}
+/>
 
     {/* RIGHT ARROW */}
     {imageAttachments.length > 1 && (
