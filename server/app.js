@@ -1,4 +1,3 @@
-
 import express from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
@@ -48,12 +47,7 @@ app.use("/api/v1/chat", chatRoutes);
 app.use("/api/v1/messages", messageRoutes);
 app.use("/api/v1/tasks", taskRoutes);
 app.use("/api/v1/push", pushRoutes);
-
-console.log("✅ Mounting share routes");
-
 app.use("/api/share", shareRoutes);
-
 app.use("/api/v1/calls", callRoutes);
-
 app.use(errorMiddleware);
 export default app;
