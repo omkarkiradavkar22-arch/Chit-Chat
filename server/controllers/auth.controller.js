@@ -271,7 +271,6 @@ export const resetPassword = async (req, res) => {
       });
     }
     user.password = password;
-
     user.resetPasswordToken = null;
     user.resetPasswordExpire = null;
     await user.save();
