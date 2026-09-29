@@ -1,4 +1,8 @@
-import { FaHome, FaTasks, FaCompass, FaBell,
+import {
+  FaHome,
+  FaTasks,
+  FaCompass,
+  FaBell,
   FaComments,
   FaUser,
 } from "react-icons/fa";
@@ -63,6 +67,14 @@ const normalClass =
     console.log(err);
   }
 };
+
+useEffect(() => {
+  if (user) {
+    loadUnread();
+    loadMessageUnread();
+    loadTaskPending();
+  }
+}, [user]);
 
  useEffect(() => {
   // User is currently inside Messages
