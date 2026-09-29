@@ -428,21 +428,40 @@ if (iBlockedThem || theyBlockedMe) {
     }
 
     // 🌍 PUBLIC ACCOUNT
-    currentUser.following.push(userToFollow._id);
+    await User.findByIdAndUpdate(
+  currentUser._id,
+  {
+    $addToSet: {
+      following: userToFollow._id,
+    },
+  }
+);
 
-    userToFollow.followers.push(currentUser._id);
+await User.findByIdAndUpdate(
+  userToFollow._id,
+  {
+    $addToSet: {
+      followers: currentUser._id,
+    },
+  }
+);
 
-    const notification =
-      await Notification.create({
-        sender: currentUser._id,
-        receiver: userToFollow._id,
-        type: "follow",
-      });
+const existingNotification =
+  await Notification.findOne({
+    sender: currentUser._id,
+    receiver: userToFollow._id,
+    type: "follow",
+  });
 
+let notification = existingNotification;
 
-    await currentUser.save();
-
-    await userToFollow.save();
+if (!existingNotification) {
+  notification = await Notification.create({
+    sender: currentUser._id,
+    receiver: userToFollow._id,
+    type: "follow",
+  });
+}
 
     // 🔔 SEND PUSH NOTIFICATION
     await sendPushToUser(userToFollow._id, {
@@ -893,11 +912,26 @@ export const acceptFollowRequest = async (req, res) => {
     );
 
     // Add follower/following
-    currentUser.followers.push(requester._id);
-    requester.following.push(currentUser._id);
+    await User.findByIdAndUpdate(
+  currentUser._id,
+  {
+    $addToSet: {
+      followers: requester._id,
+    },
+    $pull: {
+      followRequests: requester._id,
+    },
+  }
+);
 
-    await currentUser.save();
-    await requester.save();
+await User.findByIdAndUpdate(
+  requester._id,
+  {
+    $addToSet: {
+      following: currentUser._id,
+    },
+  }
+);
 
     
     const updatedNotification = await Notification.updateMany(
