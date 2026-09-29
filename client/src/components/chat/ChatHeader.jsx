@@ -400,17 +400,6 @@ className="
   )}
 </button> 
 
-{/* <button
-  onClick={() => setDisappearingDuration(2 * 60)}
-  className="w-full text-left px-6 py-2.5 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 flex justify-between"
->
-  <span>2 minutes</span>
-
-  {chatInfo?.disappearingMessages?.duration === 2 * 60 && (
-    <span className="text-blue-600">✓</span>
-  )}
-</button> */}
-
     {/* 24 Hours */}
     <button
       onClick={() =>
