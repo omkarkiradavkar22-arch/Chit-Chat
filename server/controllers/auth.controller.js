@@ -291,17 +291,11 @@ export const resetPassword = async (req, res) => {
           "Reset link is invalid or has expired",
       });
     }
-
-    // IMPORTANT:
-    // manually bcrypt.hash करू नको.
-    // User model pre-save hook password hash करतो.
     user.password = password;
 
     user.resetPasswordToken = null;
     user.resetPasswordExpire = null;
-
     await user.save();
-
     return res.status(200).json({
       success: true,
       message:
@@ -312,7 +306,6 @@ export const resetPassword = async (req, res) => {
       "RESET PASSWORD ERROR:",
       error
     );
-
     res.status(500).json({
       success: false,
       message: error.message,
