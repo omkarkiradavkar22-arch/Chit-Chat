@@ -18,10 +18,7 @@ import MediaGallery from "./MediaGallery";
 import { useCall } from "../../context/CallContext";
 import { useAuth } from "../../context/AuthContext";
 
-function ChatHeader({ otherUser, onlineUsers, chatInfo, setChatInfo, chatId,
-  refreshChatInfo,
-  setIsSearchOpen,
-  setIsAISearchOpen
+function ChatHeader({ otherUser, onlineUsers, chatInfo, setChatInfo, chatId, refreshChatInfo, setIsSearchOpen, setIsAISearchOpen
 }) {
    const navigate = useNavigate();
    const [showMenu, setShowMenu] = useState(false);
