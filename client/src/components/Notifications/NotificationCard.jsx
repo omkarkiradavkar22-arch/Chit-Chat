@@ -126,7 +126,7 @@ const handleTouchEnd = () => {
     return;
   }
 
-  // 📞 Call notifications
+  //  Call notifications
   if (
     notification.type === "incoming_call" ||
     notification.type === "missed_call"
