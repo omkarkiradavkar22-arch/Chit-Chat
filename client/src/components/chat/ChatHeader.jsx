@@ -1,7 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import {
-  FaPhone,
-  FaVideo,
+import { FaPhone, FaVideo,
   FaEllipsisV,
   FaArrowLeft,
   FaSearch,
