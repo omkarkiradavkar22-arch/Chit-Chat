@@ -20,9 +20,7 @@ import MediaGallery from "./MediaGallery";
 import { useCall } from "../../context/CallContext";
 import { useAuth } from "../../context/AuthContext";
 
-function ChatHeader({ otherUser, onlineUsers, chatInfo,
-  setChatInfo,
-  chatId,
+function ChatHeader({ otherUser, onlineUsers, chatInfo, setChatInfo, chatId,
   refreshChatInfo,
   setIsSearchOpen,
   setIsAISearchOpen
