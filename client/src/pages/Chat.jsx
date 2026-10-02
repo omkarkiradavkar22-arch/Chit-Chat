@@ -79,9 +79,6 @@ const [onlineUsers, setOnlineUsers] = useState([]);
     getChats();
   }, []);
 
-  // Tell the server which chat we currently have open, and clear it on
-  // unmount/switch — server uses this to skip push notifications for
-  // messages in a chat the user is already actively viewing.
   useEffect(() => {
     if (!socket || !user?._id || !chatId) return;
 
