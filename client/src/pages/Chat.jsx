@@ -1,9 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  useParams,
-  useNavigate,
-  useLocation,
-} from "react-router-dom";
+import { useParams, useNavigate, useLocation, } from "react-router-dom";
 import { toast } from "react-hot-toast";
 
 import Layout from "../components/layouts/Layout";
