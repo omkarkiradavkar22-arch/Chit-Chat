@@ -59,16 +59,16 @@ function Explore() {
 // GET EXPLORE POSTS
 // =========================
 
-const getExplorePosts = useCallback(
-  async (pageNumber) => {
-    if (fetchingRef.current) return;
-
-    try {
-      fetchingRef.current = true;
-
-      if (pageNumber > 1) {
-  setLoadingMore(true);
-}
+  const getExplorePosts = useCallback(
+    async (pageNumber) => {
+      if (fetchingRef.current) return;
+  
+      try {
+        fetchingRef.current = true;
+  
+        if (pageNumber > 1) {
+    setLoadingMore(true);
+  }
 
       // =========================
       // OFFLINE → LOAD CACHE
