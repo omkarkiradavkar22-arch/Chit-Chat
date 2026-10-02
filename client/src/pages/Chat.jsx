@@ -187,7 +187,7 @@ useEffect(() => {
     return updatedChats;
   });
 
-  // Currently open chat delete केला असेल
+  // Currently open chat delete 
   if (chatId && deletedChatIds.includes(chatId)) {
     navigate("/chat");
   }
