@@ -1,9 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useRef, useState, } from "react";
 
 import Layout from "../components/layouts/Layout";
 import ExploreGrid from "../components/explore/ExploreGrid";
