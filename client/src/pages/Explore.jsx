@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState, } from "react";
-
 import Layout from "../components/layouts/Layout";
 import ExploreGrid from "../components/explore/ExploreGrid";
 import SearchBar from "../components/search/SearchBar";
@@ -38,7 +37,7 @@ function Explore() {
   const [posts, setPosts] =
   useState(() => getCachedExplorePosts());
 
-const [loadingMore, setLoadingMore] =
+  const [loadingMore, setLoadingMore] =
   useState(false);
 
   const [page, setPage] = useState(1);
