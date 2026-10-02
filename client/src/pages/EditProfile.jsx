@@ -16,18 +16,18 @@ function EditProfile() {
   const [loading, setLoading] = useState(false);
 
   const [profilePic, setProfilePic] = useState(null);
-const [coverPic, setCoverPic] = useState(null);
-const [isPrivate, setIsPrivate] = useState(false);
-const [profilePreview, setProfilePreview] = useState("");
-const [coverPreview, setCoverPreview] = useState("");
+  const [coverPic, setCoverPic] = useState(null);
+  const [isPrivate, setIsPrivate] = useState(false);
+  const [profilePreview, setProfilePreview] = useState("");
+  const [coverPreview, setCoverPreview] = useState("");
   useEffect(() => {
     if (user) {
       setName(user.name || "");
       setUsername(user.username || "");
       setBio(user.bio || "");
       setProfilePreview(user.profilePic || "");
-setCoverPreview(user.coverPic || "");
-setIsPrivate(user.isPrivate);
+      setCoverPreview(user.coverPic || "");
+      setIsPrivate(user.isPrivate);
     }
   }, [user]);
 
@@ -38,7 +38,6 @@ setIsPrivate(user.isPrivate);
     setLoading(true);
 
     const formData = new FormData();
-
     formData.append("name", name);
     formData.append("username", username);
     formData.append("bio", bio);
@@ -132,34 +131,34 @@ const handlePrivacy = async () => {
     }}
   />
 </div>
-
-<div>
-  <label className="font-medium">
-    Profile Picture
-  </label>
-
-  {profilePreview && (
-    <img
-      src={profilePreview}
-      className="w-24 h-24 rounded-full object-cover my-2"
-      alt=""
-    />
-  )}
-
-  <input
-    type="file"
-    accept="image/*"
-    className="mt-2 w-full text-sm text-gray-600 dark:text-gray-300"
-    onChange={(e) => {
-      const file = e.target.files[0];
-
-      if (!file) return;
-
-      setProfilePic(file);
-      setProfilePreview(URL.createObjectURL(file));
-    }}
-  />
-</div>
+          
+          <div>
+            <label className="font-medium">
+              Profile Picture
+            </label>
+          
+            {profilePreview && (
+              <img
+                src={profilePreview}
+                className="w-24 h-24 rounded-full object-cover my-2"
+                alt=""
+              />
+            )}
+          
+            <input
+              type="file"
+              accept="image/*"
+              className="mt-2 w-full text-sm text-gray-600 dark:text-gray-300"
+              onChange={(e) => {
+                const file = e.target.files[0];
+          
+                if (!file) return;
+          
+                setProfilePic(file);
+                setProfilePreview(URL.createObjectURL(file));
+              }}
+            />
+          </div>
 
           <div>
             <label className="font-medium">
