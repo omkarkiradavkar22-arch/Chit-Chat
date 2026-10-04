@@ -28,9 +28,9 @@ function NotificationCard({
     const [isDeleting, setIsDeleting] =
       useState(false);
   
-  const [isFollowing, setIsFollowing] = useState(
-    notification.isFollowing
-  );
+    const [isFollowing, setIsFollowing] = useState(
+      notification.isFollowing
+    );
 
   const handleDeleteNotification = async () => {
   if (isDeleting) return;
