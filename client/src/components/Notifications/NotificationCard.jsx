@@ -22,8 +22,8 @@ function NotificationCard({
     const [touchStartX, setTouchStartX] =
       useState(null);
 
-const [translateX, setTranslateX] =
-  useState(0);
+    const [translateX, setTranslateX] =
+    useState(0);
 
 const [isDeleting, setIsDeleting] =
   useState(false);
