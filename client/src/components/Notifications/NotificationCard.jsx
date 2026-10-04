@@ -428,14 +428,14 @@ case "message": {
           </p>
 
           <p className={`text-sm mt-1 ${
-  darkMode ? "text-gray-400" : "text-gray-500"
-}`}>
-            {formatDistanceToNow(
-  new Date(notification.createdAt),
-  {
-    addSuffix: true,
-  }
-)}
+            darkMode ? "text-gray-400" : "text-gray-500"
+          }`}>
+                      {formatDistanceToNow(
+            new Date(notification.createdAt),
+            {
+              addSuffix: true,
+            }
+          )}
           </p>
 
         </div>
