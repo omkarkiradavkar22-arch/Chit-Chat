@@ -17,10 +17,10 @@ function NotificationCard({
     const navigate = useNavigate();
 
     const [currentNotification, setCurrentNotification] =
-    useState(notification);
+      useState(notification);
 
     const [touchStartX, setTouchStartX] =
-    useState(null);
+      useState(null);
 
 const [translateX, setTranslateX] =
   useState(0);
