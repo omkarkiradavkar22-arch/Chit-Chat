@@ -23,7 +23,7 @@ function NotificationCard({
       useState(null);
 
     const [translateX, setTranslateX] =
-    useState(0);
+      useState(0);
 
 const [isDeleting, setIsDeleting] =
   useState(false);
