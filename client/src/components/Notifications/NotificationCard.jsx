@@ -356,10 +356,10 @@ case "message": {
       }}
 
       className={`
-  relative
-  group
-  cursor-pointer
-  rounded-xl
+        relative
+        group
+        cursor-pointer
+        rounded-xl
         shadow
         p-4
         border
