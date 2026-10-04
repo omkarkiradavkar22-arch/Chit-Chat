@@ -25,8 +25,8 @@ function NotificationCard({
     const [translateX, setTranslateX] =
       useState(0);
 
-const [isDeleting, setIsDeleting] =
-  useState(false);
+    const [isDeleting, setIsDeleting] =
+      useState(false);
   
   const [isFollowing, setIsFollowing] = useState(
     notification.isFollowing
