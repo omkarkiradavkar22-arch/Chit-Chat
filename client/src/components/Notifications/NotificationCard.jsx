@@ -416,12 +416,12 @@ case "message": {
           <p>
 
             <Link
-  to={`/profile/${notification.sender.username}`}
-  onClick={(e) => e.stopPropagation()}
-  className="font-semibold"
->
-  {notification.sender.name}
-</Link>{" "}
+              to={`/profile/${notification.sender.username}`}
+              onClick={(e) => e.stopPropagation()}
+              className="font-semibold"
+            >
+              {notification.sender.name}
+            </Link>{" "}
 
             {getMessage()}
 
