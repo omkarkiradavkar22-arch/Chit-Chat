@@ -12,15 +12,15 @@ function NotificationCard({
 }) {
 
     const { theme } = useTheme();
-  const darkMode = theme === "dark";
+    const darkMode = theme === "dark";
 
-  const navigate = useNavigate();
+    const navigate = useNavigate();
 
-  const [currentNotification, setCurrentNotification] =
+    const [currentNotification, setCurrentNotification] =
     useState(notification);
 
-  const [touchStartX, setTouchStartX] =
-  useState(null);
+    const [touchStartX, setTouchStartX] =
+    useState(null);
 
 const [translateX, setTranslateX] =
   useState(0);
