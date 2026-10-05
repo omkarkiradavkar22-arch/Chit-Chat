@@ -229,11 +229,11 @@ const priority = getPriorityStyle();
   const getMessage = () => {
 switch (currentNotification.type) {
     case "like":
-  return (
-    <>
-      liked your post <FaHeart className="inline text-red-500 ml-1" />
-    </>
-  );
+      return (
+        <>
+          liked your post <FaHeart className="inline text-red-500 ml-1" />
+        </>
+      );
 
    case "comment":
   return notification.comment
