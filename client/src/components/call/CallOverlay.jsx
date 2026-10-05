@@ -1,8 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useCall } from "../../context/CallContext";
 import { useTheme } from "../../context/ThemeContext";
-import {
-  FaPhone,
+import { FaPhone,
   FaPhoneSlash,
   FaMicrophone,
   FaMicrophoneSlash,
