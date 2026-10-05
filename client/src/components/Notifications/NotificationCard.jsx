@@ -451,90 +451,90 @@ case "message": {
         )}
 
         {currentNotification.type === "follow_request" &&
-currentNotification.status === "pending" && (
-  <div className="flex gap-2 mt-3">
-
-    <button
-      onClick={(e) => {
-        e.stopPropagation();
-        handleAccept();
-      }}
-      className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded transition"
-    >
-      Accept
-    </button>
-
-    <button
-      onClick={(e) => {
-        e.stopPropagation();
-        handleReject();
-      }}
-      className={`px-3 py-1 rounded transition ${
-  darkMode
-    ? "bg-gray-700 text-gray-200 hover:bg-gray-600"
-    : "bg-gray-300 text-gray-800 hover:bg-gray-400"
-}`}
-    >
-      Reject
-    </button>
-
-  </div>
-)}
-
-{(currentNotification.type === "follow_accept" ||
- currentNotification.type === "follow") &&
-!isFollowing && (
-  <button
-    onClick={(e) => {
-      e.stopPropagation();
-      handleFollowBack();
-    }}
-    className="mt-3 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition"
-  >
-    Follow Back
-  </button>
-)}
-
-{(currentNotification.type === "follow_accept" ||
- currentNotification.type === "follow") &&
-isFollowing && (
-  <button
-    disabled
-    className="mt-3 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded transition"
-  >
-    Following
-  </button>
-)}
-
-{/* Desktop Delete Button */}
-<button
-  onClick={(e) => {
-    e.stopPropagation();
-    handleDeleteNotification();
-  }}
- className="
-  hidden
-  md:flex
-  items-center
-  justify-center
-  text-red-500
-  hover:text-red-700
-  p-2
-  rounded-full
-  hover:bg-red-100
-  dark:hover:bg-red-900/30
-  opacity-0
-  pointer-events-none
-  group-hover:opacity-100
-  group-hover:pointer-events-auto
-  transition-all
-  duration-200
-  flex-shrink-0
-"
-  title="Delete notification"
->
-  <FaTrash />
-</button>
+              currentNotification.status === "pending" && (
+                <div className="flex gap-2 mt-3">
+              
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAccept();
+                    }}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded transition"
+                  >
+                    Accept
+                  </button>
+              
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleReject();
+                    }}
+                    className={`px-3 py-1 rounded transition ${
+                darkMode
+                  ? "bg-gray-700 text-gray-200 hover:bg-gray-600"
+                  : "bg-gray-300 text-gray-800 hover:bg-gray-400"
+              }`}
+                  >
+                    Reject
+                  </button>
+              
+                </div>
+              )}
+              
+              {(currentNotification.type === "follow_accept" ||
+               currentNotification.type === "follow") &&
+              !isFollowing && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleFollowBack();
+                  }}
+                  className="mt-3 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition"
+                >
+                  Follow Back
+                </button>
+              )}
+              
+              {(currentNotification.type === "follow_accept" ||
+               currentNotification.type === "follow") &&
+              isFollowing && (
+                <button
+                  disabled
+                  className="mt-3 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded transition"
+                >
+                  Following
+                </button>
+              )}
+              
+              {/* Desktop Delete Button */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteNotification();
+                }}
+               className="
+                hidden
+                md:flex
+                items-center
+                justify-center
+                text-red-500
+                hover:text-red-700
+                p-2
+                rounded-full
+                hover:bg-red-100
+                dark:hover:bg-red-900/30
+                opacity-0
+                pointer-events-none
+                group-hover:opacity-100
+                group-hover:pointer-events-auto
+                transition-all
+                duration-200
+                flex-shrink-0
+              "
+                title="Delete notification"
+              >
+                <FaTrash />
+              </button>
 
             </div>
     </div>
