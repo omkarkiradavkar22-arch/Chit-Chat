@@ -209,13 +209,13 @@ useEffect(() => {
           onClick={toggleCamera}
           className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition ${
            isCameraOff
-  ? isDark
-    ? "bg-white text-black"
-    : "bg-gray-900 text-white"
-  : isDark
-    ? "bg-white/20 hover:bg-white/30 text-white"
-    : "bg-black/10 hover:bg-black/20 text-gray-900"
-  }`}
+          ? isDark
+            ? "bg-white text-black"
+            : "bg-gray-900 text-white"
+          : isDark
+            ? "bg-white/20 hover:bg-white/30 text-white"
+            : "bg-black/10 hover:bg-black/20 text-gray-900"
+          }`}
         >
           {isCameraOff ? (
             <FaVideoSlash size={16} />
