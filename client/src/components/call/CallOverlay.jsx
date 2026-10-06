@@ -90,12 +90,12 @@ useEffect(() => {
 
   return (
    <div
-  className={`fixed inset-0 z-[100] flex flex-col items-center justify-between py-8 transition-colors duration-300 ${
-    isDark
-      ? "bg-black text-white"
-      : "bg-white text-gray-900"
-  }`}
->
+      className={`fixed inset-0 z-[100] flex flex-col items-center justify-between py-8 transition-colors duration-300 ${
+        isDark
+          ? "bg-black text-white"
+          : "bg-white text-gray-900"
+      }`}
+    >
           <audio
             ref={ringtoneRef}
             src="/ringtone.mp3"
