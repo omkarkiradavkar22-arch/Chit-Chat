@@ -131,7 +131,7 @@ useEffect(() => {
               }
               alt={remoteUser.name}
               
- className="w-24 h-24 sm:w-32 sm:h-32 rounded-full object-cover border-4 border-white/20" />
+             className="w-24 h-24 sm:w-32 sm:h-32 rounded-full object-cover border-4 border-white/20" />
              {(callStatus === "incoming" || callStatus === "outgoing") && (
               <span className="absolute inset-0 rounded-full border-4 border-green-400 animate-ping" />
             )}
