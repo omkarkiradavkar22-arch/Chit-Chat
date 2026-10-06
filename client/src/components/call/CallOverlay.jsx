@@ -97,11 +97,11 @@ useEffect(() => {
   }`}
 >
           <audio
-  ref={ringtoneRef}
-  src="/ringtone.mp3"
-  loop
-  preload="auto"
-/>
+            ref={ringtoneRef}
+            src="/ringtone.mp3"
+            loop
+            preload="auto"
+          />
 
       {isVideoCall && callStatus === "connected" && (
         <video
