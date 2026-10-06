@@ -122,7 +122,7 @@ useEffect(() => {
       />
       )}
 
-<div className="flex flex-col items-center gap-3 sm:gap-4 mt-6 sm:mt-10 px-4 relative z-10">
+    <div className="flex flex-col items-center gap-3 sm:gap-4 mt-6 sm:mt-10 px-4 relative z-10">
           {!(isVideoCall && callStatus === "connected") && (
           <div className="relative">
             <img
