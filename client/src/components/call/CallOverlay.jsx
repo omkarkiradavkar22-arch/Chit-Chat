@@ -147,10 +147,10 @@ useEffect(() => {
         </h2>
 
         <p
-  className={`text-xs sm:text-sm drop-shadow text-center ${
-    isDark ? "text-gray-300" : "text-gray-600"
-  }`}
->
+          className={`text-xs sm:text-sm drop-shadow text-center ${
+            isDark ? "text-gray-300" : "text-gray-600"
+          }`}
+        >
   {callStatus === "incoming" && (
     <span className="inline-flex items-center justify-center gap-1.5">
       {isVideoCall && <FaVideo size={13} />}
