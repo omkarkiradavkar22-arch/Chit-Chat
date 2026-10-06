@@ -139,10 +139,10 @@ useEffect(() => {
         )}
 
         <h2
-  className={`text-xl sm:text-2xl font-semibold drop-shadow text-center ${
-    isDark ? "text-white" : "text-gray-900"
-  }`}
->
+          className={`text-xl sm:text-2xl font-semibold drop-shadow text-center ${
+            isDark ? "text-white" : "text-gray-900"
+          }`}
+        >
           {remoteUser.name}
         </h2>
 
