@@ -36,7 +36,7 @@ function CallOverlay() {
 
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
-const ringtoneRef = useRef(null);
+  const ringtoneRef = useRef(null);
 
  useEffect(() => {
   if (localVideoRef.current && localStream) {
