@@ -32,7 +32,7 @@ function CallOverlay() {
   } = useCall();
 
   const { theme } = useTheme();
-const isDark = theme === "dark";
+  const isDark = theme === "dark";
 
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
