@@ -96,12 +96,12 @@ useEffect(() => {
           : "bg-white text-gray-900"
       }`}
     >
-          <audio
-            ref={ringtoneRef}
-            src="/ringtone.mp3"
-            loop
-            preload="auto"
-          />
+    <audio
+      ref={ringtoneRef}
+      src="/ringtone.mp3"
+      loop
+      preload="auto"
+    />
 
       {isVideoCall && callStatus === "connected" && (
         <video
