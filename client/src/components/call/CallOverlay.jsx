@@ -151,19 +151,19 @@ useEffect(() => {
             isDark ? "text-gray-300" : "text-gray-600"
           }`}
         >
-  {callStatus === "incoming" && (
-    <span className="inline-flex items-center justify-center gap-1.5">
-      {isVideoCall && <FaVideo size={13} />}
-      {isVideoCall
-        ? "Incoming video call..."
-        : "Incoming voice call..."}
-    </span>
-  )}
-
-  {callStatus === "outgoing" && "Calling..."}
-
-  {callStatus === "connected" && formatDuration(callDuration)}
-</p>
+          {callStatus === "incoming" && (
+            <span className="inline-flex items-center justify-center gap-1.5">
+              {isVideoCall && <FaVideo size={13} />}
+              {isVideoCall
+                ? "Incoming video call..."
+                : "Incoming voice call..."}
+            </span>
+          )}
+        
+          {callStatus === "outgoing" && "Calling..."}
+        
+          {callStatus === "connected" && formatDuration(callDuration)}
+        </p>
       </div>
 
       <div className="flex items-center gap-6 sm:gap-8 mb-4 sm:mb-6 px-4 relative z-10">
