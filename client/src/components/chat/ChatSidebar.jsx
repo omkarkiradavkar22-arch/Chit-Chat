@@ -1,7 +1,6 @@
 import api from "../../services/api";
 import { Link, useParams } from "react-router-dom";
-import {FaStar,
-  FaTasks,
+import {FaStar, FaTasks,
   FaImage,
   FaVideo,
   FaMicrophone,
