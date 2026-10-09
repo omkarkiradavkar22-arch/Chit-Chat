@@ -135,7 +135,7 @@ function ChatSidebar({
   const [showStarred, setShowStarred] = useState(false);
   const [showTasks, setShowTasks] = useState(false);
   const [pendingTaskCount, setPendingTaskCount] = useState(0);
-const [search, setSearch] = useState("");
+  const [search, setSearch] = useState("");
 
 const [selectedChats, setSelectedChats] = useState([]);
 const [isSelectionMode, setIsSelectionMode] = useState(false);
