@@ -1,7 +1,6 @@
 import api from "../../services/api";
 import { Link, useParams } from "react-router-dom";
-import {FaStar, FaTasks, FaImage, FaVideo, FaMicrophone, FaFileAlt, FaMapMarkerAlt, FaPhone, FaShareSquare, FaBan, FaTrash,
-FaCheck,
+import {FaStar, FaTasks, FaImage, FaVideo, FaMicrophone, FaFileAlt, FaMapMarkerAlt, FaPhone, FaShareSquare, FaBan, FaTrash, FaCheck,
  FaCheckDouble,
 } from "react-icons/fa";
 import StarredMessages from "./StarredMessages";
