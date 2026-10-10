@@ -330,16 +330,16 @@ useEffect(() => {
   )}
 </button>
 
-  {/* STARRED */}
-  <button
-    onClick={() => setShowStarred(true)}
-    title="Starred Messages"
-    className="w-9 h-9 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center justify-center text-yellow-500"
-  >
-    <FaStar size={16} />
-  </button>
-      </div>
-)}
+        {/* STARRED */}
+        <button
+          onClick={() => setShowStarred(true)}
+          title="Starred Messages"
+          className="w-9 h-9 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center justify-center text-yellow-500"
+        >
+          <FaStar size={16} />
+        </button>
+            </div>
+      )}
       <StarredMessages
         isOpen={showStarred}
         onClose={() => setShowStarred(false)}
