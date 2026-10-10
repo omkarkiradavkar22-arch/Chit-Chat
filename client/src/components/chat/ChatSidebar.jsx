@@ -316,19 +316,19 @@ useEffect(() => {
 </div>
 
         {/* TASKS */}
-  <button
-  onClick={() => setShowTasks(true)}
-  title="Tasks"
-  className="relative w-9 h-9 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center justify-center text-blue-600 dark:text-blue-400"
->
-  <FaTasks size={16} />
-
-  {pendingTaskCount > 0 && (
-    <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
-      {pendingTaskCount > 99 ? "99+" : pendingTaskCount}
-    </span>
-  )}
-</button>
+          <button
+          onClick={() => setShowTasks(true)}
+          title="Tasks"
+          className="relative w-9 h-9 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center justify-center text-blue-600 dark:text-blue-400"
+        >
+          <FaTasks size={16} />
+        
+          {pendingTaskCount > 0 && (
+            <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
+              {pendingTaskCount > 99 ? "99+" : pendingTaskCount}
+            </span>
+          )}
+        </button>
 
         {/* STARRED */}
         <button
