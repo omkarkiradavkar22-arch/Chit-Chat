@@ -305,15 +305,15 @@ useEffect(() => {
           Messages
         </h2>
 
-<div className="px-4 py-3 border-gray-200 dark:border-gray-700">
-  <input
-    type="text"
-    value={search}
-    onChange={(e) => setSearch(e.target.value)}
-    placeholder="Search chats..."
-    className="w-full px-4 py-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-blue-500"
-  />
-</div>
+        <div className="px-4 py-3 border-gray-200 dark:border-gray-700">
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search chats..."
+            className="w-full px-4 py-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
 
         {/* TASKS */}
           <button
