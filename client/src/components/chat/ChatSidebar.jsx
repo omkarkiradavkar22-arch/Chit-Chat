@@ -345,10 +345,10 @@ useEffect(() => {
         onClose={() => setShowStarred(false)}
       />
       <Tasks
-  isOpen={showTasks}
-  onClose={() => setShowTasks(false)}
-  onPendingCountChange={setPendingTaskCount}
-/>
+        isOpen={showTasks}
+        onClose={() => setShowTasks(false)}
+        onPendingCountChange={setPendingTaskCount}
+      />
 
       {filteredChats.length === 0 ? (
        <div className="p-5 text-gray-500 dark:text-gray-400">
