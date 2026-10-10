@@ -302,8 +302,8 @@ useEffect(() => {
 ) : (
       <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-  Messages
-</h2>
+          Messages
+        </h2>
 
 <div className="px-4 py-3 border-gray-200 dark:border-gray-700">
   <input
