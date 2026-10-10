@@ -429,12 +429,12 @@ useEffect(() => {
 
             <img
               src={
-  chat.isBlocked &&
-  String(chat.blockedBy) !== String(user?._id)
-    ? "/default-profile-picture.png"
-    : chat.otherUser?.profilePic ||
-      "/default-profile-picture.png"
-}
+                chat.isBlocked &&
+                String(chat.blockedBy) !== String(user?._id)
+                  ? "/default-profile-picture.png"
+                  : chat.otherUser?.profilePic ||
+                    "/default-profile-picture.png"
+              }
               alt={chat.otherUser?.name}
               className="w-12 h-12 rounded-full object-cover"
               />
