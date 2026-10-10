@@ -141,7 +141,7 @@ function ChatSidebar({
   const [isSelectionMode, setIsSelectionMode] = useState(false);
 
   const longPressTimerRef = useRef(null);
-const didLongPressRef = useRef(false);
+  const didLongPressRef = useRef(false);
 
 
 const startChatSelection = (chatId) => {
