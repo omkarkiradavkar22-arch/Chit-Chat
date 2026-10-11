@@ -383,7 +383,7 @@ useEffect(() => {
       return;
     }
 
-    // Selection mode चालू असेल तर chat open करू नको
+    //if selection mode is on then don't open the chat
     if (isSelectionMode) {
       e.preventDefault();
       toggleChatSelection(chat._id);
