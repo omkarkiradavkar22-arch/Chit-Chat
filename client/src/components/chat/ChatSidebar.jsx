@@ -406,25 +406,25 @@ useEffect(() => {
   `}
 >
 
-  {isSelectionMode && (
-  <div
-    className={`
-      w-6 h-6
-      shrink-0
-      rounded-full
-      border-2
-      flex items-center justify-center
-      transition-all
-      ${
-        selectedChats.includes(chat._id)
-          ? "bg-blue-600 border-blue-600 text-white"
-          : "bg-white dark:bg-gray-800 border-gray-400 text-transparent"
-      }
-    `}
-  >
-    ✓
-  </div>
-)}
+              {isSelectionMode && (
+              <div
+                className={`
+                  w-6 h-6
+                  shrink-0
+                  rounded-full
+                  border-2
+                  flex items-center justify-center
+                  transition-all
+                  ${
+                    selectedChats.includes(chat._id)
+                      ? "bg-blue-600 border-blue-600 text-white"
+                      : "bg-white dark:bg-gray-800 border-gray-400 text-transparent"
+                  }
+                `}
+              >
+                ✓
+              </div>
+            )}
             <div className="relative">
 
             <img
