@@ -536,7 +536,6 @@ useEffect(() => {
           </Link>
         ))
       )}
-
     </div>
   );
 }
