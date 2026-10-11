@@ -352,8 +352,8 @@ useEffect(() => {
 
       {filteredChats.length === 0 ? (
        <div className="p-5 text-gray-500 dark:text-gray-400">
-  {search ? "No chats found." : "No chats yet."}
-</div>
+        {search ? "No chats found." : "No chats yet."}
+      </div>
       ) : (
         filteredChats.map((chat) => (
          <Link
