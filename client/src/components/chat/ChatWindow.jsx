@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { FaSearch, FaTimes,
-  FaChevronUp,
+import { FaSearch, FaTimes, FaChevronUp,
   FaChevronDown,
   FaBan,
   FaTrash,
