@@ -357,19 +357,19 @@ useEffect(() => {
       ) : (
         filteredChats.map((chat) => (
          <Link
-  key={chat._id}
-  to={`/chat/${chat._id}`}
+          key={chat._id}
+          to={`/chat/${chat._id}`}
+        
+          // 💻 Desktop: right click = select
+          onContextMenu={(e) => {
+            e.preventDefault();
+            startChatSelection(chat._id);
+          }}
 
-  // 💻 Desktop: right click = select
-  onContextMenu={(e) => {
-    e.preventDefault();
-    startChatSelection(chat._id);
-  }}
-
-  // 📱 Mobile: long press = select
-  onTouchStart={() => {
-    handleChatTouchStart(chat._id);
-  }}
+          // 📱 Mobile: long press = select
+        onTouchStart={() => {
+          handleChatTouchStart(chat._id);
+        }}
   onTouchEnd={cancelChatLongPress}
   onTouchMove={cancelChatLongPress}
   onTouchCancel={cancelChatLongPress}
