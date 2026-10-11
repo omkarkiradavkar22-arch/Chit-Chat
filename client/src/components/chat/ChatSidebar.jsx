@@ -370,41 +370,41 @@ useEffect(() => {
         onTouchStart={() => {
           handleChatTouchStart(chat._id);
         }}
-  onTouchEnd={cancelChatLongPress}
-  onTouchMove={cancelChatLongPress}
-  onTouchCancel={cancelChatLongPress}
-
-  // Normal click OR selection click
-  onClick={(e) => {
-    // Long press नंतर generated click ignore
-    if (didLongPressRef.current) {
-      e.preventDefault();
-      didLongPressRef.current = false;
-      return;
-    }
-
-    //if selection mode is on then don't open the chat
-    if (isSelectionMode) {
-      e.preventDefault();
-      toggleChatSelection(chat._id);
-    }
-  }}
-
-  className={`
-    relative
-    flex items-center gap-3 p-4
-    hover:bg-gray-100
-    dark:hover:bg-gray-800
-    transition
-    ${
-      selectedChats.includes(chat._id)
-        ? "bg-blue-100 dark:bg-blue-900/30"
-        : chatId === chat._id
-        ? "bg-gray-100 dark:bg-gray-800"
-        : ""
-    }
-  `}
->
+                onTouchEnd={cancelChatLongPress}
+                onTouchMove={cancelChatLongPress}
+                onTouchCancel={cancelChatLongPress}
+              
+                // Normal click OR selection click
+                onClick={(e) => {
+                  // Long press नंतर generated click ignore
+                  if (didLongPressRef.current) {
+                    e.preventDefault();
+                    didLongPressRef.current = false;
+                    return;
+                  }
+              
+                  //if selection mode is on then don't open the chat
+                  if (isSelectionMode) {
+                    e.preventDefault();
+                    toggleChatSelection(chat._id);
+                  }
+                }}
+              
+                className={`
+                  relative
+                  flex items-center gap-3 p-4
+                  hover:bg-gray-100
+                  dark:hover:bg-gray-800
+                  transition
+                  ${
+                    selectedChats.includes(chat._id)
+                      ? "bg-blue-100 dark:bg-blue-900/30"
+                      : chatId === chat._id
+                      ? "bg-gray-100 dark:bg-gray-800"
+                      : ""
+                  }
+                `}
+              >
 
               {isSelectionMode && (
               <div
