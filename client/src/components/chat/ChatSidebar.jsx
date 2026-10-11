@@ -447,91 +447,91 @@ useEffect(() => {
 
            <div className="flex-1 min-w-0 overflow-hidden">
 
-  {/* Name + last message time */}
-  <div className="flex items-center justify-between gap-2">
-
-    <h3 className="font-semibold truncate text-gray-900 dark:text-white">
-      {chat.otherUser?.name}
-    </h3>
-
-    {chat.lastMessage?.createdAt && (
-      <span className="text-[11px] text-gray-400 dark:text-gray-500 shrink-0">
-        {new Date(chat.lastMessage.createdAt).toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        })}
-      </span>
-    )}
-
-  </div>
-
-  {/* Last message + tick */}
-  <div className="flex items-center justify-between gap-2">
-
-    <div className="text-sm text-gray-500 dark:text-gray-400 truncate min-w-0">
-      {getLastMessagePreview(chat.lastMessage)}
-    </div>
-
-    <div className="flex items-center gap-2 shrink-0">
-
-      {/* Tick only when last message was sent by me */}
-      {chat.lastMessage &&
-        String(
-          typeof chat.lastMessage.sender === "object"
-            ? chat.lastMessage.sender?._id
-            : chat.lastMessage.sender
-        ) === String(user?._id) && (
-          <span className="text-xs">
-
-            {chat.lastMessage.seenBy?.some(
-              (id) =>
-                String(
-                  typeof id === "object"
-                    ? id?._id
-                    : id
-                ) !== String(user?._id)
-            ) ? (
-
-              <FaCheckDouble
-                className="text-cyan-500"
-                title="Seen"
-              />
-
-            ) : onlineUsers.some(
-                (id) =>
-                  String(id) ===
-                  String(chat.otherUser?._id)
-              ) ? (
-
-              <FaCheckDouble
-                className="text-gray-400 dark:text-gray-300"
-                title="Delivered"
-              />
-
-            ) : (
-
-              <FaCheck
-                className="text-gray-400 dark:text-gray-300"
-                title="Sent"
-              />
-
-            )}
-
-          </span>
-        )}
-
-      {/* Unread count */}
-      {chat.unreadCount > 0 && (
-        <div className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center">
-          {chat.unreadCount}
-        </div>
-      )}
-
-    </div>
-
-  </div>
-
-</div>
+              {/* Name + last message time */}
+              <div className="flex items-center justify-between gap-2">
+            
+                <h3 className="font-semibold truncate text-gray-900 dark:text-white">
+                  {chat.otherUser?.name}
+                </h3>
+            
+                {chat.lastMessage?.createdAt && (
+                  <span className="text-[11px] text-gray-400 dark:text-gray-500 shrink-0">
+                    {new Date(chat.lastMessage.createdAt).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
+                )}
+            
+              </div>
+            
+              {/* Last message + tick */}
+              <div className="flex items-center justify-between gap-2">
+            
+                <div className="text-sm text-gray-500 dark:text-gray-400 truncate min-w-0">
+                  {getLastMessagePreview(chat.lastMessage)}
+                </div>
+            
+                <div className="flex items-center gap-2 shrink-0">
+            
+                  {/* Tick only when last message was sent by me */}
+                  {chat.lastMessage &&
+                    String(
+                      typeof chat.lastMessage.sender === "object"
+                        ? chat.lastMessage.sender?._id
+                        : chat.lastMessage.sender
+                    ) === String(user?._id) && (
+                      <span className="text-xs">
+            
+                        {chat.lastMessage.seenBy?.some(
+                          (id) =>
+                            String(
+                              typeof id === "object"
+                                ? id?._id
+                                : id
+                            ) !== String(user?._id)
+                        ) ? (
+            
+                          <FaCheckDouble
+                            className="text-cyan-500"
+                            title="Seen"
+                          />
+            
+                        ) : onlineUsers.some(
+                            (id) =>
+                              String(id) ===
+                              String(chat.otherUser?._id)
+                          ) ? (
+            
+                          <FaCheckDouble
+                            className="text-gray-400 dark:text-gray-300"
+                            title="Delivered"
+                          />
+            
+                        ) : (
+            
+                          <FaCheck
+                            className="text-gray-400 dark:text-gray-300"
+                            title="Sent"
+                          />
+            
+                        )}
+            
+                      </span>
+                    )}
+            
+                  {/* Unread count */}
+                  {chat.unreadCount > 0 && (
+                    <div className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center">
+                      {chat.unreadCount}
+                    </div>
+                  )}
+            
+                </div>
+            
+              </div>
+            
+            </div>
 
           </Link>
         ))
