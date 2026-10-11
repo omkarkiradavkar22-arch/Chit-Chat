@@ -339,37 +339,37 @@ useEffect(() => {
           <FaStar size={16} />
         </button>
             </div>
-      )}
-      <StarredMessages
-        isOpen={showStarred}
-        onClose={() => setShowStarred(false)}
-      />
-      <Tasks
-        isOpen={showTasks}
-        onClose={() => setShowTasks(false)}
-        onPendingCountChange={setPendingTaskCount}
-      />
-
-      {filteredChats.length === 0 ? (
-       <div className="p-5 text-gray-500 dark:text-gray-400">
-        {search ? "No chats found." : "No chats yet."}
-      </div>
-      ) : (
-        filteredChats.map((chat) => (
-         <Link
-          key={chat._id}
-          to={`/chat/${chat._id}`}
+              )}
+              <StarredMessages
+                isOpen={showStarred}
+                onClose={() => setShowStarred(false)}
+              />
+              <Tasks
+                isOpen={showTasks}
+                onClose={() => setShowTasks(false)}
+                onPendingCountChange={setPendingTaskCount}
+              />
         
-          // 💻 Desktop: right click = select
-          onContextMenu={(e) => {
-            e.preventDefault();
-            startChatSelection(chat._id);
-          }}
-
-          // 📱 Mobile: long press = select
-        onTouchStart={() => {
-          handleChatTouchStart(chat._id);
-        }}
+              {filteredChats.length === 0 ? (
+               <div className="p-5 text-gray-500 dark:text-gray-400">
+                {search ? "No chats found." : "No chats yet."}
+              </div>
+              ) : (
+                filteredChats.map((chat) => (
+                 <Link
+                  key={chat._id}
+                  to={`/chat/${chat._id}`}
+                
+                  // 💻 Desktop: right click = select
+                  onContextMenu={(e) => {
+                    e.preventDefault();
+                    startChatSelection(chat._id);
+                  }}
+        
+                  // 📱 Mobile: long press = select
+                onTouchStart={() => {
+                  handleChatTouchStart(chat._id);
+                }}
                 onTouchEnd={cancelChatLongPress}
                 onTouchMove={cancelChatLongPress}
                 onTouchCancel={cancelChatLongPress}
