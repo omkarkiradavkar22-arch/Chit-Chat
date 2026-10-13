@@ -57,7 +57,7 @@ function ChatWindow({
   const [messageAttachmentCacheState, setMessageAttachmentCacheState] =
   useState({});
 
-const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
 const [showSelectionMenu, setShowSelectionMenu] =
   useState(false);
