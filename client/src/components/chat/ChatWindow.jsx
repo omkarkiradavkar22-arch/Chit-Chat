@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { FaSearch, FaTimes, FaChevronUp, FaChevronDown, FaBan, FaTrash, FaLocationArrow, FaMapMarkedAlt, FaExternalLinkAlt, FaStar,FaCopy,FaShare,FaEllipsisV,
-FaTasks,
+import { FaSearch, FaTimes, FaChevronUp, FaChevronDown, FaBan, FaTrash, FaLocationArrow, FaMapMarkedAlt, FaExternalLinkAlt, FaStar,FaCopy,FaShare,FaEllipsisV,FaTasks,
 FaEdit,
 } from "react-icons/fa";
 import MessageBubble from "./MessageBubble";
