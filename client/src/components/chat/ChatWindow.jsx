@@ -52,9 +52,9 @@ function ChatWindow({
   const [showLiveLocationViewer, setShowLiveLocationViewer] =
   useState(false);
   const [selectedMessages, setSelectedMessages] = useState([]);
-const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
 
-const [messageAttachmentCacheState, setMessageAttachmentCacheState] =
+  const [messageAttachmentCacheState, setMessageAttachmentCacheState] =
   useState({});
 
 const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
