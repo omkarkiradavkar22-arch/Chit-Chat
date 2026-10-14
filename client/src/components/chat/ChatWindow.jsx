@@ -253,7 +253,7 @@ const selectedNonTextMessages =
 
 // ========================================
 // MESSAGE SELECTION HELPERS
-// ========================================
+// ===========================
 
 // 1. SINGLE TEXT SELECTION
 const isSingleTextSelection =
