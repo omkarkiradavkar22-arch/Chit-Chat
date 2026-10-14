@@ -73,7 +73,7 @@ function ChatWindow({
 
   const longPressTimerRef = useRef(null);
 
-const handleTouchStart = (messageId, isPending) => {
+  const handleTouchStart = (messageId, isPending) => {
   if (isPending) return;
 
   longPressTimerRef.current = setTimeout(() => {
