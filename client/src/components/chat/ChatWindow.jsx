@@ -68,7 +68,7 @@ function ChatWindow({
   const [selectionForwardMessageId, setSelectionForwardMessageId] =
   useState(null);
 
-const [editRequestedMessageId, setEditRequestedMessageId] =
+  const [editRequestedMessageId, setEditRequestedMessageId] =
   useState(null);
 
 const longPressTimerRef = useRef(null);
