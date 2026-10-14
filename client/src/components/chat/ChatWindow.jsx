@@ -277,7 +277,7 @@ const canEditSelectedMessage =
   !selectedSingleMessage.deletedForEveryone;
 
 
-// ========================================
+// ============================
 // RESTRICTED MESSAGE HELPERS
 // ========================================
 
