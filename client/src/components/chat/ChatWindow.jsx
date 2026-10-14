@@ -251,7 +251,7 @@ const selectedNonTextMessages =
     (msg) => !isPureTextMessage(msg)
   );
 
-// ========================================
+// ===========================
 // MESSAGE SELECTION HELPERS
 // ===========================
 
