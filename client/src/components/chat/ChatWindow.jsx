@@ -65,7 +65,7 @@ function ChatWindow({
   const [showSelectionForward, setShowSelectionForward] =
   useState(false);
 
-const [selectionForwardMessageId, setSelectionForwardMessageId] =
+  const [selectionForwardMessageId, setSelectionForwardMessageId] =
   useState(null);
 
 const [editRequestedMessageId, setEditRequestedMessageId] =
