@@ -59,7 +59,7 @@ function ChatWindow({
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-const [showSelectionMenu, setShowSelectionMenu] =
+  const [showSelectionMenu, setShowSelectionMenu] =
   useState(false);
 
   const [showSelectionForward, setShowSelectionForward] =
