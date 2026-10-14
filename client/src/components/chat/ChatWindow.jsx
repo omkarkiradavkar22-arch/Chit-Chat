@@ -71,7 +71,7 @@ function ChatWindow({
   const [editRequestedMessageId, setEditRequestedMessageId] =
   useState(null);
 
-const longPressTimerRef = useRef(null);
+  const longPressTimerRef = useRef(null);
 
 const handleTouchStart = (messageId, isPending) => {
   if (isPending) return;
