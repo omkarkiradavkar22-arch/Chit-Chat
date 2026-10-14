@@ -279,7 +279,7 @@ const canEditSelectedMessage =
 
 // ============================
 // RESTRICTED MESSAGE HELPERS
-// ========================================
+// ============================
 
 // 4. DELETED MESSAGE
 const isDeletedMessage = (msg) => {
