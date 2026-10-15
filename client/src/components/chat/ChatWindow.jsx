@@ -631,7 +631,7 @@ useEffect(() => {
 
 const [typingUser, setTypingUser] = useState("");
 
-// =========================
+// ================
 // MESSAGE SEARCH
 // =========================
 const [isSearchOpen, setIsSearchOpen] = useState(false);
