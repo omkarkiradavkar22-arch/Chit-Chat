@@ -389,7 +389,7 @@ const isSingleNonTextSelection =
 
 // ===================
 // MULTIPLE SELECTION
-// ========================================
+// ===================
 
 // 11. MULTIPLE TEXT / PHOTO
 const isMultipleTextPhotoSelection =
