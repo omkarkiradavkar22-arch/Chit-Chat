@@ -334,8 +334,8 @@ const isSingleRestrictedSelection =
 
 // ==============
 // PHOTO HELPERS
-// ========================================
-
+// ==============
+  
 // 8. CHECK PHOTO MESSAGE
 const isPhotoMessage = (msg) => {
   if (!msg) return false;
