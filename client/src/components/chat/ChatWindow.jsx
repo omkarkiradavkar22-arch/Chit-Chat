@@ -413,8 +413,8 @@ const isMultipleRestrictedSelection =
 
 // =========================
 // MOBILE SELECTION ACTIONS
-// ========================================
-
+// =========================
+  
 const handleSelectedEdit = () => {
   if (!canEditSelectedMessage || !selectedSingleMessage) {
     return;
