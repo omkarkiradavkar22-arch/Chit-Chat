@@ -633,7 +633,7 @@ const [typingUser, setTypingUser] = useState("");
 
 // ================
 // MESSAGE SEARCH
-// =========================
+// ================
 const [isSearchOpen, setIsSearchOpen] = useState(false);
 const [searchQuery, setSearchQuery] = useState("");
 const [searchIndex, setSearchIndex] = useState(0);
