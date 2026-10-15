@@ -387,7 +387,7 @@ const isSingleNonTextSelection =
   !isSingleRestrictedSelection;
 
 
-// ========================================
+// ===================
 // MULTIPLE SELECTION
 // ========================================
 
