@@ -639,9 +639,9 @@ const [searchQuery, setSearchQuery] = useState("");
 const [searchIndex, setSearchIndex] = useState(0);
 const [searchMatches, setSearchMatches] = useState([]);
 
-// =========================
+// =============================
 // AI / NATURAL LANGUAGE SEARCH
-// =========================
+// =============================
 const [isAISearchOpen, setIsAISearchOpen] = useState(false);
 
 const [aiSearchQuery, setAISearchQuery] = useState("");
@@ -941,9 +941,9 @@ useEffect(() => {
   };
 }, [socket]);
 
-// =========================
+// ===========================
 // REAL-TIME MESSAGE REACTION
-// =========================
+// ===========================
 
 useEffect(() => {
   if (!socket) return;
@@ -961,7 +961,7 @@ useEffect(() => {
           : msg
       );
 
-      // Offline cache सुद्धा update
+      // Offline cache also update
       saveCachedMessages(chatId, updated);
 
       return updated;
