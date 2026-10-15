@@ -378,7 +378,7 @@ const isTextOrPhotoMessage = (msg) => {
 
 // ==========================
 // SINGLE NON-TEXT SELECTION
-// ========================================
+// ==========================
 
 // 10. SINGLE PHOTO / VIDEO / FILE / LOCATION ETC.
 const isSingleNonTextSelection =
