@@ -411,7 +411,7 @@ const isMultipleRestrictedSelection =
       !isTextOrPhotoMessage(msg)
   );
 
-// ========================================
+// =========================
 // MOBILE SELECTION ACTIONS
 // ========================================
 
