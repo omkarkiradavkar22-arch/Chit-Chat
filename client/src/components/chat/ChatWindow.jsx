@@ -1374,7 +1374,7 @@ return (
 
     {/* =================
     LIVE LOCATION VIEWER
-========================= */}
+      =================== */}
 
 {showLiveLocationViewer &&
   (myLiveLocation?.active ||
