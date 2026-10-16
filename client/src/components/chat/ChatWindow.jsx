@@ -1344,7 +1344,7 @@ const getMessageDateLabel = (date) => {
   });
 };
 
-// =========================
+// ======================
 // DISAPPEARING MESSAGES
 // =========================
 const visibleMessages = messages.filter((message) => {
