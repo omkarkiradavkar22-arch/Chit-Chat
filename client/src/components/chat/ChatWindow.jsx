@@ -1253,7 +1253,7 @@ const handleAISearch = async (e) => {
         "AI search failed"
     );
   } finally {
-    setAiSearchLoading(false);  // ✅
+    setAiSearchLoading(false);  
   }
 };
 
