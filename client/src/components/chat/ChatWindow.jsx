@@ -1135,7 +1135,7 @@ useEffect(() => {
 
   // ================
   // SEARCH MESSAGES
-  // =========================
+  // ================
 
 useEffect(() => {
   const query = searchQuery.trim().toLowerCase();
