@@ -1346,7 +1346,7 @@ const getMessageDateLabel = (date) => {
 
 // ======================
 // DISAPPEARING MESSAGES
-// =========================
+// ======================
 const visibleMessages = messages.filter((message) => {
   if (!message.expiresAt) {
     return true;
