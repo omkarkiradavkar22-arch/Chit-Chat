@@ -1236,7 +1236,7 @@ const handleAISearch = async (e) => {
   }
 
   try {
-    setAiSearchLoading(true);   // ✅
+    setAiSearchLoading(true);
 
     const { data } = await api.post(
       `/messages/${chatId}/ai-search`,
