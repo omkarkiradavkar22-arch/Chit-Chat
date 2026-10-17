@@ -2201,65 +2201,65 @@ return (
 
       {/* MESSAGE */}
       <div
-  ref={(el) => {
-    messageRefs.current[message._id] = el;
-  }}
-
-  onTouchStart={() => {
-  handleTouchStart(message._id, message.pending);
-}}
-
-onTouchEnd={cancelLongPress}
-
-onTouchMove={cancelLongPress}
-
-onTouchCancel={cancelLongPress}
-
-  onClick={() => {
-    if (isSelectionMode && !message.pending) {
-      toggleMessageSelection(message._id);
-    }
-  }}
-
-  className={`
-  relative
-  group
-  transition-colors
-  -mx-5 px-5
-  ${
-    selectedMessages.includes(message._id)
-      ? "bg-blue-100/70 dark:bg-white/10"
-      : ""
-  }
-`}
->
-
-  {isSelectionMode && !message.pending && (
-  <div
-    className={`
-      absolute
-      left-5 top-1/2 -translate-y-1/2
-      z-20
-
-      w-5 h-5
-      rounded-full
-      border-2
-
-      flex items-center justify-center
-      text-xs font-bold
-
-      transition-all
-
-      ${
-       selectedMessages.includes(message._id)
-          ? "bg-blue-600 border-blue-600 text-white"
-          : "bg-white dark:bg-gray-800 border-gray-400 text-transparent"
-       }
-    `}
-  >
-    ✓
-  </div>
-)}
+        ref={(el) => {
+          messageRefs.current[message._id] = el;
+        }}
+      
+        onTouchStart={() => {
+        handleTouchStart(message._id, message.pending);
+      }}
+      
+      onTouchEnd={cancelLongPress}
+      
+      onTouchMove={cancelLongPress}
+      
+      onTouchCancel={cancelLongPress}
+      
+        onClick={() => {
+          if (isSelectionMode && !message.pending) {
+            toggleMessageSelection(message._id);
+          }
+        }}
+      
+        className={`
+        relative
+        group
+        transition-colors
+        -mx-5 px-5
+        ${
+          selectedMessages.includes(message._id)
+            ? "bg-blue-100/70 dark:bg-white/10"
+            : ""
+        }
+      `}
+      >
+      
+        {isSelectionMode && !message.pending && (
+        <div
+          className={`
+            absolute
+            left-5 top-1/2 -translate-y-1/2
+            z-20
+      
+            w-5 h-5
+            rounded-full
+            border-2
+      
+            flex items-center justify-center
+            text-xs font-bold
+      
+            transition-all
+      
+            ${
+             selectedMessages.includes(message._id)
+                ? "bg-blue-600 border-blue-600 text-white"
+                : "bg-white dark:bg-gray-800 border-gray-400 text-transparent"
+             }
+          `}
+        >
+          ✓
+        </div>
+      )}
 
 
         <div
