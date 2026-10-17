@@ -1608,20 +1608,20 @@ return (
           </button>
 
           {canEditSelectedMessage && (
-  <button
-    type="button"
-    onClick={handleSelectedEdit}
-    className="
-      p-2.5
-      rounded-full
-      text-gray-700 dark:text-gray-200
-      hover:bg-gray-100 dark:hover:bg-gray-800
-    "
-    title="Edit"
-  >
-    <FaEdit size={18} />
-  </button>
-)}
+            <button
+              type="button"
+              onClick={handleSelectedEdit}
+              className="
+                p-2.5
+                rounded-full
+                text-gray-700 dark:text-gray-200
+                hover:bg-gray-100 dark:hover:bg-gray-800
+              "
+              title="Edit"
+            >
+              <FaEdit size={18} />
+            </button>
+          )}
 
           <button
             type="button"
