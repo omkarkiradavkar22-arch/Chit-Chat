@@ -2263,37 +2263,37 @@ onTouchCancel={cancelLongPress}
 
 
         <div
-  className={
-    isSelectionMode
-      ? "pl-9 transition-all"
-      : "transition-all"
-  }
->
-  <MessageBubble
-    refreshChatInfo={refreshChatInfo}
-          message={message}
-
-  onAttachmentCacheStateChange={(
-  messageId,
-  fileUrl,
-  isCached
-) => {
-  setMessageAttachmentCacheState((prev) => {
-    if (
-      prev[messageId]?.[fileUrl] === isCached
-    ) {
-      return prev;
-    }
-
-    return {
-      ...prev,
-      [messageId]: {
-        ...(prev[messageId] || {}),
-        [fileUrl]: isCached,
-      },
-    };
-  });
-}}
+          className={
+            isSelectionMode
+              ? "pl-9 transition-all"
+              : "transition-all"
+          }
+        >
+          <MessageBubble
+            refreshChatInfo={refreshChatInfo}
+                  message={message}
+        
+          onAttachmentCacheStateChange={(
+          messageId,
+          fileUrl,
+          isCached
+        ) => {
+          setMessageAttachmentCacheState((prev) => {
+            if (
+              prev[messageId]?.[fileUrl] === isCached
+            ) {
+              return prev;
+            }
+        
+            return {
+              ...prev,
+              [messageId]: {
+                ...(prev[messageId] || {}),
+                [fileUrl]: isCached,
+              },
+            };
+          });
+        }}
           chatId={chatId}
           liveLocation={liveLocation}
            editRequestedMessageId={editRequestedMessageId}
