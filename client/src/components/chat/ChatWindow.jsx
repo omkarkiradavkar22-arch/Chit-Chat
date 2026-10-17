@@ -1428,24 +1428,24 @@ return (
             <div className="space-y-3">
 
              {canDeleteForEveryone && (
-  <button
-    type="button"
-    onClick={deleteSelectedForEveryone}
-    className="
-      w-full
-      py-3 px-4
-      rounded-full
-      border border-gray-300 dark:border-gray-600
-      text-red-500
-      font-semibold
-      hover:bg-gray-100
-      dark:hover:bg-gray-700
-      transition
-    "
-  >
-    Delete for everyone
-  </button>
-)}
+                <button
+                  type="button"
+                  onClick={deleteSelectedForEveryone}
+                  className="
+                    w-full
+                    py-3 px-4
+                    rounded-full
+                    border border-gray-300 dark:border-gray-600
+                    text-red-500
+                    font-semibold
+                    hover:bg-gray-100
+                    dark:hover:bg-gray-700
+                    transition
+                  "
+                >
+                  Delete for everyone
+                </button>
+              )}
 
               <button
                 type="button"
