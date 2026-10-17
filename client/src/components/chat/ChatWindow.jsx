@@ -1774,26 +1774,26 @@ return (
 
 
       {/* ================================= */}
-{/* SINGLE RESTRICTED MESSAGE */}
-{/* Deleted / unavailable → Delete only */}
-{/* ================================= */}
-
-{isSingleRestrictedSelection && (
-  <button
-    type="button"
-    onClick={() => setShowDeleteConfirm(true)}
-    className="
-      p-2.5
-      rounded-full
-      text-red-500
-      hover:bg-red-50
-      dark:hover:bg-red-950/40
-    "
-    title="Delete"
-  >
-    <FaTrash size={18} />
-  </button>
-)}
+      {/* SINGLE RESTRICTED MESSAGE */}
+      {/* Deleted / unavailable → Delete only */}
+      {/* ================================= */}
+      
+      {isSingleRestrictedSelection && (
+        <button
+          type="button"
+          onClick={() => setShowDeleteConfirm(true)}
+          className="
+            p-2.5
+            rounded-full
+            text-red-500
+            hover:bg-red-50
+            dark:hover:bg-red-950/40
+          "
+          title="Delete"
+        >
+          <FaTrash size={18} />
+        </button>
+      )}
 
 
       {/* ================================= */}
