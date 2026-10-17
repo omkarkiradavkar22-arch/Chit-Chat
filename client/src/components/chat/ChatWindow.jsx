@@ -2296,11 +2296,11 @@ return (
         }}
           chatId={chatId}
           liveLocation={liveLocation}
-           editRequestedMessageId={editRequestedMessageId}
+          editRequestedMessageId={editRequestedMessageId}
           isReceiverOnline={isReceiverOnline}
-  onEditRequestHandled={() => {
-    setEditRequestedMessageId(null);
-  }}
+          onEditRequestHandled={() => {
+            setEditRequestedMessageId(null);
+          }}
           searchQuery={searchQuery}
           onUnsendPending={handleUnsendPending}
           isSearchMatch={
@@ -2310,16 +2310,16 @@ return (
           }
 
           isHighlighted={
-  highlightedMessageId === message._id
-}
+            highlightedMessageId === message._id
+          }
 
           onPin={(updatedChat) => {
             setChatInfo(updatedChat);
           }}
 
           onSelect={(messageId) => {
-  startMessageSelection(messageId);
-}}
+            startMessageSelection(messageId);
+          }}
 
           onReply={() =>
             setReplyMessage(message)
