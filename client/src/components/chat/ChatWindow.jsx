@@ -2154,9 +2154,9 @@ return (
 
       <div className="flex-1 min-w-0 w-full overflow-y-auto p-5 pb-24 bg-gray-100 dark:bg-gray-950 transition-colors">
         {visibleMessages.length === 0 ? (
-  <div className="text-center text-gray-500 dark:text-gray-400">
-    No messages yet.
-  </div>
+          <div className="text-center text-gray-500 dark:text-gray-400">
+            No messages yet.
+          </div>
 ) : (
           visibleMessages.map((message, index) => {
   const matchIndex = searchMatches.findIndex(
