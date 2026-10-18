@@ -2157,205 +2157,205 @@ return (
           <div className="text-center text-gray-500 dark:text-gray-400">
             No messages yet.
           </div>
-) : (
-          visibleMessages.map((message, index) => {
-  const matchIndex = searchMatches.findIndex(
-    (item) => item._id === message._id
-  );
-
-  const currentDateLabel = getMessageDateLabel(
-    message.createdAt
-  );
-
-  const previousDateLabel =
-  index > 0
-    ? getMessageDateLabel(
-        visibleMessages[index - 1].createdAt
-      )
-    : null;
-
-  const showDateSeparator =
-    currentDateLabel !== previousDateLabel;
-
-  return (
-    <div key={message._id}>
-      
-      {/* DATE SEPARATOR */}
-      {showDateSeparator && (
-        <div className="flex items-center justify-center my-4">
-          <span className="
-            bg-gray-200 
-            dark:bg-gray-800
-            text-gray-600 
-            dark:text-gray-300
-            text-xs
-            font-medium
-            px-3
-            py-1
-            rounded-full
-          ">
-            {currentDateLabel}
-          </span>
-        </div>
-      )}
-
-      {/* MESSAGE */}
-      <div
-        ref={(el) => {
-          messageRefs.current[message._id] = el;
-        }}
-      
-        onTouchStart={() => {
-        handleTouchStart(message._id, message.pending);
-      }}
-      
-      onTouchEnd={cancelLongPress}
-      
-      onTouchMove={cancelLongPress}
-      
-      onTouchCancel={cancelLongPress}
-      
-        onClick={() => {
-          if (isSelectionMode && !message.pending) {
-            toggleMessageSelection(message._id);
-          }
-        }}
-      
-        className={`
-        relative
-        group
-        transition-colors
-        -mx-5 px-5
-        ${
-          selectedMessages.includes(message._id)
-            ? "bg-blue-100/70 dark:bg-white/10"
-            : ""
-        }
-      `}
-      >
-      
-        {isSelectionMode && !message.pending && (
-        <div
-          className={`
-            absolute
-            left-5 top-1/2 -translate-y-1/2
-            z-20
-      
-            w-5 h-5
-            rounded-full
-            border-2
-      
-            flex items-center justify-center
-            text-xs font-bold
-      
-            transition-all
-      
-            ${
-             selectedMessages.includes(message._id)
-                ? "bg-blue-600 border-blue-600 text-white"
-                : "bg-white dark:bg-gray-800 border-gray-400 text-transparent"
-             }
-          `}
-        >
-          ✓
-        </div>
-      )}
-
-
-        <div
-          className={
-            isSelectionMode
-              ? "pl-9 transition-all"
-              : "transition-all"
-          }
-        >
-          <MessageBubble
-            refreshChatInfo={refreshChatInfo}
-                  message={message}
-        
-          onAttachmentCacheStateChange={(
-          messageId,
-          fileUrl,
-          isCached
-        ) => {
-          setMessageAttachmentCacheState((prev) => {
-            if (
-              prev[messageId]?.[fileUrl] === isCached
-            ) {
-              return prev;
-            }
-        
-            return {
-              ...prev,
-              [messageId]: {
-                ...(prev[messageId] || {}),
-                [fileUrl]: isCached,
-              },
-            };
-          });
-        }}
-          chatId={chatId}
-          liveLocation={liveLocation}
-          editRequestedMessageId={editRequestedMessageId}
-          isReceiverOnline={isReceiverOnline}
-          onEditRequestHandled={() => {
-            setEditRequestedMessageId(null);
-          }}
-          searchQuery={searchQuery}
-          onUnsendPending={handleUnsendPending}
-          isSearchMatch={
-            matchIndex !== -1 &&
-            searchMatches[searchIndex]?._id ===
-              message._id
-          }
-
-          isHighlighted={
-            highlightedMessageId === message._id
-          }
-
-          onPin={(updatedChat) => {
-            setChatInfo(updatedChat);
-          }}
-
-          onSelect={(messageId) => {
-            startMessageSelection(messageId);
-          }}
-
-          onReply={() =>
-            setReplyMessage(message)
-          }
-
-          onDelete={(id) =>
-            setMessages((prev) =>
-              prev.filter((msg) => msg._id !== id)
-            )
-          }
-
-          onEdit={(updatedMessage) =>
-            setMessages((prev) =>
-              prev.map((msg) =>
-                msg._id === updatedMessage._id
-                  ? updatedMessage
-                  : msg
-              )
-            )
-          }
-
-          onReaction={(updatedMessage) =>
-            setMessages((prev) =>
-              prev.map((msg) =>
-                msg._id === updatedMessage._id
-                  ? updatedMessage
-                  : msg
-              )
-            )
-          }
-        />
-        </div>
-      </div>
-    </div>
-  );
-})
+          ) : (
+                    visibleMessages.map((message, index) => {
+            const matchIndex = searchMatches.findIndex(
+              (item) => item._id === message._id
+            );
+          
+            const currentDateLabel = getMessageDateLabel(
+              message.createdAt
+            );
+          
+            const previousDateLabel =
+            index > 0
+              ? getMessageDateLabel(
+                  visibleMessages[index - 1].createdAt
+                )
+              : null;
+          
+            const showDateSeparator =
+              currentDateLabel !== previousDateLabel;
+          
+            return (
+              <div key={message._id}>
+                
+                {/* DATE SEPARATOR */}
+                {showDateSeparator && (
+                  <div className="flex items-center justify-center my-4">
+                    <span className="
+                      bg-gray-200 
+                      dark:bg-gray-800
+                      text-gray-600 
+                      dark:text-gray-300
+                      text-xs
+                      font-medium
+                      px-3
+                      py-1
+                      rounded-full
+                    ">
+                      {currentDateLabel}
+                    </span>
+                  </div>
+                )}
+          
+                {/* MESSAGE */}
+                <div
+                  ref={(el) => {
+                    messageRefs.current[message._id] = el;
+                  }}
+                
+                  onTouchStart={() => {
+                  handleTouchStart(message._id, message.pending);
+                }}
+                
+                onTouchEnd={cancelLongPress}
+                
+                onTouchMove={cancelLongPress}
+                
+                onTouchCancel={cancelLongPress}
+                
+                  onClick={() => {
+                    if (isSelectionMode && !message.pending) {
+                      toggleMessageSelection(message._id);
+                    }
+                  }}
+                
+                  className={`
+                  relative
+                  group
+                  transition-colors
+                  -mx-5 px-5
+                  ${
+                    selectedMessages.includes(message._id)
+                      ? "bg-blue-100/70 dark:bg-white/10"
+                      : ""
+                  }
+                `}
+                >
+                
+                  {isSelectionMode && !message.pending && (
+                  <div
+                    className={`
+                      absolute
+                      left-5 top-1/2 -translate-y-1/2
+                      z-20
+                
+                      w-5 h-5
+                      rounded-full
+                      border-2
+                
+                      flex items-center justify-center
+                      text-xs font-bold
+                
+                      transition-all
+                
+                      ${
+                       selectedMessages.includes(message._id)
+                          ? "bg-blue-600 border-blue-600 text-white"
+                          : "bg-white dark:bg-gray-800 border-gray-400 text-transparent"
+                       }
+                    `}
+                  >
+                    ✓
+                  </div>
+                )}
+          
+          
+                  <div
+                    className={
+                      isSelectionMode
+                        ? "pl-9 transition-all"
+                        : "transition-all"
+                    }
+                  >
+                    <MessageBubble
+                      refreshChatInfo={refreshChatInfo}
+                            message={message}
+                  
+                    onAttachmentCacheStateChange={(
+                    messageId,
+                    fileUrl,
+                    isCached
+                  ) => {
+                    setMessageAttachmentCacheState((prev) => {
+                      if (
+                        prev[messageId]?.[fileUrl] === isCached
+                      ) {
+                        return prev;
+                      }
+                  
+                      return {
+                        ...prev,
+                        [messageId]: {
+                          ...(prev[messageId] || {}),
+                          [fileUrl]: isCached,
+                        },
+                      };
+                    });
+                  }}
+                    chatId={chatId}
+                    liveLocation={liveLocation}
+                    editRequestedMessageId={editRequestedMessageId}
+                    isReceiverOnline={isReceiverOnline}
+                    onEditRequestHandled={() => {
+                      setEditRequestedMessageId(null);
+                    }}
+                    searchQuery={searchQuery}
+                    onUnsendPending={handleUnsendPending}
+                    isSearchMatch={
+                      matchIndex !== -1 &&
+                      searchMatches[searchIndex]?._id ===
+                        message._id
+                    }
+          
+                    isHighlighted={
+                      highlightedMessageId === message._id
+                    }
+          
+                    onPin={(updatedChat) => {
+                      setChatInfo(updatedChat);
+                    }}
+          
+                    onSelect={(messageId) => {
+                      startMessageSelection(messageId);
+                    }}
+          
+                    onReply={() =>
+                      setReplyMessage(message)
+                    }
+          
+                    onDelete={(id) =>
+                      setMessages((prev) =>
+                        prev.filter((msg) => msg._id !== id)
+                      )
+                    }
+          
+                    onEdit={(updatedMessage) =>
+                      setMessages((prev) =>
+                        prev.map((msg) =>
+                          msg._id === updatedMessage._id
+                            ? updatedMessage
+                            : msg
+                        )
+                      )
+                    }
+          
+                    onReaction={(updatedMessage) =>
+                      setMessages((prev) =>
+                        prev.map((msg) =>
+                          msg._id === updatedMessage._id
+                            ? updatedMessage
+                            : msg
+                        )
+                      )
+                    }
+                  />
+                  </div>
+                </div>
+              </div>
+            );
+          })
         )}
 
       {/* =========================
