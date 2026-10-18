@@ -2359,134 +2359,134 @@ return (
         )}
 
       {/* =========================
-    LIVE LOCATION CARD
-========================= */}
-
-{displayedLiveLocation?.active &&
-  displayedLiveLocation?.latitude != null &&
-  displayedLiveLocation?.longitude != null && (
-    <div className="flex justify-start mb-4">
-      <div
-        className="
-          w-[290px]
-          max-w-full
-          overflow-hidden
-          rounded-2xl
-          border
-          border-gray-200 dark:border-gray-700
-          bg-white dark:bg-gray-800
-          shadow-sm
-        "
-      >
-        {/* HEADER */}
-        <div className="p-4">
-          <div className="flex items-center gap-3">
-
-            {/* LOCATION ICON */}
-            <div
-              className="
-                w-11 h-11
-                rounded-full
-                bg-green-100 dark:bg-green-500/15
-                flex items-center justify-center
-                shrink-0
-              "
-            >
-              <FaLocationArrow
-                size={19}
-                className="text-green-500"
-              />
-            </div>
-
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-
-                <p
-                  className="
-                    text-sm
-                    font-semibold
-                    text-gray-900 dark:text-white
-                  "
-                >
-                  Live Location
-                </p>
-
-                <span
-                  className="
-                    bg-green-500
-                    text-white
-                    text-[10px]
-                    font-bold
-                    px-2 py-0.5
-                    rounded-full
-                  "
-                >
-                  LIVE
-                </span>
-
-              </div>
-
-              <div className="flex items-center gap-1.5 mt-1">
-                <span
-                  className="
-                    w-2 h-2
-                    rounded-full
-                    bg-green-500
-                    animate-pulse
-                  "
-                />
-
-                <span
-                  className="
-                    text-xs
-                    text-gray-500 dark:text-gray-300
-                  "
-                >
-                  Sharing live location
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* COORDINATES */}
-          <div
-            className="
-              mt-3
-              px-3 py-2.5
-              rounded-xl
-              bg-gray-100 dark:bg-gray-700
-              border
-              border-gray-200 dark:border-gray-600
-            "
-          >
-            <div className="flex items-center gap-2">
-
-              <FaMapMarkedAlt
-                size={14}
-                className="text-green-500 shrink-0"
-              />
-
-              <p
+            LIVE LOCATION CARD
+        ========================= */}
+        
+        {displayedLiveLocation?.active &&
+          displayedLiveLocation?.latitude != null &&
+          displayedLiveLocation?.longitude != null && (
+            <div className="flex justify-start mb-4">
+              <div
                 className="
-                  text-xs
-                  text-gray-700 dark:text-gray-200
+                  w-[290px]
+                  max-w-full
+                  overflow-hidden
+                  rounded-2xl
+                  border
+                  border-gray-200 dark:border-gray-700
+                  bg-white dark:bg-gray-800
+                  shadow-sm
                 "
               >
-                {Number(displayedLiveLocation.latitude).toFixed(5)}
-                {", "}
-                {Number(displayedLiveLocation.longitude).toFixed(5)}
-              </p>
-
-            </div>
-          </div>
-        </div>
-
-        {/* VIEW LIVE LOCATION */}
-        <button
-          type="button"
-          onClick={() => {
-          setShowLiveLocationViewer(true);
-        }}
+                {/* HEADER */}
+                <div className="p-4">
+                  <div className="flex items-center gap-3">
+        
+                    {/* LOCATION ICON */}
+                    <div
+                      className="
+                        w-11 h-11
+                        rounded-full
+                        bg-green-100 dark:bg-green-500/15
+                        flex items-center justify-center
+                        shrink-0
+                      "
+                    >
+                      <FaLocationArrow
+                        size={19}
+                        className="text-green-500"
+                      />
+                    </div>
+        
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+        
+                        <p
+                          className="
+                            text-sm
+                            font-semibold
+                            text-gray-900 dark:text-white
+                          "
+                        >
+                          Live Location
+                        </p>
+        
+                        <span
+                          className="
+                            bg-green-500
+                            text-white
+                            text-[10px]
+                            font-bold
+                            px-2 py-0.5
+                            rounded-full
+                          "
+                        >
+                          LIVE
+                        </span>
+        
+                      </div>
+        
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <span
+                          className="
+                            w-2 h-2
+                            rounded-full
+                            bg-green-500
+                            animate-pulse
+                          "
+                        />
+        
+                        <span
+                          className="
+                            text-xs
+                            text-gray-500 dark:text-gray-300
+                          "
+                        >
+                          Sharing live location
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+        
+                  {/* COORDINATES */}
+                  <div
+                    className="
+                      mt-3
+                      px-3 py-2.5
+                      rounded-xl
+                      bg-gray-100 dark:bg-gray-700
+                      border
+                      border-gray-200 dark:border-gray-600
+                    "
+                  >
+                    <div className="flex items-center gap-2">
+        
+                      <FaMapMarkedAlt
+                        size={14}
+                        className="text-green-500 shrink-0"
+                      />
+        
+                      <p
+                        className="
+                          text-xs
+                          text-gray-700 dark:text-gray-200
+                        "
+                      >
+                        {Number(displayedLiveLocation.latitude).toFixed(5)}
+                        {", "}
+                        {Number(displayedLiveLocation.longitude).toFixed(5)}
+                      </p>
+        
+                    </div>
+                  </div>
+                </div>
+        
+                {/* VIEW LIVE LOCATION */}
+                <button
+                  type="button"
+                  onClick={() => {
+                  setShowLiveLocationViewer(true);
+                }}
                   className="
                     w-full
                     flex items-center
