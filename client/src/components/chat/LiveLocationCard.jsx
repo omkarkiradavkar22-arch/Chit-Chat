@@ -1,5 +1,4 @@
-import {
-  FaMapMarkerAlt,
+import { FaMapMarkerAlt,
   FaExternalLinkAlt,
 } from "react-icons/fa";
 
