@@ -2485,37 +2485,37 @@ return (
         <button
           type="button"
           onClick={() => {
-  setShowLiveLocationViewer(true);
-}}
-          className="
-            w-full
-            flex items-center
-            justify-center
-            gap-2
-            px-4 py-3
-
-            border-t
-            border-gray-200 dark:border-gray-700
-
-            text-green-600 dark:text-green-400
-            text-sm
-            font-semibold
-
-            hover:bg-gray-50
-            dark:hover:bg-gray-700/60
-
-            transition
-          "
-        >
-          <FaMapMarkedAlt size={15} />
-
-          <span>View Live Location</span>
-
-          <FaExternalLinkAlt size={10} />
-        </button>
-      </div>
-    </div>
-)}
+          setShowLiveLocationViewer(true);
+        }}
+                  className="
+                    w-full
+                    flex items-center
+                    justify-center
+                    gap-2
+                    px-4 py-3
+        
+                    border-t
+                    border-gray-200 dark:border-gray-700
+        
+                    text-green-600 dark:text-green-400
+                    text-sm
+                    font-semibold
+        
+                    hover:bg-gray-50
+                    dark:hover:bg-gray-700/60
+        
+                    transition
+                  "
+                >
+                  <FaMapMarkedAlt size={15} />
+        
+                  <span>View Live Location</span>
+        
+                  <FaExternalLinkAlt size={10} />
+                </button>
+              </div>
+            </div>
+        )}
 
         <div ref={bottomRef} />
 
