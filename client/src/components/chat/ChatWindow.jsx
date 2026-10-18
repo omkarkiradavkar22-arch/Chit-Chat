@@ -2546,8 +2546,6 @@ return (
         onLiveLocationStop={() => {
           setMyLiveLocation(null);
       
-          // Other user पण share करत नसेल
-          // तर viewer close करा.
           // if other user also can't share then close the viewer
           if (!liveLocation?.active) {
             setShowLiveLocationViewer(false);
