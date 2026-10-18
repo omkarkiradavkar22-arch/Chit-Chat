@@ -2527,48 +2527,48 @@ return (
      
 
       {!chatInfo?.isBlocked ? (
-<MessageInput
-  chatId={chatId}
-  receiverId={receiverId}
-  senderId={user._id}
-  replyMessage={replyMessage}
-  setReplyMessage={setReplyMessage}
-  onMessageSent={handleMessageSent}
-
-  onLiveLocationStart={(location) => {
-    setMyLiveLocation(location);
-  }}
-
-  onLiveLocationUpdate={(location) => {
-    setMyLiveLocation(location);
-  }}
-
-  onLiveLocationStop={() => {
-    setMyLiveLocation(null);
-
-    // Other user पण share करत नसेल
-    // तर viewer close करा.
-    if (!liveLocation?.active) {
-      setShowLiveLocationViewer(false);
-    }
-  }}
-/>
-) : null}
-
-<ForwardModal
-  open={showSelectionForward}
-  onClose={() => {
-    setShowSelectionForward(false);
-    setSelectionForwardMessageId(null);
-    cancelMessageSelection();
-  }}
-  messageId={selectionForwardMessageId}
-  messageIds={
-    selectedMessages.length > 1
-      ? selectedMessages
-      : []
-  }
-/>
+      <MessageInput
+        chatId={chatId}
+        receiverId={receiverId}
+        senderId={user._id}
+        replyMessage={replyMessage}
+        setReplyMessage={setReplyMessage}
+        onMessageSent={handleMessageSent}
+      
+        onLiveLocationStart={(location) => {
+          setMyLiveLocation(location);
+        }}
+      
+        onLiveLocationUpdate={(location) => {
+          setMyLiveLocation(location);
+        }}
+      
+        onLiveLocationStop={() => {
+          setMyLiveLocation(null);
+      
+          // Other user पण share करत नसेल
+          // तर viewer close करा.
+          if (!liveLocation?.active) {
+            setShowLiveLocationViewer(false);
+          }
+        }}
+      />
+      ) : null}
+      
+      <ForwardModal
+        open={showSelectionForward}
+        onClose={() => {
+          setShowSelectionForward(false);
+          setSelectionForwardMessageId(null);
+          cancelMessageSelection();
+        }}
+        messageId={selectionForwardMessageId}
+        messageIds={
+          selectedMessages.length > 1
+            ? selectedMessages
+            : []
+        }
+      />
 
     </div>
   );
