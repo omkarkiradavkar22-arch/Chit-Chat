@@ -1,5 +1,4 @@
-import { FaMapMarkerAlt, FaExternalLinkAlt,
-} from "react-icons/fa";
+import { FaMapMarkerAlt, FaExternalLinkAlt, } from "react-icons/fa";
 
 function LiveLocationCard({
   latitude,
