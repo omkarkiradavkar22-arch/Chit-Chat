@@ -1,6 +1,5 @@
 import { useEffect, useMemo } from "react";
-import {
-  MapContainer,
+import { MapContainer,
   TileLayer,
   Marker,
   useMap,
