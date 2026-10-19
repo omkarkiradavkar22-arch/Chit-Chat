@@ -4,8 +4,7 @@ import { MapContainer, TileLayer, Marker, useMap, } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-import {
-  FaTimes,
+import { FaTimes,
   FaCrosshairs,
   FaLocationArrow,
 } from "react-icons/fa";
