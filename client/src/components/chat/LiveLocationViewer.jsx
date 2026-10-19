@@ -1,6 +1,5 @@
 import { useEffect, useMemo } from "react";
-import { MapContainer,
-  TileLayer,
+import { MapContainer, TileLayer,
   Marker,
   useMap,
 } from "react-leaflet";
