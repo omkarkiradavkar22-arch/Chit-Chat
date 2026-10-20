@@ -6,8 +6,7 @@ import "leaflet/dist/leaflet.css";
 
 import { FaTimes, FaCrosshairs, FaLocationArrow,} from "react-icons/fa";
 
-
-// ========================================
+// =====================
 // PROFILE PHOTO MARKER
 // ========================================
 
