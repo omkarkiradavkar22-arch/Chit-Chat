@@ -8,7 +8,7 @@ import { FaTimes, FaCrosshairs, FaLocationArrow,} from "react-icons/fa";
 
 // =====================
 // PROFILE PHOTO MARKER
-// ========================================
+// =====================
 
 const createProfileMarker = (profilePic, isMe = false) => {
   const fallback = isMe ? "ME" : "U";
