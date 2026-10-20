@@ -201,7 +201,7 @@ function RecenterButton({
 
 // ===============
 // MAIN COMPONENT
-// ========================================
+// ===============
 
 function LiveLocationViewer({
   myLiveLocation,
