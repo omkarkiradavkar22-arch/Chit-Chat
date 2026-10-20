@@ -53,7 +53,7 @@ const createProfileMarker = (profilePic, isMe = false) => {
 };
 
 
-// ========================================
+// ====================
 // AUTO FIT BOTH USERS
 // ========================================
 
