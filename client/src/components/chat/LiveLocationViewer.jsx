@@ -116,7 +116,7 @@ function FitLiveLocations({
 
 // ================
 // RECENTER BUTTON
-// ========================================
+// ================
 
 function RecenterButton({
   myLiveLocation,
