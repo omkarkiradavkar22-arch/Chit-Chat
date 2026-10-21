@@ -315,7 +315,6 @@ function LiveLocationViewer({
             />
           </div>
 
-
           <div>
 
             <div className="flex items-center gap-2">
@@ -363,7 +362,6 @@ function LiveLocationViewer({
           </div>
 
         </div>
-
 
         <button
           type="button"
