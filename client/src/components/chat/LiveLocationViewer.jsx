@@ -386,7 +386,6 @@ function LiveLocationViewer({
 
       </div>
 
-
       {/* =====
           MAP
           ===== */}
