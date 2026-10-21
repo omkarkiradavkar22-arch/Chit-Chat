@@ -113,7 +113,6 @@ function FitLiveLocations({
   return null;
 }
 
-
 // ================
 // RECENTER BUTTON
 // ================
