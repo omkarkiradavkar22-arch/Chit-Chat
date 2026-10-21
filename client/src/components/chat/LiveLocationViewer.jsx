@@ -432,12 +432,10 @@ function LiveLocationViewer({
             />
           )}
 
-
           <FitLiveLocations
             myLiveLocation={myLiveLocation}
             otherLiveLocation={otherLiveLocation}
           />
-
 
           <RecenterButton
             myLiveLocation={myLiveLocation}
