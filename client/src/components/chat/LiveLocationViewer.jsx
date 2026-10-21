@@ -406,7 +406,6 @@ function LiveLocationViewer({
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
 
-
           {/* MY MARKER */}
 
           {myActive && (
