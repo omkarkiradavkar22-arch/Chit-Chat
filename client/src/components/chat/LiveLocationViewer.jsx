@@ -549,7 +549,6 @@ function LiveLocationViewer({
           </div>
         )}
 
-
         {/* OTHER USER */}
 
         {otherActive && (
