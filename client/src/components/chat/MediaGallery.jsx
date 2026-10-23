@@ -2,8 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../services/api";
 import { useTheme } from "../../context/ThemeContext";
-import { FaTimes, FaFileAlt, FaDownload, FaExternalLinkAlt, FaImages, FaVideo,
-  FaRegFileVideo,
+import { FaTimes, FaFileAlt, FaDownload, FaExternalLinkAlt, FaImages, FaVideo, FaRegFileVideo,
 FaLink,
 FaChevronLeft,
 FaChevronRight,
