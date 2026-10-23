@@ -443,7 +443,6 @@ function LiveLocationViewer({
 
       </div>
 
-
       {/* =============
           BOTTOM USERS
           ============= */}
