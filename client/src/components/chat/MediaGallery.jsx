@@ -83,7 +83,7 @@ const touchEndXRef = useRef(null);
 
   // ============
   // FETCH MEDIA
-  // =========================
+  // ============
   useEffect(() => {
     if (!isOpen || !chatId) return;
 
