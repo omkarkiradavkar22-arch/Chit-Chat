@@ -214,7 +214,7 @@ const handleViewerTouchEnd = () => {
   touchEndXRef.current = null;
 };
 
-  // =========================
+  // ===============================
   // CLOSE LIGHTBOX WHEN TAB CHANGES
   // =========================
   useEffect(() => {
