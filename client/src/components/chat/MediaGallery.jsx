@@ -81,7 +81,7 @@ const [viewerIndex, setViewerIndex] = useState(0);
 const touchStartXRef = useRef(null);
 const touchEndXRef = useRef(null);
 
-  // =========================
+  // ============
   // FETCH MEDIA
   // =========================
   useEffect(() => {
