@@ -167,7 +167,7 @@ const showPreviousMedia = () => {
 
 // =============
 // MOBILE SWIPE
-// =========================
+// =============
 
 const handleViewerTouchStart = (e) => {
   touchStartXRef.current =
