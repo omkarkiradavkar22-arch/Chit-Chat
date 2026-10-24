@@ -215,245 +215,245 @@ const handleViewerTouchEnd = () => {
 };
 
   // =========================
-// CLOSE LIGHTBOX WHEN TAB CHANGES
-// =========================
-useEffect(() => {
-  setViewerOpen(false);
-  setViewerType(null);
-  setViewerIndex(0);
-}, [activeTab]);
-
-// =========================
-// CONDITIONAL RETURN
-// =========================
-if (!isOpen) return null;
-
-const items = gallery[activeTab] || [];
-
-console.log("ACTIVE TAB:", activeTab);
-console.log("ITEMS:", items);
-
- 
-
-  return (
-    <>
-      {/* =====================================================
-          MAIN MODAL
-      ===================================================== */}
-    
-
-      <div className="fixed inset-0 z-[9999] bg-black/70 flex items-center justify-center p-4">
-
-        <div
-          className={`w-full max-w-xl max-h-[85vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden border ${
-            darkMode
-              ? "bg-[#111827] border-gray-700 text-white"
-              : "bg-white border-gray-200 text-gray-900"
-          }`}
-        >
-
-          {/* =====================================================
-              HEADER
-          ===================================================== */}
+  // CLOSE LIGHTBOX WHEN TAB CHANGES
+  // =========================
+  useEffect(() => {
+    setViewerOpen(false);
+    setViewerType(null);
+    setViewerIndex(0);
+  }, [activeTab]);
+  
+  // =========================
+  // CONDITIONAL RETURN
+  // =========================
+  if (!isOpen) return null;
+  
+  const items = gallery[activeTab] || [];
+  
+  console.log("ACTIVE TAB:", activeTab);
+  console.log("ITEMS:", items);
+  
+   
+  
+    return (
+      <>
+        {/* =====================================================
+            MAIN MODAL
+        ===================================================== */}
+      
+  
+        <div className="fixed inset-0 z-[9999] bg-black/70 flex items-center justify-center p-4">
+  
           <div
-            className={`flex items-center justify-between px-5 py-4 border-b ${
+            className={`w-full max-w-xl max-h-[85vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden border ${
               darkMode
-                ? "bg-[#172235] border-gray-700"
-                : "bg-white border-gray-200"
+                ? "bg-[#111827] border-gray-700 text-white"
+                : "bg-white border-gray-200 text-gray-900"
             }`}
           >
-
-            <div>
-              <h3 className="font-semibold text-lg">
-                Media, Links & Docs
-              </h3>
-
-              <p
-                className={`text-xs mt-0.5 ${
-                  darkMode ? "text-gray-400" : "text-gray-500"
-                }`}
-              >
-                Shared content from this chat
-              </p>
-            </div>
-
-            <button
-              onClick={onClose}
-              className={`w-9 h-9 rounded-full flex items-center justify-center transition ${
+  
+            {/* =====================================================
+                HEADER
+            ===================================================== */}
+            <div
+              className={`flex items-center justify-between px-5 py-4 border-b ${
                 darkMode
-                  ? "bg-gray-800 hover:bg-gray-700"
-                  : "bg-gray-100 hover:bg-gray-200"
+                  ? "bg-[#172235] border-gray-700"
+                  : "bg-white border-gray-200"
               }`}
             >
-              <FaTimes size={15} />
-            </button>
-
-          </div>
-
-          {/* =====================================================
-              TABS
-          ===================================================== */}
-          <div
-            className={`flex border-b ${
-              darkMode
-                ? "bg-[#111827] border-gray-700"
-                : "bg-white border-gray-200"
-            }`}
-          >
-
-            {TABS.map((tab) => {
-              const isActive = activeTab === tab.key;
-              const count = gallery[tab.key]?.length || 0;
-
-              return (
-                <button
-                  key={tab.key}
-                  onClick={() => setActiveTab(tab.key)}
-                  className={`relative flex-1 py-3 text-sm font-medium transition ${
-                    isActive
-                      ? "text-blue-400"
-                      : darkMode
-                      ? "text-gray-400 hover:text-gray-200"
-                      : "text-gray-500 hover:text-gray-700"
-                  }`}
-                >
-
-                  <span className="flex items-center justify-center gap-1.5">
-
-                    <span>{tab.icon}</span>
-
-                    <span>{tab.label}</span>
-
-                    {count > 0 && (
-                      <span
-                        className={`text-[10px] px-1.5 py-0.5 rounded-full ${
-                          isActive
-                            ? "bg-blue-500/20 text-blue-300"
-                            : darkMode
-                            ? "bg-gray-700 text-gray-400"
-                            : "bg-gray-100 text-gray-500"
-                        }`}
-                      >
-                        {count}
-                      </span>
-                    )}
-
-                  </span>
-
-                  {isActive && (
-                    <span className="absolute bottom-0 left-3 right-3 h-0.5 bg-blue-500 rounded-full" />
-                  )}
-
-                </button>
-              );
-            })}
-
-          </div>
-
-          {/* =====================================================
-              CONTENT
-          ===================================================== */}
-          <div
-            className={`flex-1 overflow-y-auto p-4 ${
-              darkMode ? "bg-[#0f172a]" : "bg-gray-50"
-            }`}
-          >
-
-            {/* =========================
-                LOADING
-            ========================= */}
-            {loading ? (
-
-              <div className="flex flex-col items-center justify-center py-16">
-
-                <div className="w-9 h-9 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
-
+  
+              <div>
+                <h3 className="font-semibold text-lg">
+                  Media, Links & Docs
+                </h3>
+  
                 <p
-                  className={`text-sm mt-4 ${
+                  className={`text-xs mt-0.5 ${
                     darkMode ? "text-gray-400" : "text-gray-500"
                   }`}
                 >
-                  Loading shared content...
+                  Shared content from this chat
                 </p>
-
               </div>
-
-            ) : items.length === 0 ? (
-
-              /* =========================
-                  EMPTY STATE
-              ========================= */
-              <div className="flex flex-col items-center justify-center py-16">
-
-                <div
-                  className={`w-16 h-16 rounded-full flex items-center justify-center text-3xl mb-4 ${
-                    darkMode ? "bg-gray-800" : "bg-gray-100"
-                  }`}
-                >
-                  {TABS.find((t) => t.key === activeTab)?.icon}
-                </div>
-
-                <p
-                  className={`font-medium ${
-                    darkMode ? "text-gray-300" : "text-gray-700"
-                  }`}
-                >
-                  No {activeTab} shared yet
-                </p>
-
-                <p
-                  className={`text-sm mt-1 ${
-                    darkMode ? "text-gray-500" : "text-gray-400"
-                  }`}
-                >
-                  Shared {activeTab} will appear here
-                </p>
-
-              </div>
-
-            ) : activeTab === "photos" ? (
-
-              /* =====================================================
-                  PHOTOS
-              ===================================================== */
-              <div className="grid grid-cols-3 gap-2">
-
-                {items.map((item, i) => (
-
-                  <div
-                    key={`${item.messageId}-${item.url}-${i}`}
-                    onClick={() =>
-  openMediaViewer("photo", i)
-}
-                    className={`relative aspect-square rounded-xl overflow-hidden cursor-pointer group ${
-                      darkMode ? "bg-gray-800" : "bg-gray-200"
+  
+              <button
+                onClick={onClose}
+                className={`w-9 h-9 rounded-full flex items-center justify-center transition ${
+                  darkMode
+                    ? "bg-gray-800 hover:bg-gray-700"
+                    : "bg-gray-100 hover:bg-gray-200"
+                }`}
+              >
+                <FaTimes size={15} />
+              </button>
+  
+            </div>
+  
+            {/* =====================================================
+                TABS
+            ===================================================== */}
+            <div
+              className={`flex border-b ${
+                darkMode
+                  ? "bg-[#111827] border-gray-700"
+                  : "bg-white border-gray-200"
+              }`}
+            >
+  
+              {TABS.map((tab) => {
+                const isActive = activeTab === tab.key;
+                const count = gallery[tab.key]?.length || 0;
+  
+                return (
+                  <button
+                    key={tab.key}
+                    onClick={() => setActiveTab(tab.key)}
+                    className={`relative flex-1 py-3 text-sm font-medium transition ${
+                      isActive
+                        ? "text-blue-400"
+                        : darkMode
+                        ? "text-gray-400 hover:text-gray-200"
+                        : "text-gray-500 hover:text-gray-700"
                     }`}
                   >
-
-                    <img
-                      src={item.url}
-                      alt=""
-                      className="w-full h-full object-cover transition duration-300 group-hover:scale-105"
-                    />
-
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition" />
-
-                  </div>
-
-                ))}
-
-              </div>
-
-            ) : activeTab === "videos" ? (
-
-              /* =====================================================
-                  VIDEOS
-              ===================================================== */
-              <div className="grid grid-cols-2 gap-3">
-
-                {items.map((item, i) => (
-
+  
+                    <span className="flex items-center justify-center gap-1.5">
+  
+                      <span>{tab.icon}</span>
+  
+                      <span>{tab.label}</span>
+  
+                      {count > 0 && (
+                        <span
+                          className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                            isActive
+                              ? "bg-blue-500/20 text-blue-300"
+                              : darkMode
+                              ? "bg-gray-700 text-gray-400"
+                              : "bg-gray-100 text-gray-500"
+                          }`}
+                        >
+                          {count}
+                        </span>
+                      )}
+  
+                    </span>
+  
+                    {isActive && (
+                      <span className="absolute bottom-0 left-3 right-3 h-0.5 bg-blue-500 rounded-full" />
+                    )}
+  
+                  </button>
+                );
+              })}
+  
+            </div>
+  
+            {/* =====================================================
+                CONTENT
+            ===================================================== */}
+            <div
+              className={`flex-1 overflow-y-auto p-4 ${
+                darkMode ? "bg-[#0f172a]" : "bg-gray-50"
+              }`}
+            >
+  
+              {/* =========================
+                  LOADING
+              ========================= */}
+              {loading ? (
+  
+                <div className="flex flex-col items-center justify-center py-16">
+  
+                  <div className="w-9 h-9 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+  
+                  <p
+                    className={`text-sm mt-4 ${
+                      darkMode ? "text-gray-400" : "text-gray-500"
+                    }`}
+                  >
+                    Loading shared content...
+                  </p>
+  
+                </div>
+  
+              ) : items.length === 0 ? (
+  
+                /* =========================
+                    EMPTY STATE
+                ========================= */
+                <div className="flex flex-col items-center justify-center py-16">
+  
                   <div
+                    className={`w-16 h-16 rounded-full flex items-center justify-center text-3xl mb-4 ${
+                      darkMode ? "bg-gray-800" : "bg-gray-100"
+                    }`}
+                  >
+                    {TABS.find((t) => t.key === activeTab)?.icon}
+                  </div>
+  
+                  <p
+                    className={`font-medium ${
+                      darkMode ? "text-gray-300" : "text-gray-700"
+                    }`}
+                  >
+                    No {activeTab} shared yet
+                  </p>
+  
+                  <p
+                    className={`text-sm mt-1 ${
+                      darkMode ? "text-gray-500" : "text-gray-400"
+                    }`}
+                  >
+                    Shared {activeTab} will appear here
+                  </p>
+  
+                </div>
+  
+              ) : activeTab === "photos" ? (
+  
+                /* =====================================================
+                    PHOTOS
+                ===================================================== */
+                <div className="grid grid-cols-3 gap-2">
+  
+                  {items.map((item, i) => (
+  
+                    <div
+                      key={`${item.messageId}-${item.url}-${i}`}
+                      onClick={() =>
+    openMediaViewer("photo", i)
+  }
+                      className={`relative aspect-square rounded-xl overflow-hidden cursor-pointer group ${
+                        darkMode ? "bg-gray-800" : "bg-gray-200"
+                      }`}
+                    >
+  
+                      <img
+                        src={item.url}
+                        alt=""
+                        className="w-full h-full object-cover transition duration-300 group-hover:scale-105"
+                      />
+  
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition" />
+  
+                    </div>
+  
+                  ))}
+  
+                </div>
+  
+              ) : activeTab === "videos" ? (
+  
+                /* =====================================================
+                    VIDEOS
+                ===================================================== */
+                <div className="grid grid-cols-2 gap-3">
+  
+                  {items.map((item, i) => (
+  
+                    <div
   key={`${item.messageId}-${item.url}-${i}`}
   onClick={() =>
     openMediaViewer("video", i)
