@@ -225,7 +225,7 @@ const handleViewerTouchEnd = () => {
   
   // ===================
   // CONDITIONAL RETURN
-  // =========================
+  // ===================
   if (!isOpen) return null;
   
   const items = gallery[activeTab] || [];
