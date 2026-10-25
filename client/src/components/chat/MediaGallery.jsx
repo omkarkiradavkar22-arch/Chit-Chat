@@ -223,7 +223,7 @@ const handleViewerTouchEnd = () => {
     setViewerIndex(0);
   }, [activeTab]);
   
-  // =========================
+  // ===================
   // CONDITIONAL RETURN
   // =========================
   if (!isOpen) return null;
