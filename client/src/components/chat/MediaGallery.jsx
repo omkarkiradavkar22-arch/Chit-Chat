@@ -216,7 +216,7 @@ const handleViewerTouchEnd = () => {
 
   // ===============================
   // CLOSE LIGHTBOX WHEN TAB CHANGES
-  // =========================
+  // ===============================
   useEffect(() => {
     setViewerOpen(false);
     setViewerType(null);
