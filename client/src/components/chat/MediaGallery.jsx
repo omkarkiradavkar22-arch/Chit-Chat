@@ -76,7 +76,7 @@ const darkMode = theme === "dark";
   const [loading, setLoading] = useState(false);
   const [viewerOpen, setViewerOpen] = useState(false);
   const [viewerType, setViewerType] = useState(null);
-const [viewerIndex, setViewerIndex] = useState(0);
+  const [viewerIndex, setViewerIndex] = useState(0);
 
 const touchStartXRef = useRef(null);
 const touchEndXRef = useRef(null);
