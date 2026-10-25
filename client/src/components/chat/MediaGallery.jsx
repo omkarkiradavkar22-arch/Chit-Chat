@@ -79,7 +79,7 @@ const darkMode = theme === "dark";
   const [viewerIndex, setViewerIndex] = useState(0);
 
   const touchStartXRef = useRef(null);
-const touchEndXRef = useRef(null);
+  const touchEndXRef = useRef(null);
 
   // ============
   // FETCH MEDIA
