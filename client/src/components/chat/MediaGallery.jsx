@@ -422,8 +422,8 @@ const handleViewerTouchEnd = () => {
                     <div
                       key={`${item.messageId}-${item.url}-${i}`}
                       onClick={() =>
-    openMediaViewer("photo", i)
-  }
+                    openMediaViewer("photo", i)
+                  }
                       className={`relative aspect-square rounded-xl overflow-hidden cursor-pointer group ${
                         darkMode ? "bg-gray-800" : "bg-gray-200"
                       }`}
