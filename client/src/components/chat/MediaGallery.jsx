@@ -412,7 +412,7 @@ const handleViewerTouchEnd = () => {
   
               ) : activeTab === "photos" ? (
   
-                /* =====================================================
+                /* ========
                     PHOTOS
                 ===================================================== */
                 <div className="grid grid-cols-3 gap-2">
