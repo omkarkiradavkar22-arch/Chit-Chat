@@ -254,7 +254,7 @@ const handleViewerTouchEnd = () => {
   
             {/* ========
                 HEADER
-            ===================================================== */}
+                ======== */}
             <div
               className={`flex items-center justify-between px-5 py-4 border-b ${
                 darkMode
