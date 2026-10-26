@@ -379,7 +379,7 @@ const handleViewerTouchEnd = () => {
   
               ) : items.length === 0 ? (
   
-                /* =========================
+                /* =============
                     EMPTY STATE
                 ========================= */
                 <div className="flex flex-col items-center justify-center py-16">
