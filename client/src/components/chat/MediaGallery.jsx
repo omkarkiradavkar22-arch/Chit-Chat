@@ -292,7 +292,7 @@ const handleViewerTouchEnd = () => {
   
             {/* =======
                 TABS
-            ===================================================== */}
+                ======= */}
             <div
               className={`flex border-b ${
                 darkMode
