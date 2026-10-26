@@ -414,7 +414,7 @@ const handleViewerTouchEnd = () => {
   
                 /* ========
                     PHOTOS
-                ===================================================== */
+                   ======== */
                 <div className="grid grid-cols-3 gap-2">
   
                   {items.map((item, i) => (
