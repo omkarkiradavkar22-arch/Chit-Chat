@@ -453,45 +453,45 @@ const handleViewerTouchEnd = () => {
                   {items.map((item, i) => (
   
                     <div
-  key={`${item.messageId}-${item.url}-${i}`}
-  onClick={() =>
-    openMediaViewer("video", i)
-  }
-  className={`relative rounded-xl overflow-hidden border cursor-pointer group ${
-    darkMode
-      ? "bg-black border-gray-700"
-      : "bg-gray-100 border-gray-200"
-  }`}
->
-  <video
-    src={item.url}
-    muted
-    preload="metadata"
-    className="w-full aspect-video object-cover"
-  />
-
-  <div
-    className="
-      absolute inset-0
-      flex items-center justify-center
-      bg-black/20
-      group-hover:bg-black/30
-      transition
-    "
-  >
-   <div
-  className="
-    w-12 h-12
-    rounded-full
-    bg-black/60
-    text-white
-    flex items-center justify-center
-  "
->
-  <FaPlay size={17} className="ml-0.5" />
-</div>
-  </div>
-</div>
+                      key={`${item.messageId}-${item.url}-${i}`}
+                      onClick={() =>
+                        openMediaViewer("video", i)
+                      }
+                      className={`relative rounded-xl overflow-hidden border cursor-pointer group ${
+                        darkMode
+                          ? "bg-black border-gray-700"
+                          : "bg-gray-100 border-gray-200"
+                      }`}
+                    >
+                      <video
+                        src={item.url}
+                        muted
+                        preload="metadata"
+                        className="w-full aspect-video object-cover"
+                      />
+                    
+                      <div
+                        className="
+                          absolute inset-0
+                          flex items-center justify-center
+                          bg-black/20
+                          group-hover:bg-black/30
+                          transition
+                        "
+                      >
+                       <div
+                      className="
+                        w-12 h-12
+                        rounded-full
+                        bg-black/60
+                        text-white
+                        flex items-center justify-center
+                      "
+                    >
+                      <FaPlay size={17} className="ml-0.5" />
+                    </div>
+                  </div>
+                </div>
 
                 ))}
 
