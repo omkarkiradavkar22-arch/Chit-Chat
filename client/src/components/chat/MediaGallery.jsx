@@ -507,13 +507,13 @@ const handleViewerTouchEnd = () => {
                 {items.map((item, i) => (
 
                  <div
-  key={`${item.messageId}-${item.url}-${i}`}
-  className={`group flex items-center gap-3 p-3 rounded-xl border transition ${
-    darkMode
-      ? "bg-[#172235] border-gray-700 hover:border-blue-500/60 hover:bg-[#1c2a40]"
-      : "bg-white border-gray-200 hover:border-blue-400 hover:bg-blue-50"
-  }`}
->
+                  key={`${item.messageId}-${item.url}-${i}`}
+                  className={`group flex items-center gap-3 p-3 rounded-xl border transition ${
+                    darkMode
+                      ? "bg-[#172235] border-gray-700 hover:border-blue-500/60 hover:bg-[#1c2a40]"
+                      : "bg-white border-gray-200 hover:border-blue-400 hover:bg-blue-50"
+                  }`}
+                >
 
                     <div className="w-11 h-11 rounded-xl bg-blue-500/15 text-blue-400 flex items-center justify-center shrink-0">
                       <FaFileAlt size={18} />
