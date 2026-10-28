@@ -636,7 +636,7 @@ const handleViewerTouchEnd = () => {
       </div>
       {/* =========================
           PHOTO / VIDEO MEDIA VIEWER
-      ===================================================== */}
+          ========================= */}
       
       {viewerOpen && (() => {
         const viewerItems = getViewerItems();
