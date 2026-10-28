@@ -585,7 +585,6 @@ const handleViewerTouchEnd = () => {
                   } catch {
                     // fallback
                   }
-
                   return (
                     <a
                       key={`${item.messageId}-${item.url}-${i}`}
