@@ -626,7 +626,6 @@ const handleViewerTouchEnd = () => {
                             : "text-gray-400 group-hover:text-blue-500"
                         }`}
                       />
-
                     </a>
                   );
                 })}
