@@ -634,284 +634,284 @@ const handleViewerTouchEnd = () => {
           </div>
         </div>
       </div>
-      {/* =====================================================
-    PHOTO / VIDEO MEDIA VIEWER
-===================================================== */}
-
-{viewerOpen && (() => {
-  const viewerItems = getViewerItems();
-  const currentItem = viewerItems[viewerIndex];
-
-  if (!currentItem) return null;
-
-  return (
-    <div
-      className="
-        fixed inset-0
-        z-[10000]
-        bg-black/95
-        backdrop-blur-sm
-        flex flex-col
-      "
-      onClick={closeMediaViewer}
-    >
-
       {/* =========================
-          TOP BAR
-      ========================= */}
-      <div
-        className="
-          h-16
-          px-4 sm:px-6
-          flex items-center justify-between
-          text-white
-          shrink-0
-        "
-        onClick={(e) => e.stopPropagation()}
-      >
-
-        <div>
-          <p className="font-semibold">
-            {viewerType === "photo"
-              ? "Photos"
-              : "Videos"}
-          </p>
-
-          <p className="text-xs text-gray-400 mt-0.5">
-            {viewerIndex + 1} of {viewerItems.length}
-          </p>
-        </div>
-
-
-        <div className="flex items-center gap-2">
-
-          {/* DOWNLOAD */}
-          <button
-            type="button"
-            onClick={() =>
-              downloadFileToDevice(currentItem)
-            }
-            className="
-              w-10 h-10
-              rounded-full
-              flex items-center justify-center
-              hover:bg-white/10
-              transition
-            "
-            title="Download"
-          >
-            <FaDownload size={18} />
-          </button>
-
-
-          {/* CLOSE */}
-          <button
-            type="button"
-            onClick={closeMediaViewer}
-            className="
-              w-10 h-10
-              rounded-full
-              flex items-center justify-center
-              hover:bg-white/10
-              transition
-            "
-            title="Close"
-          >
-            <FaTimes size={20} />
-          </button>
-
-        </div>
-      </div>
-
-
-      {/* =========================
-          MAIN VIEWER
-      ========================= */}
-      <div
-        className="
-          relative
-          flex-1
-          min-h-0
-          flex items-center justify-center
-          px-2 sm:px-20
-          overflow-hidden
-        "
-        onClick={(e) => e.stopPropagation()}
-        onTouchStart={handleViewerTouchStart}
-        onTouchMove={handleViewerTouchMove}
-        onTouchEnd={handleViewerTouchEnd}
-      >
-
-        {/* PREVIOUS */}
-        {viewerItems.length > 1 && (
-          <button
-            type="button"
-            onClick={showPreviousMedia}
-            className="
-            hidden md:flex
-              absolute
-              left-2 sm:left-6
-              z-20
-              w-11 h-11
-              sm:w-14 sm:h-14
-              rounded-full
-              bg-black/50
-              hover:bg-black/70
-              text-white
-              flex items-center justify-center
-              transition
-            "
-            title="Previous"
-          >
-            <FaChevronLeft size={24} />
-          </button>
-        )}
-
-
-        {/* PHOTO */}
-        {viewerType === "photo" && (
-          <img
-            key={currentItem.url}
-            src={currentItem.url}
-            alt=""
-            draggable="false"
-            className="
-              max-w-full
-              max-h-full
-              object-contain
-              rounded-lg
-              select-none
-            "
-          />
-        )}
-
-
-        {/* VIDEO */}
-        {viewerType === "video" && (
-          <video
-            key={currentItem.url}
-            src={currentItem.url}
-            controls
-            autoPlay
-            playsInline
-            className="
-              max-w-full
-              max-h-full
-              object-contain
-              rounded-lg
-              bg-black
-            "
-          />
-        )}
-
-
-        {/* NEXT */}
-        {viewerItems.length > 1 && (
-          <button
-            type="button"
-            onClick={showNextMedia}
-            className="
-            hidden md:flex
-              absolute
-              right-2 sm:right-6
-              z-20
-              w-11 h-11
-              sm:w-14 sm:h-14
-              rounded-full
-              bg-black/50
-              hover:bg-black/70
-              text-white
-              flex items-center justify-center
-              transition
-            "
-            title="Next"
-          >
-            <FaChevronRight size={24} />
-          </button>
-        )}
-
-      </div>
-
-
-      {/* =========================
-          THUMBNAILS
-      ========================= */}
-
-      {viewerItems.length > 1 && (
-        <div
-          className="
-            h-24
-            sm:h-28
-            shrink-0
-            flex items-center justify-center
-            px-4
-          "
-          onClick={(e) => e.stopPropagation()}
-        >
+          PHOTO / VIDEO MEDIA VIEWER
+      ===================================================== */}
+      
+      {viewerOpen && (() => {
+        const viewerItems = getViewerItems();
+        const currentItem = viewerItems[viewerIndex];
+      
+        if (!currentItem) return null;
+      
+        return (
           <div
             className="
-              flex items-center gap-2
-              max-w-full
-              overflow-x-auto
-              px-2 py-2
+              fixed inset-0
+              z-[10000]
+              bg-black/95
+              backdrop-blur-sm
+              flex flex-col
             "
+            onClick={closeMediaViewer}
           >
-            {viewerItems.map((item, index) => (
-              <button
-                key={`${item.messageId}-${item.url}-${index}`}
-                type="button"
-                onClick={() =>
-                  setViewerIndex(index)
-                }
-                className={`relative
-                  w-14 h-14
-                  sm:w-16 sm:h-16
-                  shrink-0
-                  rounded-lg
-                  overflow-hidden
-                  border-2
-                  transition
-                  ${
-                    index === viewerIndex
-                      ? "border-blue-500"
-                      : "border-transparent opacity-60 hover:opacity-100"
+      
+            {/* =========================
+                TOP BAR
+            ========================= */}
+            <div
+              className="
+                h-16
+                px-4 sm:px-6
+                flex items-center justify-between
+                text-white
+                shrink-0
+              "
+              onClick={(e) => e.stopPropagation()}
+            >
+      
+              <div>
+                <p className="font-semibold">
+                  {viewerType === "photo"
+                    ? "Photos"
+                    : "Videos"}
+                </p>
+      
+                <p className="text-xs text-gray-400 mt-0.5">
+                  {viewerIndex + 1} of {viewerItems.length}
+                </p>
+              </div>
+      
+      
+              <div className="flex items-center gap-2">
+      
+                {/* DOWNLOAD */}
+                <button
+                  type="button"
+                  onClick={() =>
+                    downloadFileToDevice(currentItem)
                   }
-                `}
+                  className="
+                    w-10 h-10
+                    rounded-full
+                    flex items-center justify-center
+                    hover:bg-white/10
+                    transition
+                  "
+                  title="Download"
+                >
+                  <FaDownload size={18} />
+                </button>
+      
+      
+                {/* CLOSE */}
+                <button
+                  type="button"
+                  onClick={closeMediaViewer}
+                  className="
+                    w-10 h-10
+                    rounded-full
+                    flex items-center justify-center
+                    hover:bg-white/10
+                    transition
+                  "
+                  title="Close"
+                >
+                  <FaTimes size={20} />
+                </button>
+      
+              </div>
+            </div>
+      
+      
+            {/* =========================
+                MAIN VIEWER
+            ========================= */}
+            <div
+              className="
+                relative
+                flex-1
+                min-h-0
+                flex items-center justify-center
+                px-2 sm:px-20
+                overflow-hidden
+              "
+              onClick={(e) => e.stopPropagation()}
+              onTouchStart={handleViewerTouchStart}
+              onTouchMove={handleViewerTouchMove}
+              onTouchEnd={handleViewerTouchEnd}
+            >
+      
+              {/* PREVIOUS */}
+              {viewerItems.length > 1 && (
+                <button
+                  type="button"
+                  onClick={showPreviousMedia}
+                  className="
+                  hidden md:flex
+                    absolute
+                    left-2 sm:left-6
+                    z-20
+                    w-11 h-11
+                    sm:w-14 sm:h-14
+                    rounded-full
+                    bg-black/50
+                    hover:bg-black/70
+                    text-white
+                    flex items-center justify-center
+                    transition
+                  "
+                  title="Previous"
+                >
+                  <FaChevronLeft size={24} />
+                </button>
+              )}
+      
+      
+              {/* PHOTO */}
+              {viewerType === "photo" && (
+                <img
+                  key={currentItem.url}
+                  src={currentItem.url}
+                  alt=""
+                  draggable="false"
+                  className="
+                    max-w-full
+                    max-h-full
+                    object-contain
+                    rounded-lg
+                    select-none
+                  "
+                />
+              )}
+      
+      
+              {/* VIDEO */}
+              {viewerType === "video" && (
+                <video
+                  key={currentItem.url}
+                  src={currentItem.url}
+                  controls
+                  autoPlay
+                  playsInline
+                  className="
+                    max-w-full
+                    max-h-full
+                    object-contain
+                    rounded-lg
+                    bg-black
+                  "
+                />
+              )}
+      
+      
+              {/* NEXT */}
+              {viewerItems.length > 1 && (
+                <button
+                  type="button"
+                  onClick={showNextMedia}
+                  className="
+                  hidden md:flex
+                    absolute
+                    right-2 sm:right-6
+                    z-20
+                    w-11 h-11
+                    sm:w-14 sm:h-14
+                    rounded-full
+                    bg-black/50
+                    hover:bg-black/70
+                    text-white
+                    flex items-center justify-center
+                    transition
+                  "
+                  title="Next"
+                >
+                  <FaChevronRight size={24} />
+                </button>
+              )}
+      
+            </div>
+      
+      
+            {/* =========================
+                THUMBNAILS
+            ========================= */}
+      
+            {viewerItems.length > 1 && (
+              <div
+                className="
+                  h-24
+                  sm:h-28
+                  shrink-0
+                  flex items-center justify-center
+                  px-4
+                "
+                onClick={(e) => e.stopPropagation()}
               >
-
-                {viewerType === "photo" ? (
-                  <img
-                    src={item.url}
-                    alt=""
-                    className="
-                      w-full h-full
-                      object-cover
-                    "
-                  />
-                ) : (
-                  <>
-                    <video
-                      src={item.url}
-                      muted
-                      preload="metadata"
-                      className="
-                        w-full h-full
-                        object-cover
-                      "
-                    />
-
-                    <div
-                      className="
-                        absolute inset-0
-                        flex items-center justify-center
-                        text-white
-                        bg-black/20
-                      "
+                <div
+                  className="
+                    flex items-center gap-2
+                    max-w-full
+                    overflow-x-auto
+                    px-2 py-2
+                  "
+                >
+                  {viewerItems.map((item, index) => (
+                    <button
+                      key={`${item.messageId}-${item.url}-${index}`}
+                      type="button"
+                      onClick={() =>
+                        setViewerIndex(index)
+                      }
+                      className={`relative
+                        w-14 h-14
+                        sm:w-16 sm:h-16
+                        shrink-0
+                        rounded-lg
+                        overflow-hidden
+                        border-2
+                        transition
+                        ${
+                          index === viewerIndex
+                            ? "border-blue-500"
+                            : "border-transparent opacity-60 hover:opacity-100"
+                        }
+                      `}
                     >
-                      <FaPlay
-      size={11}
-      className="ml-0.5"
-    />
+      
+                      {viewerType === "photo" ? (
+                        <img
+                          src={item.url}
+                          alt=""
+                          className="
+                            w-full h-full
+                            object-cover
+                          "
+                        />
+                      ) : (
+                        <>
+                          <video
+                            src={item.url}
+                            muted
+                            preload="metadata"
+                            className="
+                              w-full h-full
+                              object-cover
+                            "
+                          />
+      
+                          <div
+                            className="
+                              absolute inset-0
+                              flex items-center justify-center
+                              text-white
+                              bg-black/20
+                            "
+                          >
+                            <FaPlay
+            size={11}
+            className="ml-0.5"
+          />
                     </div>
                   </>
                 )}
