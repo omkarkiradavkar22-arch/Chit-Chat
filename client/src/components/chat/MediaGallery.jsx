@@ -637,7 +637,6 @@ const handleViewerTouchEnd = () => {
       {/* =========================
           PHOTO / VIDEO MEDIA VIEWER
           ========================= */}
-      
       {viewerOpen && (() => {
         const viewerItems = getViewerItems();
         const currentItem = viewerItems[viewerIndex];
