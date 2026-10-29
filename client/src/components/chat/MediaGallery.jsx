@@ -657,7 +657,7 @@ const handleViewerTouchEnd = () => {
       
             {/* ========
                 TOP BAR
-            ========================= */}
+                ======== */}
             <div
               className="
                 h-16
