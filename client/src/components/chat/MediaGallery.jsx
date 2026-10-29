@@ -266,7 +266,6 @@ const handleViewerTouchEnd = () => {
                 <h3 className="font-semibold text-lg">
                   Media, Links & Docs
                 </h3>
-  
                 <p
                   className={`text-xs mt-0.5 ${
                     darkMode ? "text-gray-400" : "text-gray-500"
