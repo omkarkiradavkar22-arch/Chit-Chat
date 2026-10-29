@@ -767,7 +767,6 @@ const handleViewerTouchEnd = () => {
                 </button>
               )}
       
-      
               {/* PHOTO */}
               {viewerType === "photo" && (
                 <img
