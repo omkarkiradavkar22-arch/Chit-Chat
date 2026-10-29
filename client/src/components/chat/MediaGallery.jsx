@@ -655,7 +655,7 @@ const handleViewerTouchEnd = () => {
             onClick={closeMediaViewer}
           >
       
-            {/* =========================
+            {/* ========
                 TOP BAR
             ========================= */}
             <div
