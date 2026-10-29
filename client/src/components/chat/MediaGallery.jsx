@@ -718,7 +718,6 @@ const handleViewerTouchEnd = () => {
               </div>
             </div>
       
-      
             {/* =========================
                 MAIN VIEWER
             ========================= */}
