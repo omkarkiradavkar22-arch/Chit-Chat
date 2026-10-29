@@ -715,7 +715,6 @@ const handleViewerTouchEnd = () => {
                 >
                   <FaTimes size={20} />
                 </button>
-      
               </div>
             </div>
       
