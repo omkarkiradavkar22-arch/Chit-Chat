@@ -617,7 +617,6 @@ const handleViewerTouchEnd = () => {
                         </p>
 
                       </div>
-
                       <FaExternalLinkAlt
                         size={13}
                         className={`transition shrink-0 ${
