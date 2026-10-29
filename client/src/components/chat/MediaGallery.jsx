@@ -700,7 +700,6 @@ const handleViewerTouchEnd = () => {
                   <FaDownload size={18} />
                 </button>
       
-      
                 {/* CLOSE */}
                 <button
                   type="button"
