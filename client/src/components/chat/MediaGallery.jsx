@@ -902,9 +902,9 @@ const handleViewerTouchEnd = () => {
                             "
                           >
                             <FaPlay
-            size={11}
-            className="ml-0.5"
-          />
+                              size={11}
+                              className="ml-0.5"
+                            />
                     </div>
                   </>
                 )}
