@@ -903,7 +903,6 @@ const handleViewerTouchEnd = () => {
                           </div>
                         </>
                       )}
-      
                     </button>
                   ))}
                 </div>
