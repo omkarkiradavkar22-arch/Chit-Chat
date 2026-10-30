@@ -905,19 +905,19 @@ const handleViewerTouchEnd = () => {
                               size={11}
                               className="ml-0.5"
                             />
-                    </div>
-                  </>
-                )}
-
-              </button>
-            ))}
+                          </div>
+                        </>
+                      )}
+      
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+      
           </div>
-        </div>
-      )}
-
-    </div>
-  );
-})()}
+        );
+      })()}
 
     </>
   );
