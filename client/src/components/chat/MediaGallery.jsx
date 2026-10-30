@@ -273,7 +273,6 @@ const handleViewerTouchEnd = () => {
                   Shared content from this chat
                 </p>
               </div>
-  
               <button
                 onClick={onClose}
                 className={`w-9 h-9 rounded-full flex items-center justify-center transition ${
