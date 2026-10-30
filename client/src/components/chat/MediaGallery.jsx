@@ -109,7 +109,6 @@ const darkMode = theme === "dark";
         setLoading(false);
       }
     };
-
     fetchGallery();
   }, [isOpen, chatId]);
 
