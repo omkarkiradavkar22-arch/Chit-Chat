@@ -150,7 +150,6 @@ const showNextMedia = () => {
       : prev + 1
   );
 };
-
 const showPreviousMedia = () => {
   const viewerItems = getViewerItems();
 
