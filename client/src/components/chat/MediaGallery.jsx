@@ -426,7 +426,6 @@ const handleViewerTouchEnd = () => {
                         darkMode ? "bg-gray-800" : "bg-gray-200"
                       }`}
                     >
-  
                       <img
                         src={item.url}
                         alt=""
