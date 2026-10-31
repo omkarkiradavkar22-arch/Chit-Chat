@@ -911,7 +911,6 @@ const handleViewerTouchEnd = () => {
           </div>
         );
       })()}
-
     </>
   );
 }
