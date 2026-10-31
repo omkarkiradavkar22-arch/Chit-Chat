@@ -1,6 +1,5 @@
 import { useAuth } from "../../context/AuthContext";
-import { FaCheck,
-  FaCheckDouble,
+import { FaCheck, FaCheckDouble,
   FaReply,
   FaEllipsisV,
   FaChevronDown,
