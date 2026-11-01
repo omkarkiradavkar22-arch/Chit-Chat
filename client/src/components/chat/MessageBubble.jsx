@@ -1,7 +1,6 @@
 import { useAuth } from "../../context/AuthContext";
 import { FaCheck, FaCheckDouble, FaReply, FaEllipsisV, FaChevronDown, FaEdit, FaCopy, FaSmile, FaMapMarkedAlt, FaMapMarkerAlt, FaExternalLinkAlt,
-  FaLocationArrow,
-  FaChevronLeft,
+  FaLocationArrow, FaChevronLeft,
   FaChevronRight,
   FaRegFileImage,
   FaTrash,
