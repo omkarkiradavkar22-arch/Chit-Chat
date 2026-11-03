@@ -10,8 +10,7 @@ import ForwardModal from "./ForwardModal";
 import { FaPlay, FaPause } from "react-icons/fa";
 import { useSocket } from "../../context/SocketContext";
 
-function CachedChatImage({
-  file,
+function CachedChatImage({ file,
   isMine,
   onOpen,
   onCacheStateChange,
