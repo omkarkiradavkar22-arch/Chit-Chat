@@ -3,8 +3,6 @@ import { FaCheck, FaCheckDouble, FaReply, FaEllipsisV, FaChevronDown, FaEdit, Fa
         FaExternalLinkAlt, FaLocationArrow, FaChevronLeft, FaChevronRight, FaRegFileImage, FaTrash, FaArrowRight, FaPen,
         FaBan, FaShare, FaVideo, FaDownload, FaMicrophone, FaFilePdf, FaFileWord, FaFileAlt, FaFileArchive, FaFile, FaTimes,
         FaPhone, FaPhoneSlash, FaClock,
-
-  
 } from "react-icons/fa";
 import { useState, useRef, useEffect } from "react";
 import api from "../../services/api";
