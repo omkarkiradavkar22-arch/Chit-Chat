@@ -188,12 +188,12 @@ function CachedChatImage({ file, isMine, onOpen, onCacheStateChange, }) {
         "
       >
         <span className="text-lg">
-  {downloading ? (
-    <span className="animate-spin">◌</span>
-  ) : (
-    <FaDownload size={17} />
-  )}
-</span>
+          {downloading ? (
+            <span className="animate-spin">◌</span>
+          ) : (
+            <FaDownload size={17} />
+          )}
+        </span>
 
         <span>
           {loading
