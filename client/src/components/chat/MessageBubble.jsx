@@ -205,8 +205,7 @@ function CachedChatImage({ file, isMine, onOpen, onCacheStateChange, }) {
   );
 }
 
-function VideoViewer({ videoUrl,
-  file,
+function VideoViewer({ videoUrl, file,
   onClose,
   onDownload,
 }) {
