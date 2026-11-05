@@ -58,7 +58,6 @@ function CachedChatImage({ file, isMine, onOpen, onCacheStateChange, }) {
               setImageSrc(objectUrl);
               setIsCached(true);
             }
-
             return;
           }
         }
