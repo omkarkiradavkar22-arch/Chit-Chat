@@ -86,7 +86,6 @@ function CachedChatImage({ file, isMine, onOpen, onCacheStateChange, }) {
       toast.error("Connect to internet to download this photo");
       return;
     }
-
     try {
       setLoading(true);
 
