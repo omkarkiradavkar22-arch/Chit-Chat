@@ -61,7 +61,6 @@ function CachedChatImage({ file, isMine, onOpen, onCacheStateChange, }) {
             return;
           }
         }
-
         if (active) {
           setImageSrc(null);
           setIsCached(false);
