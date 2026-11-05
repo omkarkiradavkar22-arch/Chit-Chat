@@ -73,7 +73,6 @@ function CachedChatImage({ file, isMine, onOpen, onCacheStateChange, }) {
         }
       }
     };
-
     checkImage();
 
     return () => {
