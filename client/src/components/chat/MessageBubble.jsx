@@ -67,7 +67,6 @@ function CachedChatImage({ file, isMine, onOpen, onCacheStateChange, }) {
         }
       } catch (error) {
         console.error("Image cache check failed:", error);
-
         if (active) {
           setImageSrc(null);
           setIsCached(false);
