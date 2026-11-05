@@ -94,7 +94,6 @@ function CachedChatImage({ file, isMine, onOpen, onCacheStateChange, }) {
       if (!response.ok) {
         throw new Error("Image download failed");
       }
-
       const cache = await caches.open("chitchat-images");
 
       await cache.put(
