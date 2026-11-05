@@ -88,7 +88,6 @@ function CachedChatImage({ file, isMine, onOpen, onCacheStateChange, }) {
     }
     try {
       setLoading(true);
-
       const response = await fetch(file.url);
 
       if (!response.ok) {
