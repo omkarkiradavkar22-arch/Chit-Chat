@@ -20,7 +20,6 @@ function CachedChatImage({ file, isMine, onOpen, onCacheStateChange, }) {
   const [downloading, setDownloading] = useState(false);
   const formatFileSize = (bytes) => {
     if (!bytes) return "Photo";
-
     if (bytes < 1024) {
       return `${bytes} B`;
     }
