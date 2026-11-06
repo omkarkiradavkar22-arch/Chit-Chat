@@ -33,7 +33,6 @@ function CachedChatImage({ file, isMine, onOpen, onCacheStateChange, }) {
 
   useEffect(() => {
     let active = true;
-
     const checkImage = async () => {
       try {
         // ONLINE → normal image load
