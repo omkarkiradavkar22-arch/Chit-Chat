@@ -200,7 +200,6 @@ function VideoViewer({ videoUrl, file, onClose, onDownload, }) {
     if (bytes < 1024 * 1024) {
       return `${Math.round(bytes / 1024)} kB`;
     }
-
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
