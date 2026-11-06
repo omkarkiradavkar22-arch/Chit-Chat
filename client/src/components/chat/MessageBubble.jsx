@@ -214,7 +214,6 @@ function VideoViewer({ videoUrl, file, onClose, onDownload, }) {
     // Background scrolling close
     const oldOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-
     return () => {
       document.removeEventListener("keydown", handleEscape);
       document.body.style.overflow = oldOverflow;
