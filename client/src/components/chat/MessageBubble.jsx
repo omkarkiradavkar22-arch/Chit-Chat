@@ -180,7 +180,6 @@ function CachedChatImage({ file, isMine, onOpen, onCacheStateChange, }) {
             <FaDownload size={17} />
           )}
         </span>
-
         <span>
           {loading
             ? "Downloading..."
