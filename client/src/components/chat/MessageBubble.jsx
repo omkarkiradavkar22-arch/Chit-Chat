@@ -101,7 +101,6 @@ function CachedChatImage({ file, isMine, onOpen, onCacheStateChange, }) {
 
       setImageSrc(objectUrl);
       setIsCached(true);
-
       toast.success("Photo downloaded");
     } catch (error) {
       console.error("Photo download error:", error);
