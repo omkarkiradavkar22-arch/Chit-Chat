@@ -43,7 +43,6 @@ function CachedChatImage({ file, isMine, onOpen, onCacheStateChange, }) {
           }
           return;
         }
-
         // OFFLINE → only check existing browser/SW cache
         if ("caches" in window) {
           const cachedResponse = await caches.match(file.url);
