@@ -46,7 +46,6 @@ function CachedChatImage({ file, isMine, onOpen, onCacheStateChange, }) {
         // OFFLINE → only check existing browser/SW cache
         if ("caches" in window) {
           const cachedResponse = await caches.match(file.url);
-
           if (cachedResponse) {
             const blob = await cachedResponse.blob();
             const objectUrl = URL.createObjectURL(blob);
