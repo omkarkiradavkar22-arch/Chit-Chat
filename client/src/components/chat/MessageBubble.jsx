@@ -326,7 +326,7 @@ function VideoViewer({ videoUrl, file, onClose, onDownload, }) {
         </video>
       </div>
 
-      {/* =========================
+      {/* ==================
           BOTTOM ACTION BAR
       ========================= */}
       <div
