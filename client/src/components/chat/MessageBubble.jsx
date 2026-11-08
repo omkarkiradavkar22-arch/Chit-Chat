@@ -295,7 +295,7 @@ function VideoViewer({ videoUrl, file, onClose, onDownload, }) {
         </button>
       </div>
 
-      {/* =========================
+      {/* ===========
           VIDEO AREA
       ========================= */}
       <div
