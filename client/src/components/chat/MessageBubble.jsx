@@ -328,7 +328,7 @@ function VideoViewer({ videoUrl, file, onClose, onDownload, }) {
 
       {/* ==================
           BOTTOM ACTION BAR
-      ========================= */}
+          ================== */}
       <div
         className="
           shrink-0
