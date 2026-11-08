@@ -201,7 +201,6 @@ function VideoViewer({ videoUrl, file, onClose, onDownload, }) {
     }
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
-
   useEffect(() => {
     const handleEscape = (e) => {
       if (e.key === "Escape") {
