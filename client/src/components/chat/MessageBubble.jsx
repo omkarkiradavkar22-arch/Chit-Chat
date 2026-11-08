@@ -193,7 +193,6 @@ function CachedChatImage({ file, isMine, onOpen, onCacheStateChange, }) {
 function VideoViewer({ videoUrl, file, onClose, onDownload, }) {
   const formatFileSize = (bytes) => {
     if (!bytes) return "";
-
     if (bytes < 1024) {
       return `${bytes} B`;
     }
