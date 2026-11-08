@@ -227,7 +227,7 @@ function VideoViewer({ videoUrl, file, onClose, onDownload, }) {
       "
       onClick={(e) => e.stopPropagation()}
     >
-      {/* =========================
+      {/* ===========
           TOP HEADER
       ========================= */}
       <div
