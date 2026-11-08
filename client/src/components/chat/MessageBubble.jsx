@@ -229,7 +229,7 @@ function VideoViewer({ videoUrl, file, onClose, onDownload, }) {
     >
       {/* ===========
           TOP HEADER
-      ========================= */}
+          =========== */}
       <div
         className="
           flex items-center justify-between
