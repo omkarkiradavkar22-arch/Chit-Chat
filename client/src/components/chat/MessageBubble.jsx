@@ -297,7 +297,7 @@ function VideoViewer({ videoUrl, file, onClose, onDownload, }) {
 
       {/* ===========
           VIDEO AREA
-      ========================= */}
+          =========== */}
       <div
         className="
           flex-1
