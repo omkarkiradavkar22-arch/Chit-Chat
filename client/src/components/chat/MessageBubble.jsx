@@ -376,7 +376,6 @@ function CachedAttachment({ file, isMine, onCacheStateChange, }) {
   const [showVideoViewer, setShowVideoViewer] = useState(false);
   const formatFileSize = (bytes) => {
     if (!bytes) return "";
-
     if (bytes < 1024) {
       return `${bytes} B`;
     }
