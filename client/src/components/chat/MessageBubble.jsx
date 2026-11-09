@@ -362,8 +362,7 @@ function VideoViewer({ videoUrl, file, onClose, onDownload, }) {
   );
 }
 
-function CachedAttachment({ file,
-  isMine,
+function CachedAttachment({ file, isMine,
   onCacheStateChange,
 }) {
   const [cachedUrl, setCachedUrl] = useState(null);
