@@ -362,8 +362,7 @@ function VideoViewer({ videoUrl, file, onClose, onDownload, }) {
   );
 }
 
-function CachedAttachment({
-  file,
+function CachedAttachment({ file,
   isMine,
   onCacheStateChange,
 }) {
