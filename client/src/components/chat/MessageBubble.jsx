@@ -387,7 +387,6 @@ function CachedAttachment({ file, isMine, onCacheStateChange, }) {
 
   const getFileLabel = () => {
     const name = file.originalName || "";
-
     if (file.type === "video") return "Video";
     if (file.type === "audio") return "Voice message";
 
