@@ -429,7 +429,6 @@ function CachedAttachment({ file, isMine, onCacheStateChange, }) {
   const loadFromCache = async () => {
     try {
       setChecking(true);
-
       if (!("caches" in window)) {
         setIsCached(false);
         return;
