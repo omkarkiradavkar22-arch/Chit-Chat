@@ -416,7 +416,6 @@ function CachedAttachment({ file, isMine, onCacheStateChange, }) {
   if (name.endsWith(".txt")) {
     return <FaFileAlt size={21} />;
   }
-
   if (
     name.endsWith(".zip") ||
     name.endsWith(".rar") ||
