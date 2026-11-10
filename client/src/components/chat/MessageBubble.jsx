@@ -407,7 +407,6 @@ function CachedAttachment({ file, isMine, onCacheStateChange, }) {
   if (name.endsWith(".pdf")) {
     return <FaFilePdf size={21} />;
   }
-
   if (
     name.endsWith(".doc") ||
     name.endsWith(".docx")
