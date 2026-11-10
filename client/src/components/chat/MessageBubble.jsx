@@ -404,7 +404,6 @@ function CachedAttachment({ file, isMine, onCacheStateChange, }) {
   if (file.type === "audio") {
     return <FaMicrophone size={20} />;
   }
-
   if (name.endsWith(".pdf")) {
     return <FaFilePdf size={21} />;
   }
