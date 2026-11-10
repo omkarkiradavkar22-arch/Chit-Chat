@@ -413,7 +413,6 @@ function CachedAttachment({ file, isMine, onCacheStateChange, }) {
   ) {
     return <FaFileWord size={21} />;
   }
-
   if (name.endsWith(".txt")) {
     return <FaFileAlt size={21} />;
   }
