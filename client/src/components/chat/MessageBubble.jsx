@@ -433,7 +433,6 @@ function CachedAttachment({ file, isMine, onCacheStateChange, }) {
         setIsCached(false);
         return;
       }
-
       const response = await caches.match(file.url);
 
       if (!response) {
