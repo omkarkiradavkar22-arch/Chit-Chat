@@ -423,7 +423,6 @@ function CachedAttachment({ file, isMine, onCacheStateChange, }) {
   ) {
     return <FaFileArchive size={21} />;
   }
-
   return <FaFile size={21} />;
 };
 
