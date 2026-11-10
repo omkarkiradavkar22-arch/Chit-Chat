@@ -392,7 +392,6 @@ function CachedAttachment({ file, isMine, onCacheStateChange, }) {
 
     const extension =
       name.split(".").pop()?.toUpperCase() || "FILE";
-
     return extension;
   };
 
