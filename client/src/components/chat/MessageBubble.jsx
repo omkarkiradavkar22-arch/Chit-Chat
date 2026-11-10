@@ -401,7 +401,6 @@ function CachedAttachment({ file, isMine, onCacheStateChange, }) {
   if (file.type === "video") {
     return <FaVideo size={20} />;
   }
-
   if (file.type === "audio") {
     return <FaMicrophone size={20} />;
   }
