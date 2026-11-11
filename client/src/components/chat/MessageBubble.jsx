@@ -468,7 +468,6 @@ function CachedAttachment({ file, isMine, onCacheStateChange, }) {
 
   const downloadAttachment = async (e) => {
     e?.stopPropagation();
-
     if (!navigator.onLine) {
       toast.error(
         `Connect to internet to download this ${
