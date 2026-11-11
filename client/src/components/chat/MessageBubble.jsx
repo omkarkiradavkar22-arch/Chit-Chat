@@ -434,8 +434,7 @@ function CachedAttachment({ file, isMine, onCacheStateChange, }) {
         return;
       }
       const response = await caches.match(file.url);
-
-      if (!response) {
+        if (!response) {
         setIsCached(false);
         setCachedUrl(null);
         return;
