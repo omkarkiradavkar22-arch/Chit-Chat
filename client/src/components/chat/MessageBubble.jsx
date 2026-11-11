@@ -460,7 +460,6 @@ function CachedAttachment({ file, isMine, onCacheStateChange, }) {
 
   useEffect(() => {
     loadFromCache();
-
     return () => {
       if (objectUrlRef.current) {
         URL.revokeObjectURL(objectUrlRef.current);
