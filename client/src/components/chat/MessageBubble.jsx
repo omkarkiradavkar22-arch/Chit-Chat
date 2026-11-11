@@ -446,7 +446,6 @@ function CachedAttachment({ file, isMine, onCacheStateChange, }) {
         URL.revokeObjectURL(objectUrlRef.current);
       }
       objectUrlRef.current = objectUrl;
-
       setCachedUrl(objectUrl);
       setIsCached(true);
     } catch (error) {
