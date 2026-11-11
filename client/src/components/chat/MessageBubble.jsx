@@ -442,7 +442,6 @@ function CachedAttachment({ file, isMine, onCacheStateChange, }) {
 
       const blob = await response.blob();
       const objectUrl = URL.createObjectURL(blob);
-
       if (objectUrlRef.current) {
         URL.revokeObjectURL(objectUrlRef.current);
       }
