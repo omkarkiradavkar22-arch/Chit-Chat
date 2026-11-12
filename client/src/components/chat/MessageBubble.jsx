@@ -484,7 +484,6 @@ function CachedAttachment({ file, isMine, onCacheStateChange, }) {
       if (!response.ok) {
         throw new Error("Download failed");
       }
-
       const cache = await caches.open(
         "chitchat-attachments"
       );
