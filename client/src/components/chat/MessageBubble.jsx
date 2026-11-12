@@ -478,7 +478,6 @@ function CachedAttachment({ file, isMine, onCacheStateChange, }) {
       );
       return;
     }
-
     try {
       setDownloading(true);
 
