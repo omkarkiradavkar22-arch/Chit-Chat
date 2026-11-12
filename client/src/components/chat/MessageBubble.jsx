@@ -481,7 +481,6 @@ function CachedAttachment({ file, isMine, onCacheStateChange, }) {
     try {
       setDownloading(true);
       const response = await fetch(file.url);
-
       if (!response.ok) {
         throw new Error("Download failed");
       }
