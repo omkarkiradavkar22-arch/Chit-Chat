@@ -499,7 +499,6 @@ function CachedAttachment({ file, isMine, onCacheStateChange, }) {
       }
 
       objectUrlRef.current = objectUrl;
-
       setCachedUrl(objectUrl);
       setIsCached(true);
 
