@@ -487,7 +487,6 @@ function CachedAttachment({ file, isMine, onCacheStateChange, }) {
       const cache = await caches.open(
         "chitchat-attachments"
       );
-
       await cache.put(
         file.url,
         response.clone()
