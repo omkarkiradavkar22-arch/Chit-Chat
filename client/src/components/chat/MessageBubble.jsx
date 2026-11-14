@@ -500,7 +500,6 @@ function CachedAttachment({ file, isMine, onCacheStateChange, }) {
       objectUrlRef.current = objectUrl;
       setCachedUrl(objectUrl);
       setIsCached(true);
-
       toast.success("Downloaded for offline use");
     } catch (error) {
       console.error(
