@@ -533,7 +533,6 @@ function CachedAttachment({ file, isMine, onCacheStateChange, }) {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-
     URL.revokeObjectURL(blobUrl);
 
     toast.success("File downloaded");
