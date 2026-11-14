@@ -530,7 +530,6 @@ function CachedAttachment({ file, isMine, onCacheStateChange, }) {
     const link = document.createElement("a");
     link.href = blobUrl;
     link.download = file.originalName || "attachment";
-
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
