@@ -506,7 +506,6 @@ function CachedAttachment({ file, isMine, onCacheStateChange, }) {
         "Attachment download error:",
         error
       );
-
       toast.error("Failed to download");
     } finally {
       setDownloading(false);
