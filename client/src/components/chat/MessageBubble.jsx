@@ -518,7 +518,6 @@ function CachedAttachment({ file, isMine, onCacheStateChange, }) {
     toast.error("Connect to internet to download this file");
     return;
   }
-
   try {
     const response = await fetch(file.url);
 
