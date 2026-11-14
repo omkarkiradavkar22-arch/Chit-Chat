@@ -528,7 +528,6 @@ function CachedAttachment({ file, isMine, onCacheStateChange, }) {
     const blob = await response.blob();
     const blobUrl = URL.createObjectURL(blob);
     const link = document.createElement("a");
-
     link.href = blobUrl;
     link.download = file.originalName || "attachment";
 
