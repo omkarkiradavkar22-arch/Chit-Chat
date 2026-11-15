@@ -549,7 +549,6 @@ const openFile = async (e) => {
     if ("caches" in window) {
       response = await caches.match(file.url);
     }
-
     // Not cached? Fetch online
     if (!response) {
       if (!navigator.onLine) {
