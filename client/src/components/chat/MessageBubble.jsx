@@ -588,7 +588,6 @@ const openFile = async (e) => {
     setTimeout(() => {
       URL.revokeObjectURL(blobUrl);
     }, 60000);
-
   } catch (error) {
     console.error("File open error:", error);
     toast.error("Failed to open file");
