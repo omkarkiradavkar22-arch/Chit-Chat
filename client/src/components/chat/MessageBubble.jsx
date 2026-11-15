@@ -556,7 +556,6 @@ const openFile = async (e) => {
         return;
       }
       response = await fetch(file.url);
-
       if (!response.ok) {
         throw new Error("Failed to open file");
       }
