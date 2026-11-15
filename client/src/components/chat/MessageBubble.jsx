@@ -583,7 +583,6 @@ const openFile = async (e) => {
       "_blank",
       "noopener,noreferrer"
     );
-
     // dont revoke quickly
     // browser ला file load करण्यासाठी वेळ दे
     setTimeout(() => {
