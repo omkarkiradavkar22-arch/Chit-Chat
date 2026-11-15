@@ -534,7 +534,6 @@ function CachedAttachment({ file, isMine, onCacheStateChange, }) {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(blobUrl);
-
     toast.success("File downloaded");
   } catch (error) {
     console.error("File download error:", error);
