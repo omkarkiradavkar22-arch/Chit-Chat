@@ -567,7 +567,6 @@ const openFile = async (e) => {
       file.originalName
         ?.toLowerCase()
         .endsWith(".pdf");
-
     const blob = new Blob(
       [arrayBuffer],
       {
