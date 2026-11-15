@@ -562,8 +562,7 @@ const openFile = async (e) => {
     }
 
     const arrayBuffer = await response.arrayBuffer();
-
-    // PDF ला explicitly application/pdf MIME type देतो
+    // give PDF to explicitly application/pdf MIME type
     const isPdf =
       file.originalName
         ?.toLowerCase()
