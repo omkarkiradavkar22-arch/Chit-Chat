@@ -555,7 +555,6 @@ const openFile = async (e) => {
         toast.error("Connect to internet to open this file");
         return;
       }
-
       response = await fetch(file.url);
 
       if (!response.ok) {
