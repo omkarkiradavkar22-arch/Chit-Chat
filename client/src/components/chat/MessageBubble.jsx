@@ -584,7 +584,7 @@ const openFile = async (e) => {
       "noopener,noreferrer"
     );
     // dont revoke quickly
-    // browser ला file load करण्यासाठी वेळ दे
+    // give the time to browser for file loading
     setTimeout(() => {
       URL.revokeObjectURL(blobUrl);
     }, 60000);
