@@ -543,7 +543,6 @@ function CachedAttachment({ file, isMine, onCacheStateChange, }) {
 
 const openFile = async (e) => {
   e.stopPropagation();
-
   try {
     let response = null;
 
