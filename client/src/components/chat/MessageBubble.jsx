@@ -710,7 +710,6 @@ if (isMine) {
         >
           {getFileIcon()}
         </div>
-
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold truncate">
             {file.originalName || "File"}
