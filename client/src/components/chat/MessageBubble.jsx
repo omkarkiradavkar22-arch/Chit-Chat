@@ -578,7 +578,6 @@ const openFile = async (e) => {
     );
 
     const blobUrl = URL.createObjectURL(blob);
-
     window.open(
       blobUrl,
       "_blank",
