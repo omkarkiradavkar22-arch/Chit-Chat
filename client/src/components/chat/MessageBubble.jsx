@@ -593,9 +593,9 @@ const openFile = async (e) => {
     toast.error("Failed to open file");
   }
 };
+  // ===================
+  // MY SENT ATTACHMENT
   // =========================
-// MY SENT ATTACHMENT
-// =========================
 
 if (isMine) {
   if (file.type === "video") {
