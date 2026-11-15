@@ -715,7 +715,6 @@ if (isMine) {
           <p className="text-sm font-semibold truncate">
             {file.originalName || "File"}
           </p>
-
           <p className="text-xs text-blue-100 mt-1">
             {getFileLabel()}
             {file.size
