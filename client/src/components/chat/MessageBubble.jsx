@@ -545,7 +545,6 @@ const openFile = async (e) => {
   e.stopPropagation();
   try {
     let response = null;
-
     // First try browser cache
     if ("caches" in window) {
       response = await caches.match(file.url);
