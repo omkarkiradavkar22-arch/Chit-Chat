@@ -595,7 +595,7 @@ const openFile = async (e) => {
 };
   // ===================
   // MY SENT ATTACHMENT
-  // =========================
+  // ===================
 
 if (isMine) {
   if (file.type === "video") {
