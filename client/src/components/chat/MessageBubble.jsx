@@ -722,7 +722,6 @@ if (isMine) {
             {" • Open"}
           </p>
         </div>
-
         <FaExternalLinkAlt size={13} />
       </a>
     );
