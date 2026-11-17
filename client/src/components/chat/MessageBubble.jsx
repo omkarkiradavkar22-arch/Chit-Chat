@@ -776,18 +776,18 @@ if (isMine) {
           "
         >
           <div
-  className="
-    w-14 h-14
-    rounded-full
-    bg-black/55
-    text-white
-    flex items-center justify-center
-    text-2xl
-    backdrop-blur-sm
-  "
->
-  <FaPlay size={18} className="ml-0.5" />
-</div>
+          className="
+            w-14 h-14
+            rounded-full
+            bg-black/55
+            text-white
+            flex items-center justify-center
+            text-2xl
+            backdrop-blur-sm
+          "
+        >
+          <FaPlay size={18} className="ml-0.5" />
+        </div>
         </div>
       </div>
 
