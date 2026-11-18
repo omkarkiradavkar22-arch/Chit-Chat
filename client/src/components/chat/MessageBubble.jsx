@@ -874,18 +874,18 @@ if (isMine) {
           <div className="flex items-center gap-3 mt-2">
 
             {/* OPEN CACHED FILE */}
-        {(
-  file.originalName?.toLowerCase().endsWith(".pdf") ||
-  file.originalName?.toLowerCase().endsWith(".txt")
-) && (
-  <button
-    type="button"
-    onClick={openFile}
-    className="text-xs font-semibold hover:underline"
-  >
-    Open
-  </button>
-)}
+                {(
+                  file.originalName?.toLowerCase().endsWith(".pdf") ||
+                  file.originalName?.toLowerCase().endsWith(".txt")
+                ) && (
+                  <button
+                    type="button"
+                    onClick={openFile}
+                    className="text-xs font-semibold hover:underline"
+                  >
+                    Open
+                  </button>
+                )}
 
             {/* DOWNLOAD TO DEVICE */}
             <button
