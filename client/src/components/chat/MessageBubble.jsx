@@ -895,7 +895,6 @@ if (isMine) {
             >
               Download
             </button>
-
           </div>
         </div>
 
