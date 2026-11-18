@@ -897,7 +897,6 @@ if (isMine) {
             </button>
           </div>
         </div>
-
         <FaExternalLinkAlt size={13} />
       </div>
     );
