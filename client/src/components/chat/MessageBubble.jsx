@@ -1147,8 +1147,7 @@ function VoiceMessagePlayer({ url, isMine, duration: knownDuration }) {
   );
 }
 
-function MessageBubble({
-  message,
+function MessageBubble({ message,
   chatId,
   onReply,
   onDelete,
