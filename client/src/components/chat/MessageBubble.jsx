@@ -954,10 +954,10 @@ if (isMine) {
           >
             <span className="text-lg">
              {downloading ? (
-  <span className="animate-spin">◌</span>
-) : (
-  <FaDownload size={16} />
-)}
+                  <span className="animate-spin">◌</span>
+                ) : (
+                  <FaDownload size={16} />
+                )}
             </span>
 
             <span>
