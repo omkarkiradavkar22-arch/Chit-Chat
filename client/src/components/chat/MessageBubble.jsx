@@ -1051,7 +1051,6 @@ function VoiceMessagePlayer({ url, isMine, duration: knownDuration }) {
   const togglePlay = () => {
     const audio = audioRef.current;
     if (!audio) return;
-
     if (isPlaying) {
       audio.pause();
     } else {
