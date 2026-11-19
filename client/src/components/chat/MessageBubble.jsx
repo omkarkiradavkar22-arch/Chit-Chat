@@ -1162,7 +1162,6 @@ function MessageBubble({
   isHighlighted,
   liveLocation,
   onAttachmentCacheStateChange,
-
   editRequestedMessageId,
   onEditRequestHandled,
   isReceiverOnline,
