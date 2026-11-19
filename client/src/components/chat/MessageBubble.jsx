@@ -1137,8 +1137,8 @@ function VoiceMessagePlayer({ url, isMine, duration: knownDuration }) {
       <span
         className={`text-xs shrink-0 ${
           isMine
-  ? "text-blue-100"
-  : "text-gray-500 dark:text-gray-300"
+          ? "text-blue-100"
+          : "text-gray-500 dark:text-gray-300"
         }`}
       >
         {formatTime(currentTime > 0 ? currentTime : duration)}
