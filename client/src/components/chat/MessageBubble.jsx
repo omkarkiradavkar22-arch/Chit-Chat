@@ -1008,7 +1008,6 @@ if (isMine) {
               }`}
             >
               {getFileLabel()}
-
               {file.size
                 ? ` • ${formatFileSize(file.size)}`
                 : ""}
