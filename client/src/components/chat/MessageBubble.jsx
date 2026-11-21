@@ -1235,7 +1235,6 @@ useEffect(() => {
   setEditedText(message.text || "");
   setEditing(true);
 
-  // कोणताही desktop menu / reaction popup open असेल तर बंद
   setShowMenu(false);
 
   onEditRequestHandled?.();
