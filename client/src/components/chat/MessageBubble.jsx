@@ -1222,8 +1222,8 @@ useEffect(() => {
   };
 }, [editing, message.text]);
 
-// Mobile selection मधून Edit request आली तर
-// existing inline edit mode open कर
+// Mobile selection  Edit request 
+// existing inline edit mode open
 useEffect(() => {
   if (
     !editRequestedMessageId ||
