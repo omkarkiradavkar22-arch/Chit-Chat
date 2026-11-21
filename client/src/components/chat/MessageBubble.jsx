@@ -1163,7 +1163,6 @@ const isMine =
   String(user?._id);
 const [showMenu, setShowMenu] = useState(false);
 const [attachmentCacheState, setAttachmentCacheState] = useState({});
-
 const handleAttachmentCacheState = (
   fileUrl,
   isCached
