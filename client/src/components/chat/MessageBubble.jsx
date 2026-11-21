@@ -1209,7 +1209,6 @@ useEffect(() => {
       setEditing(false);
     }
   };
-
   document.addEventListener(
     "pointerdown",
     handleOutsideEdit
