@@ -1148,8 +1148,7 @@ function VoiceMessagePlayer({ url, isMine, duration: knownDuration }) {
 }
 
 function MessageBubble({ message, chatId, onReply, onDelete, onEdit, onReaction, onSelect, onUnsendPending, refreshChatInfo, searchQuery,
-  isSearchMatch, isHighlighted, liveLocation, onAttachmentCacheStateChange, editRequestedMessageId, onEditRequestHandled,
-  isReceiverOnline,
+  isSearchMatch, isHighlighted, liveLocation, onAttachmentCacheStateChange, editRequestedMessageId, onEditRequestHandled, isReceiverOnline,
 }) {
     const { user } = useAuth();
     const { socket } = useSocket();
