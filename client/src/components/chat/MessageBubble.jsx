@@ -1193,7 +1193,6 @@ const menuButtonRef = useRef(null);
 const menuRef = useRef(null);
 const reactionBarRef = useRef(null);
 const editRef = useRef(null);
-
 const [editing, setEditing] = useState(false);
 const [editedText, setEditedText] = useState(
   message.text || ""
