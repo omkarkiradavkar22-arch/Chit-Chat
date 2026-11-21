@@ -1200,7 +1200,6 @@ const [editedText, setEditedText] = useState(
 
 useEffect(() => {
   if (!editing) return;
-
   const handleOutsideEdit = (event) => {
     if (
       editRef.current &&
