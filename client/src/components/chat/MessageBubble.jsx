@@ -1221,7 +1221,6 @@ useEffect(() => {
     );
   };
 }, [editing, message.text]);
-
 // Mobile selection  Edit request 
 // existing inline edit mode open
 useEffect(() => {
