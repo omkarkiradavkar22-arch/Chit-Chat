@@ -1232,7 +1232,6 @@ useEffect(() => {
   }
   setEditedText(message.text || "");
   setEditing(true);
-
   setShowMenu(false);
 
   onEditRequestHandled?.();
