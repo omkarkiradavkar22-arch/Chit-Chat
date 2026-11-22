@@ -1230,7 +1230,6 @@ useEffect(() => {
   ) {
     return;
   }
-
   setEditedText(message.text || "");
   setEditing(true);
 
