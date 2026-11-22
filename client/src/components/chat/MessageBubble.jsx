@@ -1237,7 +1237,6 @@ useEffect(() => {
 }, [editRequestedMessageId, message._id]);
 //const [liveLocation, setLiveLocation] = useState(null);
 const emojis = ["❤️", "😂", "👍", "🔥", "😮", "😢"];
-
 const moreEmojis = [
   "😀", "😃", "😄", "😁", "😊", "😍",
   "🥰", "😘", "😎", "🤩", "🥳", "😂",
