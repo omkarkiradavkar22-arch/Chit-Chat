@@ -1256,8 +1256,6 @@ const imageAttachments =
     (file) => file.type === "image"
   ) || [];
 
-  
-
   const hasLink =
   message.text &&
   /(https?:\/\/[^\s]+|www\.[^\s]+|(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,})/i.test(
