@@ -1317,7 +1317,6 @@ const handleCreateTask = async () => {
       deadline: null,
     });
     toast.success("✅ Task created successfully");
-
     console.log("Created task:", data);
   } catch (error) {
     console.error("Create task error:", error);
