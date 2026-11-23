@@ -1299,7 +1299,6 @@ const handleDeleteForEveryone = async () => {
       `/messages/${message._id}/everyone`
     );
     onEdit(data.message);
-
     setShowMenu(false);
 
     toast.success("Deleted for everyone");
