@@ -1284,7 +1284,6 @@ const canUseMessageActions =
 const handleDeleteForMe = async () => {
   try {
     await api.delete(`/messages/${message._id}/me`);
-
     toast.success("Deleted for you");
     setShowMenu(false);
 
