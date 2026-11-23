@@ -1298,7 +1298,6 @@ const handleDeleteForEveryone = async () => {
     const { data } = await api.delete(
       `/messages/${message._id}/everyone`
     );
-
     onEdit(data.message);
 
     setShowMenu(false);
