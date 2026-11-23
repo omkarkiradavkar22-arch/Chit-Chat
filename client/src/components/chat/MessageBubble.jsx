@@ -1300,7 +1300,6 @@ const handleDeleteForEveryone = async () => {
     );
     onEdit(data.message);
     setShowMenu(false);
-
     toast.success("Deleted for everyone");
   } catch (err) {
     toast.error(
