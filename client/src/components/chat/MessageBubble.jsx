@@ -1331,7 +1331,6 @@ const handleCreateTask = async () => {
 const handleEdit = async () => {
   const newText = editedText.trim();
   const oldText = (message.text || "").trim();
-
   // Empty message save करू नको
   if (!newText) {
     return;
