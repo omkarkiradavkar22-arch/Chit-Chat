@@ -1336,7 +1336,6 @@ const handleEdit = async () => {
     return;
   }
   // if no changes then off edit mode
-  // काहीच change नसेल तर फक्त edit mode बंद
   if (newText === oldText) {
     setEditedText(message.text || "");
     setEditing(false);
