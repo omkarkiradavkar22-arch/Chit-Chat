@@ -1351,7 +1351,6 @@ const handleEdit = async () => {
       }
     );
     onEdit(data.message);
-
     setEditing(false);
     setShowMenu(false);
 
