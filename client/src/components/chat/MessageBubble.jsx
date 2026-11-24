@@ -1367,7 +1367,6 @@ const handleCopy = async () => {
 
 const [showEmoji, setShowEmoji] = useState(false);
 const [showMoreEmojis, setShowMoreEmojis] = useState(false);
-
 const [showForward, setShowForward] = useState(false);
 const [fullImage, setFullImage] = useState(null);
 const [fullImageIndex, setFullImageIndex] = useState(0);
