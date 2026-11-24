@@ -1350,7 +1350,6 @@ const handleEdit = async () => {
         text: newText,
       }
     );
-
     onEdit(data.message);
 
     setEditing(false);
