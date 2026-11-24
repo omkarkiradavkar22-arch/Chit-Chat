@@ -1353,7 +1353,6 @@ const handleEdit = async () => {
     onEdit(data.message);
     setEditing(false);
     setShowMenu(false);
-
     toast.success("Message updated");
   } catch (err) {
     toast.error("Failed");
