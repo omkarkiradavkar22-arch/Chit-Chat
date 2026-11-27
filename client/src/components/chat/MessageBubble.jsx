@@ -1410,7 +1410,6 @@ const handleReaction = async (emoji) => {
 
 const renderMessageText = (text) => {
   if (!text) return null;
-
   // URL + Phone Number
   const regex =
     /(https?:\/\/[^\s]+|www\.[^\s]+|(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(?:\/[^\s]*)?|\+?\d[\d\s-]{8,}\d)/gi;
