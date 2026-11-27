@@ -1369,7 +1369,6 @@ const [showMoreEmojis, setShowMoreEmojis] = useState(false);
 const [showForward, setShowForward] = useState(false);
 const [fullImage, setFullImage] = useState(null);
 const [fullImageIndex, setFullImageIndex] = useState(0);
-
 const imageSwipeStartXRef = useRef(null);
 const imageSwipeStartYRef = useRef(null);
 useEffect(() => {
