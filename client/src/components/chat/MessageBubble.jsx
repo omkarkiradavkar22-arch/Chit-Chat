@@ -1386,7 +1386,6 @@ useEffect(() => {
     "pointerdown",
     handleOutsideReactionTap
   );
-
   return () => {
     document.removeEventListener(
       "pointerdown",
