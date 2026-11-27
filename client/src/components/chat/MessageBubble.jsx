@@ -1401,7 +1401,7 @@ const handleReaction = async (emoji) => {
       { emoji }
     );
 
-onReaction(data.message);
+    onReaction(data.message);
     setShowEmoji(false);
     
 
