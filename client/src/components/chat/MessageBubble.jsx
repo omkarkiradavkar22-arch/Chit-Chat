@@ -1373,7 +1373,6 @@ const imageSwipeStartXRef = useRef(null);
 const imageSwipeStartYRef = useRef(null);
 useEffect(() => {
   if (!showEmoji) return;
-
   const handleOutsideReactionTap = (event) => {
    if (
   reactionBarRef.current &&
