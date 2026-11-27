@@ -1382,7 +1382,6 @@ useEffect(() => {
   setShowMoreEmojis(false);
 }
   };
-
   document.addEventListener(
     "pointerdown",
     handleOutsideReactionTap
