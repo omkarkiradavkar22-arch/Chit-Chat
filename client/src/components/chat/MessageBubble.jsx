@@ -1400,7 +1400,6 @@ const handleReaction = async (emoji) => {
       `/messages/${message._id}/react`,
       { emoji }
     );
-
     onReaction(data.message);
     setShowEmoji(false);
     toast.success("Reaction added");
