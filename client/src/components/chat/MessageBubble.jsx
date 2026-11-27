@@ -1403,8 +1403,6 @@ const handleReaction = async (emoji) => {
 
     onReaction(data.message);
     setShowEmoji(false);
-    
-
     toast.success("Reaction added");
   } catch (err) {
     toast.error("Failed");
