@@ -1361,7 +1361,6 @@ const handleEdit = async () => {
 
 const handleCopy = async () => {
   await navigator.clipboard.writeText(message.text);
-
   toast.success("Copied");
 };
 
